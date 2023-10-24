@@ -1,5 +1,6 @@
 import * as path from 'node:path';
 import { app, BrowserWindow, Menu } from 'electron';
+import { setAppEvents } from './events';
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string;
 declare const MAIN_WINDOW_VITE_NAME: string;
@@ -49,13 +50,21 @@ function createWindow() {
         mainWindow.loadFile(file);
     }
 
+    setAppEvents();
+
     mainWindow.once('ready-to-show', () => {
         mainWindow.show();
     });
 }
 
-app.on('window-all-closed', () => app.quit());
+app.on('window-all-closed', () => {
+    if (process.platform !== 'darwin') app.quit();
+});
 
 app.whenReady().then(() => {
     createWindow();
+
+    app.on('activate', () => {
+        if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    });
 });
