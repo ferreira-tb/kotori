@@ -24,7 +24,7 @@
 		"*.{?(c|m)(j|t)s,css,vue,md,json}": "prettier --write"
 	},
 	"dependencies": {
-		"@sequelize/core": "^7.0.0-alpha.33",
+		"@sequelize/core": "^7.0.0-alpha.333",
 		"sqlite3": "^5.1.6"
 	},
 	"devDependencies": {
