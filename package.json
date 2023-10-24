@@ -10,7 +10,6 @@
 	},
 	"license": "MIT",
 	"private": true,
-	"type": "module",
 	"main": ".vite/build/index.js",
 	"scripts": {
 		"make": "electron-forge make",
