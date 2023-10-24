@@ -5,11 +5,11 @@ import { sequelize } from '@/database';
 import App from '@/App.vue';
 
 sequelize.sync().then(async () => {
-    const app = createApp(App);
+	const app = createApp(App);
 
-    // Plugins.
-    app.use(router);
+	// Plugins.
+	app.use(router);
 
-    await router.push('/');
-    app.mount('#app');
+	await router.push('/');
+	app.mount('#app');
 });

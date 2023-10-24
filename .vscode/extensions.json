@@ -1,10 +1,11 @@
 {
-    "recommendations": [
-        "vivaxy.vscode-conventional-commits",
-        "github.vscode-github-actions",
-        "github.vscode-pull-request-github",
-        "bradlc.vscode-tailwindcss",
-        "vscode-icons-team.vscode-icons",
-        "vue.volar"
-    ]
+	"recommendations": [
+		"vivaxy.vscode-conventional-commits",
+		"github.vscode-github-actions",
+		"github.vscode-pull-request-github",
+		"bradlc.vscode-tailwindcss",
+		"vscode-icons-team.vscode-icons",
+		"vue.volar",
+		"esbenp.prettier-vscode"
+	]
 }
