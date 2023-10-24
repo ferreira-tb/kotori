@@ -1,0 +1,20 @@
+{
+    "vsicons.associations.files": [
+        {
+            "icon": "vite",
+            "extensions": ["vite.main.config.ts", "vite.renderer.config.ts"],
+            "filename": true,
+            "format": "svg"
+        }
+    ],
+    "vsicons.associations.folders": [
+        { "icon": "electron", "extensions": ["main"], "format": "svg" },
+        { "icon": "src", "extensions": ["renderer"], "format": "svg" },
+        { "icon": "story", "extensions": ["store", "stores"], "format": "svg" },
+        { "icon": "theme", "extensions": ["composables"], "format": "svg" }
+    ],
+    "conventionalCommits.promptScopes": false,
+    "files.exclude": {
+        "out": true
+    }
+}

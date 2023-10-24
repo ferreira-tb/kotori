@@ -1,0 +1,48 @@
+@charset "utf-8";
+@tailwind utilities;
+
+:root {
+    --color-background: #181818;
+    --color-background-soft: #222222;
+    --color-background-mute: #282828;
+
+    --color-border: rgba(84, 84, 84, 0.48);
+    --color-border-hover: rgba(84, 84, 84, 0.65);
+
+    --color-text: rgba(235, 235, 235, 0.64);
+
+    --color-green: #00bd7e;
+    --color-green-darker: #01a16c;
+    --color-green-lighter: #00d68f;
+
+    --color-red: #e61001;
+    --color-red-darker: #c50e01;
+    --color-red-lighter: #f00f00;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    font-weight: normal;
+}
+
+body {
+    color: var(--color-text);
+    background: var(--color-background);
+    font-size: 15px;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.3s ease;
+}
+
+.fade-enter-from, .fade-leave-to {
+    opacity: 0;
+}
