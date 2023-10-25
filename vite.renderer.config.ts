@@ -14,7 +14,10 @@ export default defineConfig({
 	build: {
 		target: 'esnext',
 		chunkSizeWarningLimit: 5000,
-		minify: false,
+
+		// https://sequelize.org/docs/v7/models/advanced/#caveat-with-minification
+		minify: true,
+
 		commonjsOptions: {
 			ignoreDynamicRequires: true,
 			strictRequires: 'auto',
