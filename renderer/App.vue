@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router';
-import TheMainMenu from '@/components/TheMainMenu.vue';
+import HeaderMenu from '@/components/HeaderMenu.vue';
 </script>
 
 <template>
 	<main class="fixed inset-2">
-		<div>
-			<TheMainMenu />
-		</div>
-		<div class="w-full">
+		<header class="w-full">
+			<HeaderMenu />
+		</header>
+		<div class="h-full w-full">
 			<RouterView #default="{ Component }">
 				<template v-if="Component">
 					<Transition name="fade" mode="out-in">

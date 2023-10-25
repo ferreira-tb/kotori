@@ -1,5 +1,5 @@
 import { createRouter, createMemoryHistory } from 'vue-router';
-import HomeView from '@/views/HomeView.vue';
+import LibraryView from '@/views/LibraryView.vue';
 
 export const router = createRouter({
 	history: createMemoryHistory(),
@@ -7,7 +7,7 @@ export const router = createRouter({
 		{
 			path: '/',
 			name: 'home',
-			component: HomeView
+			component: LibraryView
 		}
 	]
 });
