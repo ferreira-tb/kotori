@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { ResponsePostVisualNovel } from 'vndb-query';
+import type { VisualNovel } from '@/database';
 
 defineProps<{
-	work: ResponsePostVisualNovel;
+	novel: VisualNovel;
 }>();
 </script>
 
 <template>
-	<img :src="work.image!.url!" />
+	<img :src="novel.image!.url" />
 </template>

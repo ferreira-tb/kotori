@@ -5,7 +5,6 @@ import {
 	Default,
 	DeletedAt,
 	NotNull,
-	PrimaryKey,
 	Table
 } from '@sequelize/core/decorators-legacy';
 import type {
@@ -28,10 +27,6 @@ export abstract class BaseModel<T extends Model = Model> extends Model<
 
 @Table.Abstract({ timestamps: true })
 export abstract class BaseImage<T extends Model = Model> extends BaseModel<T> {
-	@Attribute(DataTypes.TEXT)
-	@PrimaryKey
-	public declare readonly id: string;
-
 	@Attribute(DataTypes.BLOB)
 	public declare readonly blob: CreationOptional<Blob | null>;
 
@@ -39,18 +34,18 @@ export abstract class BaseImage<T extends Model = Model> extends BaseModel<T> {
 	@NotNull
 	public declare readonly dims: [number, number];
 
-	@Attribute(DataTypes.INTEGER)
+	@Attribute(DataTypes.FLOAT)
 	@NotNull
-	public declare readonly sexual: 0 | 1 | 2;
+	public declare readonly sexual: number;
 
 	@Attribute(DataTypes.TEXT)
 	@IsUrl
 	@NotNull
 	public declare readonly url: string;
 
-	@Attribute(DataTypes.INTEGER)
+	@Attribute(DataTypes.FLOAT)
 	@NotNull
-	public declare readonly violence: 0 | 1 | 2;
+	public declare readonly violence: number;
 
 	@Attribute(DataTypes.INTEGER)
 	@Default(0)

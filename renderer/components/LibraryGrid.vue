@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import type { ResponsePostVisualNovel } from 'vndb-query';
 import LibraryGridItem from '@/components/LibraryGridItem.vue';
+import type { VisualNovel } from '@/database';
 
 defineProps<{
-	works: ResponsePostVisualNovel[];
+	novels: VisualNovel[];
 }>();
 </script>
 
 <template>
 	<div class="grid grid-cols-6 p-1">
-		<LibraryGridItem v-for="work of works" :key="work.id" :work="work" />
+		<LibraryGridItem
+			v-for="novel of novels"
+			:key="novel.id"
+			:novel="novel"
+		/>
 	</div>
 </template>
