@@ -7,5 +7,7 @@ defineProps<{
 </script>
 
 <template>
-	<img :src="novel.image!.url" />
+	<div>
+		<img :src="novel.image!.url" class="h-96 w-48 object-cover" />
+	</div>
 </template>

@@ -12,7 +12,7 @@ const vndb = new VNDB();
 const { novels } = useVisualNovels();
 
 const schema = z.object({
-	id: z.string().regex(VNDB.regex.endpoint.vn),
+	id: z.string().regex(VNDB.regex.id.vn),
 	title: z.string(),
 	alttitle: z.string(),
 	olang: z.string(),

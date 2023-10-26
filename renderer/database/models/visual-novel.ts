@@ -39,7 +39,7 @@ import {
 @Table({ modelName: 'VisualNovel' })
 export class VisualNovel extends BaseModel<VisualNovel> {
 	@Attribute(DataTypes.TEXT)
-	@Is(VNDB.regex.endpoint.vn)
+	@Is(VNDB.regex.id.vn)
 	@PrimaryKey
 	public declare readonly id: string;
 
@@ -166,12 +166,12 @@ export class VisualNovel extends BaseModel<VisualNovel> {
 @Table({ modelName: 'VisualNovelImage' })
 export class VisualNovelImage extends BaseImage<VisualNovelImage> {
 	@Attribute(DataTypes.TEXT)
-	@Is(VNDB.regex.image.vn)
+	@Is(VNDB.regex.id.image.vn)
 	@PrimaryKey
 	public declare readonly id: string;
 
 	@Attribute(DataTypes.TEXT)
-	@Is(VNDB.regex.endpoint.vn)
+	@Is(VNDB.regex.id.vn)
 	@NotNull
 	@Unique
 	public declare readonly visualNovelId: string;
@@ -193,12 +193,12 @@ export class VisualNovelImage extends BaseImage<VisualNovelImage> {
 @Table({ modelName: 'VisualNovelScreenshot' })
 export class VisualNovelScreenshot extends BaseImage<VisualNovelScreenshot> {
 	@Attribute(DataTypes.TEXT)
-	@Is(VNDB.regex.image.screenshot)
+	@Is(VNDB.regex.id.image.screenshot)
 	@PrimaryKey
 	public declare readonly id: string;
 
 	@Attribute(DataTypes.TEXT)
-	@Is(VNDB.regex.endpoint.vn)
+	@Is(VNDB.regex.id.vn)
 	@NotNull
 	public declare readonly visualNovelId: string;
 
