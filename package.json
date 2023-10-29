@@ -45,7 +45,7 @@
 		"prettier": "^3.0.3",
 		"prettier-plugin-tailwindcss": "^0.5.6",
 		"tailwindcss": "^3.3.5",
-		"taze": "^0.11.4",
+		"taze": "^0.12.0",
 		"tslib": "^2.6.2",
 		"typescript": "^5.2.2",
 		"vite": "^4.5.0",
