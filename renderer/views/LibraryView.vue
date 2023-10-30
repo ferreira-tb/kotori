@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { z } from 'zod';
-import { triggerRef } from 'vue';
-import { VNDB } from 'vndb-query';
-import LibraryMenu from '@/components/LibraryMenu.vue';
 import LibraryGrid from '@/components/LibraryGrid.vue';
+import LibraryMenu from '@/components/LibraryMenu.vue';
 import LibraryMessageEmpty from '@/components/LibraryMessageEmpty.vue';
 import { useVisualNovels } from '@/composables';
 import { VisualNovel, VisualNovelImage } from '@/database';
+import { VNDB } from 'vndb-query';
+import { triggerRef } from 'vue';
+import { z } from 'zod';
 
 const vndb = new VNDB();
 const { novels } = useVisualNovels();
@@ -28,11 +28,8 @@ const schema = z.object({
 });
 
 async function fetchWorks(title: string) {
-	// TEST
-	if (novels.value.length > 0) return;
-
 	let { results } = await vndb.search('vn', title, {
-		results: 5,
+		results: 50,
 		fields: [
 			'title',
 			'alttitle',
@@ -48,7 +45,7 @@ async function fetchWorks(title: string) {
 	});
 
 	results = results.filter((value) => {
-		return novels.value.every(({ id }) => id !== value.id);
+		return novels.value.every(({ id }) => id !== value.id.trim());
 	});
 
 	const models = await VisualNovel.sequelize.transaction(async () => {
@@ -70,11 +67,33 @@ async function fetchWorks(title: string) {
 </script>
 
 <template>
-	<div class="flex h-full w-full flex-col">
-		<LibraryMenu @search="fetchWorks" />
-		<div class="flex h-full w-full items-center justify-center">
+	<div class="kt-library">
+		<LibraryMenu class="kt-library-header" @search="fetchWorks" />
+		<div class="kt-library-content">
 			<LibraryMessageEmpty v-if="novels.length === 0" />
 			<LibraryGrid v-else :novels="novels" />
 		</div>
 	</div>
 </template>
+
+<style scoped>
+.kt-library {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.kt-library-header {
+	height: 2rem;
+}
+
+.kt-library-content {
+	width: 100%;
+	height: calc(100% - 2rem);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+</style>

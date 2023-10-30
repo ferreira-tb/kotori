@@ -5,7 +5,7 @@ const emit = defineEmits<{
 
 function search(e: Event) {
 	const value = (e.currentTarget as HTMLInputElement | null)?.value;
-	if (typeof value === 'string') emit('search', value);
+	if (typeof value === 'string' && value.length > 0) emit('search', value);
 }
 </script>
 

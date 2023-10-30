@@ -82,9 +82,7 @@ app.whenReady().then(() => {
 		}
 	});
 
-	const contextMenu = Menu.buildFromTemplate([
-		{ label: 'Quit', role: 'quit' }
-	]);
+	const contextMenu = Menu.buildFromTemplate([{ label: 'Quit', role: 'quit' }]);
 
 	const tray = new Tray(nativeImage.createFromPath(icon));
 	tray.setToolTip('Kotori');

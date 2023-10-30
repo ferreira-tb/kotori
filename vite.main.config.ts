@@ -12,11 +12,7 @@ export default defineConfig({
 		chunkSizeWarningLimit: 5000,
 		minify: true,
 		rollupOptions: {
-			external: [
-				'electron',
-				...builtin,
-				...builtin.map((m) => `node:${m}`)
-			],
+			external: ['electron', ...builtin, ...builtin.map((m) => `node:${m}`)],
 			input: 'main/index.ts',
 			output: {
 				format: 'cjs',

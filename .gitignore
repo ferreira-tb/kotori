@@ -33,3 +33,4 @@ coverage
 out
 *.env
 config.json
+memo.md

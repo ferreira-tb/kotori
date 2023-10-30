@@ -1,11 +1,13 @@
 @charset "utf-8";
 @tailwind utilities;
 
+/** COLOR */
 :root {
 	--kt-color-text: rgba(235, 235, 235, 0.64);
 	--kt-color-background: #181818;
 }
 
+/** TYPOGRAPHY */
 :root {
 	--kt-font-size: 15px;
 }
@@ -22,6 +24,7 @@ body {
 	color: var(--kt-color-text);
 	background: var(--kt-color-background);
 	font-size: var(--kt-font-size);
+	overflow: hidden;
 }
 
 a {

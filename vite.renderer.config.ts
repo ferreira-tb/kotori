@@ -3,9 +3,10 @@ import { builtinModules as builtin } from 'node:module';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import renderer from 'vite-plugin-electron-renderer';
+import devTools from 'vite-plugin-vue-devtools';
 
 export default defineConfig({
-	plugins: [vue(), renderer()],
+	plugins: [devTools(), vue(), renderer()],
 	resolve: {
 		alias: {
 			'@': fileURLToPath(new URL('./renderer', import.meta.url))

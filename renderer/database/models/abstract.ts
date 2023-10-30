@@ -28,7 +28,7 @@ export abstract class BaseModel<T extends Model = Model> extends Model<
 @Table.Abstract({ timestamps: true })
 export abstract class BaseImage<T extends Model = Model> extends BaseModel<T> {
 	@Attribute(DataTypes.BLOB)
-	public declare readonly blob: CreationOptional<Blob | null>;
+	public declare readonly file: CreationOptional<ArrayBuffer | null>;
 
 	@Attribute(DataTypes.JSON)
 	@NotNull
