@@ -19,6 +19,8 @@ const { novels } = useVisualNovels();
 
 <style scoped>
 .kt-library {
+	--kt-library-header-height: 2rem;
+
 	width: 100%;
 	height: 100%;
 	display: flex;
@@ -27,12 +29,12 @@ const { novels } = useVisualNovels();
 }
 
 .kt-library-header {
-	height: 2rem;
+	height: var(--kt-library-header-height);
 }
 
 .kt-library-content {
 	width: 100%;
-	height: calc(100% - 2rem);
+	height: calc(100% - var(--kt-library-header-height));
 	display: flex;
 	align-items: center;
 	justify-content: center;

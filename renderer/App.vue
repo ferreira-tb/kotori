@@ -24,6 +24,8 @@ import HeaderMenu from '@/components/HeaderMenu.vue';
 
 <style scoped>
 .kt-main {
+	--kt-header-height: 2rem;
+
 	display: flex;
 	flex-direction: column;
 	height: 100vh;
@@ -33,11 +35,11 @@ import HeaderMenu from '@/components/HeaderMenu.vue';
 .kt-main > header {
 	flex-shrink: 0;
 	flex-grow: 0;
-	height: 2rem;
+	height: var(--kt-header-height);
 }
 
 .kt-main > div {
-	height: calc(100% - 2rem);
+	height: calc(100% - var(--kt-header-height));
 	width: 100%;
 	overflow: hidden;
 }

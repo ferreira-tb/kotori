@@ -18,9 +18,9 @@ defineProps<{
 	width: 100%;
 	height: 100%;
 	display: grid;
-	grid-template-columns: repeat(auto-fill, 11rem);
+	grid-template-columns: repeat(auto-fill, var(--kt-library-grid-item-width));
 	justify-content: center;
-	gap: 0.5rem;
+	gap: var(--kt-library-grid-gap);
 	overflow-x: hidden;
 	overflow-y: auto;
 }

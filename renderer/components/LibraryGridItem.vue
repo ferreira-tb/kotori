@@ -15,14 +15,14 @@ const url = computed(() => `url("${props.novel.image!.url}")`);
 
 <style scoped>
 .kt-library-grid-item {
-	width: 11rem;
-	height: 14rem;
+	width: var(--kt-library-grid-item-width);
+	height: var(--kt-library-grid-item-height);
 	overflow: hidden;
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-image: v-bind('url');
 	background-position: center;
-	border-radius: 0.25rem;
+	border-radius: var(--kt-library-grid-item-border-radius);
 	cursor: pointer;
 }
 
