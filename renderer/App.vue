@@ -5,10 +5,10 @@ import HeaderMenu from '@/components/HeaderMenu.vue';
 
 <template>
 	<main class="kt-main">
-		<header>
+		<header class="kt-main-header">
 			<HeaderMenu />
 		</header>
-		<div>
+		<div class="kt-main-content">
 			<RouterView #default="{ Component }">
 				<template v-if="Component">
 					<Transition name="fade" mode="out-in">
@@ -26,21 +26,21 @@ import HeaderMenu from '@/components/HeaderMenu.vue';
 .kt-main {
 	--kt-header-height: 2rem;
 
-	display: flex;
-	flex-direction: column;
 	height: 100vh;
 	width: 100vw;
+	display: flex;
+	flex-direction: column;
 }
 
-.kt-main > header {
+.kt-main-header {
+	height: var(--kt-header-height);
 	flex-shrink: 0;
 	flex-grow: 0;
-	height: var(--kt-header-height);
 }
 
-.kt-main > div {
-	height: calc(100% - var(--kt-header-height));
+.kt-main-content {
 	width: 100%;
+	height: calc(100% - var(--kt-header-height));
 	overflow: hidden;
 }
 </style>
