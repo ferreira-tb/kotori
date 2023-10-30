@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import LibraryGrid from '@/components/LibraryGrid.vue';
 import LibraryMenu from '@/components/LibraryMenu.vue';
-import LibraryMessageEmpty from '@/components/LibraryMessageEmpty.vue';
+import LibraryEmpty from '@/components/LibraryEmpty.vue';
 import { useVisualNovels } from '@/composables';
 
 const { novels } = useVisualNovels();
@@ -11,7 +11,7 @@ const { novels } = useVisualNovels();
 	<div class="kt-library">
 		<LibraryMenu class="kt-library-header" />
 		<div class="kt-library-content">
-			<LibraryMessageEmpty v-if="novels.length === 0" />
+			<LibraryEmpty v-if="novels.length === 0" />
 			<LibraryGrid v-else :novels="novels" />
 		</div>
 	</div>

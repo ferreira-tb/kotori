@@ -1,6 +1,14 @@
 import { VisualNovel, VisualNovelImage } from '@/database';
-import { readonly, ref, shallowRef } from 'vue';
+import {
+	readonly,
+	ref,
+	shallowRef,
+	toRef,
+	watchEffect,
+	type MaybeRefOrGetter
+} from 'vue';
 import { RendererProcessError } from '@/utils/error';
+import { getVisualNovelById } from '@/utils/query';
 
 function cache() {
 	const novels = shallowRef<VisualNovel[]>([]);
@@ -31,3 +39,33 @@ function cache() {
 }
 
 export const useVisualNovels = cache();
+
+export function useVisualNovel(id: MaybeRefOrGetter<Nullish<string>>) {
+	const vndbid = toRef(id);
+	const novel = shallowRef<VisualNovel | null>(null);
+	const isLoading = ref(false);
+
+	watchEffect(async () => {
+		if (!vndbid.value) {
+			novel.value = null;
+			isLoading.value = false;
+			return;
+		}
+
+		try {
+			novel.value = null;
+			isLoading.value = true;
+			novel.value = await getVisualNovelById(vndbid.value);
+		} catch (err) {
+			novel.value = null;
+			RendererProcessError.catch(err);
+		} finally {
+			isLoading.value = false;
+		}
+	});
+
+	return {
+		novel,
+		isLoading: readonly(isLoading)
+	};
+}

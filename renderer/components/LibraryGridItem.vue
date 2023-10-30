@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+import { router } from '@/router';
 import type { VisualNovel } from '@/database';
 
 const props = defineProps<{
@@ -7,10 +8,14 @@ const props = defineProps<{
 }>();
 
 const url = computed(() => `url("${props.novel.image!.url}")`);
+
+function onClick() {
+	router.push({ name: 'vn', params: { id: props.novel.id } });
+}
 </script>
 
 <template>
-	<div class="kt-library-grid-item"></div>
+	<div class="kt-library-grid-item" @click="onClick"></div>
 </template>
 
 <style scoped>

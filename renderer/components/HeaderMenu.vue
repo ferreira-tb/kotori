@@ -1,7 +1,17 @@
 <script setup lang="ts"></script>
 
 <template>
-	<nav class="flex select-none items-center justify-start gap-8 p-1">
-		<div>Home</div>
-	</nav>
+	<nav class="kt-header-menu" @click="$router.push({ name: 'home' })">Home</nav>
 </template>
+
+<style scoped>
+.kt-header-menu {
+	display: flex;
+	user-select: none;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	padding: 1px;
+	cursor: pointer;
+}
+</style>
