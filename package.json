@@ -34,7 +34,7 @@
 		"@electron/asar": "^3.2.8",
 		"@sequelize/validator.js": "^7.0.0-alpha.33",
 		"@types/node": "^20.9.0",
-		"@vitejs/plugin-vue": "^4.4.0",
+		"@vitejs/plugin-vue": "^4.4.1",
 		"@vueuse/core": "^10.6.0",
 		"@vueuse/electron": "^10.5.0",
 		"autoprefixer": "^10.4.16",
