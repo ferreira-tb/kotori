@@ -35,7 +35,7 @@
 		"@sequelize/validator.js": "^7.0.0-alpha.33",
 		"@types/node": "^20.9.0",
 		"@vitejs/plugin-vue": "^4.4.1",
-		"@vueuse/core": "^10.6.0",
+		"@vueuse/core": "^10.6.1",
 		"@vueuse/electron": "^10.6.1",
 		"autoprefixer": "^10.4.16",
 		"electron": "^27.0.4",
