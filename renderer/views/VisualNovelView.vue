@@ -12,8 +12,8 @@ const { novel } = useVisualNovel(id);
 </script>
 
 <template>
-	<div>
-		<div>User {{ $route.params.id }}</div>
-		<div>{{ novel?.title }}</div>
-	</div>
+    <div>
+        <div>User {{ $route.params.id }}</div>
+        <div>{{ novel?.title }}</div>
+    </div>
 </template>

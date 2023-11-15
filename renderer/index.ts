@@ -6,15 +6,15 @@ import { RendererProcessError } from '@/utils/error';
 import App from '@/App.vue';
 
 sequelize.sync().then(async () => {
-	const app = createApp(App);
+    const app = createApp(App);
 
-	// Plugins.
-	app.use(router);
+    // Plugins.
+    app.use(router);
 
-	app.config.errorHandler = (err) => {
-		RendererProcessError.catch(err);
-	};
+    app.config.errorHandler = (err) => {
+        RendererProcessError.catch(err);
+    };
 
-	await router.push('/');
-	app.mount('#app');
+    await router.push('/');
+    app.mount('#app');
 });

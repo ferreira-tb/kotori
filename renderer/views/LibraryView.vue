@@ -8,35 +8,35 @@ const { novels } = useVisualNovels();
 </script>
 
 <template>
-	<div class="kt-library">
-		<LibraryMenu class="kt-library-header" />
-		<div class="kt-library-content">
-			<LibraryEmpty v-if="novels.length === 0" />
-			<LibraryGrid v-else :novels="novels" />
-		</div>
-	</div>
+    <div class="kt-library">
+        <LibraryMenu class="kt-library-header" />
+        <div class="kt-library-content">
+            <LibraryEmpty v-if="novels.length === 0" />
+            <LibraryGrid v-else :novels="novels" />
+        </div>
+    </div>
 </template>
 
 <style scoped>
 .kt-library {
-	--kt-library-header-height: 2rem;
+    --kt-library-header-height: 2rem;
 
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .kt-library-header {
-	height: var(--kt-library-header-height);
+    height: var(--kt-library-header-height);
 }
 
 .kt-library-content {
-	width: 100%;
-	height: calc(100% - var(--kt-library-header-height));
-	display: flex;
-	align-items: center;
-	justify-content: center;
+    width: 100%;
+    height: calc(100% - var(--kt-library-header-height));
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 </style>
