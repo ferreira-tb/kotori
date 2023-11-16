@@ -1,4 +1,6 @@
 import { VisualNovel, VisualNovelImage } from '@/database';
+import { RendererProcessError } from '@/utils/error';
+import { getVisualNovelById } from '@/utils/query';
 import {
     readonly,
     ref,
@@ -7,8 +9,6 @@ import {
     watchEffect,
     type MaybeRefOrGetter
 } from 'vue';
-import { RendererProcessError } from '@/utils/error';
-import { getVisualNovelById } from '@/utils/query';
 
 function cache() {
     const novels = shallowRef<VisualNovel[]>([]);
