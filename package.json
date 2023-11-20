@@ -29,7 +29,7 @@
     },
     "devDependencies": {
         "@electron-forge/cli": "^7.0.0",
-        "@electron-forge/maker-zip": "^7.0.0",
+        "@electron-forge/maker-zip": "^7.1.0",
         "@electron-forge/plugin-vite": "^7.0.0",
         "@electron/asar": "^3.2.8",
         "@sequelize/validator.js": "^7.0.0-alpha.33",
