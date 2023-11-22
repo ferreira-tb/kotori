@@ -33,7 +33,7 @@
         "@electron-forge/plugin-vite": "^7.1.0",
         "@electron/asar": "^3.2.8",
         "@sequelize/validator.js": "^7.0.0-alpha.33",
-        "@types/node": "^20.9.2",
+        "@types/node": "^20.9.4",
         "@vitejs/plugin-vue": "^4.5.0",
         "@vueuse/core": "^10.6.1",
         "@vueuse/electron": "^10.6.1",
