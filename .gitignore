@@ -13,10 +13,9 @@ dist
 dist-ssr
 coverage
 *.local
+.temp
 .vite
-
-/cypress/videos/
-/cypress/screenshots/
+.eslintcache
 
 # Editor directories and files
 .vscode/*
@@ -30,7 +29,4 @@ coverage
 *.sln
 *.sw?
 
-out
-*.env
 config.json
-memo.md

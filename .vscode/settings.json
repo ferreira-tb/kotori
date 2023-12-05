@@ -1,32 +1,7 @@
 {
-    "vsicons.associations.files": [
-        {
-            "icon": "tailwind",
-            "extensions": ["tailwind.config.mjs"],
-            "filename": true,
-            "format": "svg"
-        },
-        {
-            "icon": "vite",
-            "extensions": ["vite.main.config.ts", "vite.renderer.config.ts"],
-            "filename": true,
-            "format": "svg"
-        }
-    ],
-    "vsicons.associations.folders": [
-        { "icon": "electron", "extensions": ["main"], "format": "svg" },
-        { "icon": "src", "extensions": ["renderer"], "format": "svg" },
-        { "icon": "story", "extensions": ["store", "stores"], "format": "svg" },
-        { "icon": "theme", "extensions": ["composables"], "format": "svg" }
-    ],
-    "conventionalCommits.promptScopes": false,
-    "files.exclude": {
-        ".vite": true,
-        "out": true
-    },
-    "prettier.requireConfig": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "[vue]": {
-        "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+  "prettier.requireConfig": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
