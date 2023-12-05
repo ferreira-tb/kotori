@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 
-export default defineConfig(() => ({
+export default defineConfig({
   plugins: [vue()],
   clearScreen: false,
   server: {
@@ -22,4 +22,4 @@ export default defineConfig(() => ({
     minify: !process.env.TAURI_DEBUG,
     sourcemap: Boolean(process.env.TAURI_DEBUG)
   }
-}));
+});
