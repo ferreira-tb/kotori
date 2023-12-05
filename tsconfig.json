@@ -1,7 +1,7 @@
 {
   "include": ["renderer/**/*", "renderer/**/*.vue"],
   "compilerOptions": {
-    "rootDir": "./src",
+    "rootDir": "./renderer",
     "baseUrl": "src",
     "target": "esnext",
     "lib": ["esnext", "dom"],
@@ -12,7 +12,9 @@
     "removeComments": false,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
+    "jsx": "preserve",
     "declaration": false,
+    "declarationMap": false,
 
     "alwaysStrict": true,
     "noImplicitAny": true,
