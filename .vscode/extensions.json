@@ -9,6 +9,7 @@
     "vue.vscode-typescript-vue-plugin",
     "vue.volar",
     "vscode-icons-team.vscode-icons",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "tauri-apps.tauri-vscode"
   ]
 }

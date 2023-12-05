@@ -17,16 +17,25 @@
     "*.{?(c|m)@(j|t)s,vue}": "pnpm lint"
   },
   "scripts": {
+    "build": "pnpm type-check && vite build",
     "deps": "pnpm exec taze -f -w",
+    "dev": "vite",
     "format": "pnpm exec prettier . --write",
     "format-check": "pnpm exec prettier . --check",
     "lint": "eslint . --config eslint.config.js --cache",
     "prepare": "husky install",
-    "type-check": "tsc --noEmit"
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.5.1"
   },
   "devDependencies": {
     "@octokit/core": "^5.0.2",
+    "@tauri-apps/cli": "^1.5.7",
     "@tb-dev/eslint-config": "^1.4.3",
+    "@types/node": "^20.10.3",
     "@vitejs/plugin-vue": "^4.5.1",
     "@vitest/ui": "^1.0.1",
     "@vueuse/core": "^10.6.1",
