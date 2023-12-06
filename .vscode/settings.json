@@ -1,4 +1,9 @@
 {
+  "vsicons.associations.folders": [
+    { "icon": "src", "extensions": ["renderer"], "format": "svg" },
+    { "icon": "story", "extensions": ["store", "stores"], "format": "svg" },
+    { "icon": "theme", "extensions": ["composables"], "format": "svg" }
+  ],
   "prettier.requireConfig": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[vue]": {
