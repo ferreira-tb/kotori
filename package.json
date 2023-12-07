@@ -48,7 +48,7 @@
     "prettier": "^3.1.0",
     "taze": "^0.13.0",
     "tslib": "^2.6.2",
-    "typescript": "^5.3.2",
+    "typescript": "^5.3.3",
     "vite": "^5.0.6",
     "vite-plugin-vue-devtools": "1.0.0-rc.7",
     "vitest": "^1.0.1",
