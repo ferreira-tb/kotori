@@ -17,8 +17,8 @@ devDependencies:
     specifier: ^1.5.7
     version: 1.5.7
   '@tb-dev/eslint-config':
-    specifier: ^1.4.3
-    version: 1.4.3(eslint@8.55.0)(typescript@5.3.3)
+    specifier: ^1.4.4
+    version: 1.4.4(eslint@8.55.0)(typescript@5.3.3)
   '@types/node':
     specifier: ^20.10.4
     version: 20.10.4
@@ -1192,8 +1192,8 @@ packages:
       '@tauri-apps/cli-win32-x64-msvc': 1.5.7
     dev: true
 
-  /@tb-dev/eslint-config@1.4.3(eslint@8.55.0)(typescript@5.3.3):
-    resolution: {integrity: sha512-Em9gqhYZVF78X4EOQZYWUspEqMlwWTvaMFVrWWansD0OU9/qM15+c44i1XhHU2OfJkBoZPrcMr41cx6nnYwKMQ==}
+  /@tb-dev/eslint-config@1.4.4(eslint@8.55.0)(typescript@5.3.3):
+    resolution: {integrity: sha512-5dTkgafNjONQmtlUWUAGWKVEV/KGTwVTBPXbLifu3lZ42Kl+bcL6EkqemwNOqUh3ez6+LGsWw1qxZSo/hOQhhg==}
     peerDependencies:
       eslint: ^8.0.0
     dependencies:
