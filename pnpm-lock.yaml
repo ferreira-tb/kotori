@@ -41,8 +41,8 @@ devDependencies:
     specifier: ^15.2.0
     version: 15.2.0
   miho:
-    specifier: ^2.2.0
-    version: 2.2.0
+    specifier: ^2.2.1
+    version: 2.2.1
   npm-run-all2:
     specifier: ^6.1.1
     version: 6.1.1
@@ -3408,8 +3408,8 @@ packages:
       picomatch: 2.3.1
     dev: true
 
-  /miho@2.2.0:
-    resolution: {integrity: sha512-pS9HJ7qMKNoxDgw6Rn8Z9sXXkUlTRwLmout3djYDheD0CntSKwXXyEwr2MMUcbfLIvTTm+tq1jUdR5iiWkt2cw==}
+  /miho@2.2.1:
+    resolution: {integrity: sha512-t4QnJFvJOr+y44DAixVPQdTWpBePDljG7KRZx3fQH70hvNTWdJzCj2LXKUcRW5bZbNHCAa1/n8zw9Aslcr2M0g==}
     hasBin: true
     dependencies:
       c12: 1.5.1
