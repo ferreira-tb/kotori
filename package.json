@@ -29,7 +29,7 @@
     "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
-    "@tauri-apps/api": "^1.5.1"
+    "@tauri-apps/api": "^1.5.2"
   },
   "devDependencies": {
     "@octokit/core": "^5.0.2",
