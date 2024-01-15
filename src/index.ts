@@ -8,7 +8,7 @@ import { router } from './router';
 
 const app = createApp(App);
 const pinia = createPinia();
-const manatsu = createManatsu();
+const manatsu = createManatsu({ darkMode: true });
 
 app.use(router);
 app.use(pinia);
