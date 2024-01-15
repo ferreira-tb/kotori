@@ -4,6 +4,8 @@ import { MScaffold } from 'manatsu';
 
 <template>
   <MScaffold>
+    <template #header></template>
+
     <RouterView #default="{ Component }">
       <template v-if="Component">
         <Transition mode="out-in">

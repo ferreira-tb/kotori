@@ -14,12 +14,14 @@ features = []
 [dependencies]
 serde_json = "1.0"
 tauri-plugin-manatsu = "*"
+tauri-plugin-persisted-scope = "0.1"
+tauri-plugin-window-state = "0.1"
 thiserror = "1.0"
 zip = "0.6"
 
 [dependencies.tauri]
 version = "1.5"
-features = []
+features = ["path-all", "dialog-open"]
 
 [dependencies.serde]
 version = "1.0"

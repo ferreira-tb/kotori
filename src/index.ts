@@ -19,6 +19,3 @@ router
   .then(() => router.isReady())
   .then(() => app.mount('#app'))
   .catch((err: unknown) => console.error(err));
-
-// When Tauri v2 is released, we should create a custom context menu.
-globalThis.addEventListener('contextmenu', (e) => e.preventDefault());

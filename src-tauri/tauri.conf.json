@@ -12,7 +12,13 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false
+      "all": false,
+      "dialog": {
+        "open": true
+      },
+      "path": {
+        "all": true
+      }
     },
     "bundle": {
       "active": true,
@@ -34,11 +40,13 @@
     },
     "windows": [
       {
-        "fullscreen": false,
-        "resizable": true,
+        "label": "main",
         "title": "Kotori",
         "width": 800,
-        "height": 600
+        "height": 600,
+        "visible": false,
+        "fullscreen": false,
+        "resizable": true
       }
     ]
   }
