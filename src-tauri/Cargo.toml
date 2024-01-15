@@ -1,23 +1,27 @@
 [package]
 name = "kotori"
 version = "0.1.0"
-description = "Multiplatform manga reader"
-authors = ["Andrew Ferreira <andrew.shien2@gmail.com>"]
-license = "MIT"
-repository = "https://github.com/ferreira-tb/kotori"
-edition = "2021"
+description.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-[build-dependencies]
-tauri-build = { version = "1.5", features = [] }
+[build-dependencies.tauri-build]
+version = "1.5"
+features = []
 
 [dependencies]
-tauri = { version = "1.5", features = ["shell-open"] }
-serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+tauri-plugin-manatsu = "0.1"
+
+[dependencies.tauri]
+version = "1.5"
+features = []
+
+[dependencies.serde]
+version = "1.0"
+features = ["derive"]
 
 [features]
-# this feature is used for production builds or when `devPath` points to the filesystem
-# DO NOT REMOVE!!
 custom-protocol = ["tauri/custom-protocol"]

@@ -1,9 +1,10 @@
 {
   "build": {
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../dist"
+    "beforeDevCommand": "pnpm run vite:dev",
+    "beforeBuildCommand": "pnpm run vite:build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": false
   },
   "package": {
     "productName": "kotori",
@@ -11,26 +12,31 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
-      "shell": {
-        "all": false,
-        "open": true
-      }
+      "all": false
     },
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "tbdev.kotori",
-      "icon": ["icons/icon.ico"]
+      "identifier": "tbdev.kotori.app",
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ]
     },
     "security": {
       "csp": null
+    },
+    "updater": {
+      "active": false
     },
     "windows": [
       {
         "fullscreen": false,
         "resizable": true,
-        "title": "kotori",
+        "title": "Kotori",
         "width": 800,
         "height": 600
       }

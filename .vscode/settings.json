@@ -1,12 +1,21 @@
 {
   "vsicons.associations.folders": [
-    { "icon": "src", "extensions": ["renderer"], "format": "svg" },
-    { "icon": "story", "extensions": ["store", "stores"], "format": "svg" },
-    { "icon": "theme", "extensions": ["composables"], "format": "svg" }
+    { "icon": "theme", "extensions": ["composables"], "format": "svg" },
+    { "icon": "story", "extensions": ["store", "stores"], "format": "svg" }
   ],
   "prettier.requireConfig": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
+  },
+  "[toml]": {
+    "editor.defaultFormatter": "tamasfe.even-better-toml"
+  },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "files.exclude": {
+    ".eslintcache": true,
+    ".stylelintcache": true
   }
 }

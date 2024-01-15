@@ -1,8 +1,7 @@
 {
-  "include": ["renderer/**/*", "renderer/**/*.vue"],
+  "include": ["src/**/*", "src/**/*.vue"],
   "compilerOptions": {
-    "rootDir": "./renderer",
-    "baseUrl": "src",
+    "baseUrl": ".",
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "module": "esnext",
@@ -12,9 +11,9 @@
     "removeComments": false,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
-    "jsx": "preserve",
     "declaration": false,
-    "declarationMap": false,
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
 
     "alwaysStrict": true,
     "noImplicitAny": true,
@@ -29,11 +28,11 @@
     "allowUnreachableCode": false,
     "noImplicitOverride": true,
     "noImplicitReturns": true,
-    "exactOptionalPropertyTypes": true,
+    "exactOptionalPropertyTypes": false,
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true,
     "noEmitOnError": true,
 
-    "types": ["node"]
+    "types": ["vite/client"]
   }
 }

@@ -1,8 +1,7 @@
 *.js linguist-detectable=false
-*.cjs linguist-detectable=false
 *.mjs linguist-detectable=false
+*.cjs linguist-detectable=false
 *.html linguist-detectable=false
 *.css linguist-detectable=false
-*.scss linguist-detectable=false
 *.sh linguist-detectable=false
 pre-commit linguist-detectable=false

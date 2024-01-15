@@ -1,0 +1,10 @@
+[workspace]
+members = ["src-tauri"]
+resolver = "2"
+
+[workspace.package]
+description = "Multiplatform manga reader"
+authors = ["Andrew Ferreira <andrew.shien2@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/ferreira-tb/kotori"
+edition = "2021"
