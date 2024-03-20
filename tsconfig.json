@@ -1,7 +1,11 @@
 {
-  "include": ["src/**/*", "src/**/*.vue"],
+  "include": ["src/**/*", "src/**/*.vue", "types/**/*"],
   "compilerOptions": {
     "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "module": "esnext",

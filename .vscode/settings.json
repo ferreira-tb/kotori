@@ -17,5 +17,34 @@
   "files.exclude": {
     ".eslintcache": true,
     ".stylelintcache": true
-  }
+  },
+  "tailwindCSS.classAttributes": [
+    "class",
+    "body-class",
+    "bottom-class",
+    "center-class",
+    "content-class",
+    "dialog-class",
+    "end-class",
+    "footer-class",
+    "header-class",
+    "header-end-class",
+    "header-start-class",
+    "input-class",
+    "logo-class",
+    "media-class",
+    "menu-class",
+    "menu-item-class",
+    "sidebar-class",
+    "sidebar-item-class",
+    "start-class",
+    "subtitle-class",
+    "tbody-class",
+    "tbody-row-class",
+    "thead-class",
+    "thead-row-class",
+    "title-class",
+    "title-link-class",
+    "top-class"
+  ]
 }
