@@ -13,7 +13,12 @@ const autoImportOptions = autoImportConfig({
     manatsuStyle: true,
     tauri: true,
     vueuseRouter: true
-  }
+  },
+  imports: [
+    {
+      '@/utils': ['Command', 'useInvoke']
+    }
+  ]
 });
 
 export default defineConfig({

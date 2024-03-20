@@ -10,20 +10,22 @@
   },
   "scripts": {
     "build": "cargo tauri build",
+    "clippy": "cargo clippy -- -D warnings",
     "dev": "cargo tauri dev",
-    "format": "prettier . --write && cargo fmt --manifest-path=src-tauri/Cargo.toml",
+    "format": "prettier . --write && cargo fmt",
     "format-check": "prettier . --check",
     "lint": "eslint . --config eslint.config.js --cache",
-    "prepare": "husky install",
+    "pedantic": "cargo clippy -- -W clippy::pedantic",
+    "prepare": "husky",
     "type-check": "vue-tsc --noEmit",
     "vite:dev": "vite",
     "vite:build": "pnpm run type-check && vite build"
   },
   "dependencies": {
-    "@manatsu/style": "^0.5.8",
+    "@manatsu/style": "^0.5.9",
     "@tauri-apps/api": "^1.5.3",
     "@vueuse/core": "^10.9.0",
-    "manatsu": "^0.5.8",
+    "manatsu": "^0.5.9",
     "pinia": "^2.1.7",
     "vue": "~3.4.21",
     "vue-router": "^4.3.0"
@@ -49,8 +51,8 @@
     "typescript": "^5.4.2",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-vue-components": "^0.26.0",
-    "vite": "^5.1.6",
+    "vite": "^5.2.2",
     "vite-plugin-vue-devtools": "^7.0.19",
-    "vue-tsc": "^2.0.6"
+    "vue-tsc": "^2.0.7"
   }
 }

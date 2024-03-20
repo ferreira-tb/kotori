@@ -47,5 +47,6 @@
     "title-link-class",
     "top-class"
   ],
-  "conventionalCommits.promptScopes": false
+  "conventionalCommits.promptScopes": false,
+  "rust-analyzer.showUnlinkedFileNotification": false
 }
