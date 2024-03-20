@@ -17,11 +17,18 @@ tauri-plugin-persisted-scope = "0.1.3"
 tauri-plugin-window-state = "0.1.1"
 thiserror = "1.0.58"
 zip = "0.6.6"
-migration = { path = "../migration" }
+tempfile = "3.10.1"
+globset = "0.4.14"
+walkdir = "2.5.0"
+natord = "1.0.9"
+
+[dependencies.migration]
+version = "*"
+path = "../migration"
 
 [dependencies.tauri]
 version = "1.6.1"
-features = ["dialog"]
+features = ["protocol-asset", "dialog"]
 
 [dependencies.serde]
 version = "1.0.197"

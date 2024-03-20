@@ -13,11 +13,22 @@ pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<()> {
     .pick_file();
 
   if let Some(path) = path {
-    let book = Book::new(path, &app.config());
-    if let Ok(book) = book {
-      println!("opened book: {:?}", book);
-      state.books.lock().unwrap().push(book);
-    }
+    match Book::new(&path, &app.config(), &state) {
+      Ok(mut book) => {
+        book.open()?;
+        state.books.lock().unwrap().push(book);
+      }
+      Err(Error::AlreadyExists) => {
+        let mut books = state.books.lock().unwrap();
+        let book = books
+          .iter_mut()
+          .find(|b| b.path == path)
+          .expect("book should exist");
+
+        book.open()?;
+      }
+      Err(e) => return Err(e),
+    };
   }
 
   Ok(())

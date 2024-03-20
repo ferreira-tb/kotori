@@ -6,15 +6,16 @@ mod command;
 pub mod database;
 pub mod error;
 pub mod prelude;
+mod utils;
 
+use book::Book;
 use sea_orm::DatabaseConnection;
-use std::sync::{Arc, Mutex};
-use std::thread;
+use std::sync::Mutex;
 use tauri::Manager;
 
 pub struct Kotori {
-  pub books: Mutex<Vec<book::Book>>,
-  pub db: DatabaseConnection,
+  pub books: Mutex<Vec<Book>>,
+  pub database: DatabaseConnection,
 }
 
 pub type State<'a> = tauri::State<'a, Kotori>;
@@ -26,14 +27,9 @@ async fn main() {
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .plugin(tauri_plugin_manatsu::init())
     .setup(|app| {
-      let config = Arc::clone(&app.config());
-      let handle = thread::spawn(move || {
-        tauri::async_runtime::block_on(database::connect(config)).unwrap()
-      });
-
       let kotori = Kotori {
         books: Mutex::new(Vec::default()),
-        db: handle.join().unwrap(),
+        database: database::connect(&app.config()).unwrap(),
       };
 
       app.manage(kotori);
