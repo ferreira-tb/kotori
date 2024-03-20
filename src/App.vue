@@ -3,26 +3,15 @@ import { MScaffold } from 'manatsu';
 </script>
 
 <template>
-  <MScaffold>
-    <template #header></template>
-
-    <RouterView #default="{ Component }">
-      <template v-if="Component">
-        <Transition mode="out-in">
-          <KeepAlive>
-            <Suspense>
-              <component :is="Component" />
-              <template #fallback>
-                <img
-                  src="/icons/loading.svg"
-                  alt="loading"
-                  class="absolute left-2/4 top-2/4 -translate-y-2/4 translate-x-2/4"
-                />
-              </template>
-            </Suspense>
-          </KeepAlive>
-        </Transition>
-      </template>
-    </RouterView>
-  </MScaffold>
+  <m-scaffold default-border="none">
+    <template #default>
+      <router-view #default="{ Component }">
+        <template v-if="Component">
+          <keep-alive>
+            <component :is="Component" />
+          </keep-alive>
+        </template>
+      </router-view>
+    </template>
+  </m-scaffold>
 </template>

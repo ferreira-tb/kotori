@@ -2,7 +2,7 @@
   "build": {
     "beforeDevCommand": "pnpm run vite:dev",
     "beforeBuildCommand": "pnpm run vite:build",
-    "devPath": "http://localhost:1420",
+    "devPath": "http://localhost:1422",
     "distDir": "../dist",
     "withGlobalTauri": false
   },
@@ -12,18 +12,12 @@
   },
   "tauri": {
     "allowlist": {
-      "all": false,
-      "dialog": {
-        "open": true
-      },
-      "path": {
-        "all": true
-      }
+      "all": false
     },
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "tbdev.kotori.app",
+      "identifier": "tbdev.kotori",
       "icon": [
         "icons/32x32.png",
         "icons/128x128.png",

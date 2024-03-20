@@ -46,5 +46,6 @@
     "title-class",
     "title-link-class",
     "top-class"
-  ]
+  ],
+  "conventionalCommits.promptScopes": false
 }
