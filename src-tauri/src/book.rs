@@ -23,7 +23,7 @@ pub struct Book {
 
   title: String,
   pages: Vec<Page>,
-  extract_status: extractor::Status,
+  status: Status,
 }
 
 impl Book {
@@ -54,18 +54,18 @@ impl Book {
       temp_dir,
       title,
       pages: Vec::default(),
-      extract_status: extractor::Status::default(),
+      status: Status::default(),
     };
 
     Ok(book)
   }
 
   pub async fn extract(&mut self) -> Result<()> {
-    if !matches!(self.extract_status, extractor::Status::Extracted) {
+    if !matches!(self.status, Status::Extracted) {
       let extractor = Extractor::new(&self.path)?;
       extractor.extract(&self.temp_dir).await?;
 
-      self.extract_status = extractor::Status::Extracted;
+      self.status = Status::Extracted;
       self.update_pages()?;
     }
 
@@ -73,11 +73,11 @@ impl Book {
   }
 
   pub async fn extract_cover(&mut self) -> Result<()> {
-    if matches!(self.extract_status, extractor::Status::NotExtracted) {
+    if matches!(self.status, Status::NotExtracted) {
       let extractor = Extractor::new(&self.path)?;
       extractor.extract_cover(&self.temp_dir).await?;
 
-      self.extract_status = extractor::Status::OnlyCover;
+      self.status = Status::OnlyCover;
       self.update_pages()?;
     }
 
@@ -151,5 +151,18 @@ impl PartialOrd for Book {
 impl Ord for Book {
   fn cmp(&self, other: &Self) -> Ordering {
     natord::compare_ignore_case(&self.title, &other.title)
+  }
+}
+
+#[derive(Debug)]
+enum Status {
+  Extracted,
+  NotExtracted,
+  OnlyCover,
+}
+
+impl Default for Status {
+  fn default() -> Self {
+    Status::NotExtracted
   }
 }

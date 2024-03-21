@@ -99,16 +99,3 @@ impl Extractor {
     Ok(())
   }
 }
-
-#[derive(Debug)]
-pub(super) enum Status {
-  Extracted,
-  NotExtracted,
-  OnlyCover,
-}
-
-impl Default for Status {
-  fn default() -> Self {
-    Status::NotExtracted
-  }
-}
