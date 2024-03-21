@@ -7,7 +7,7 @@ pub async fn version(app: AppHandle) -> String {
 }
 
 #[tauri::command]
-pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<()> {
+pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<Option<Json>> {
   let path = FileDialogBuilder::new()
     .add_filter("Book", &["cbr", "cbz"])
     .pick_file();
@@ -15,8 +15,12 @@ pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<()> {
   if let Some(path) = path {
     match Book::new(&path, &app.config(), &state).await {
       Ok(mut book) => {
-        book.open().await?;
+        book.extract().await?;
+
+        let json = book.as_json()?;
         state.books.lock().await.push(book);
+
+        return Ok(Some(json));
       }
       Err(Error::AlreadyExists) => {
         let mut books = state.books.lock().await;
@@ -25,11 +29,14 @@ pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<()> {
           .find(|b| b.path == path)
           .expect("book should exist");
 
-        book.open().await?;
+        book.extract().await?;
+
+        let json = book.as_json()?;
+        return Ok(Some(json));
       }
       Err(e) => return Err(e),
     };
   }
 
-  Ok(())
+  Ok(None)
 }

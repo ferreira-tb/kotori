@@ -62,9 +62,11 @@ impl Extractor {
   }
 
   pub async fn extract_cover<P: AsRef<Path>>(mut self, directory: P) -> Result<()> {
-    self.files.sort_unstable();
-    let cover = self.files.first().ok_or_else(|| Error::Empty)?;
+    self
+      .files
+      .sort_unstable_by(|a, b| natord::compare_ignore_case(a, b));
 
+    let cover = self.files.first().ok_or_else(|| Error::Empty)?;
     let zip = Arc::clone(&self.zip);
     Extractor::extract_file(zip, cover, &directory).await?;
 

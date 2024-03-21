@@ -23,6 +23,8 @@ pub enum Error {
   #[error(transparent)]
   Io(#[from] std::io::Error),
   #[error(transparent)]
+  Json(#[from] serde_json::Error),
+  #[error(transparent)]
   Unknown(#[from] anyhow::Error),
   #[error(transparent)]
   Zip(#[from] zip::result::ZipError),

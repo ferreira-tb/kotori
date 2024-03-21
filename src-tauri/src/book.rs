@@ -2,7 +2,7 @@ mod extractor;
 mod page;
 
 use crate::error::{Error, Result};
-use crate::utils::{img_globset, TempDir};
+use crate::utils::{img_globset, Json, TempDir};
 use crate::State;
 use extractor::Extractor;
 use page::Page;
@@ -20,6 +20,7 @@ pub struct Book {
   /// Original path of the book file.
   pub path: PathBuf,
   /// Temporary directory where the book is extracted.
+  /// It will be automatically deleted when the book is dropped.
   temp_dir: TempDir,
 
   title: String,
@@ -59,6 +60,22 @@ impl Book {
     };
 
     Ok(book)
+  }
+
+  pub fn as_json(&self) -> Result<Json> {
+    serde_json::to_value(self).map_err(Into::into)
+  }
+
+  fn book_cache(config: &Config) -> Result<PathBuf> {
+    let dir = app_cache_dir(config)
+      .map(|dir| dir.join("books"))
+      .ok_or_else(|| Error::CacheNotFound)?;
+
+    if let Ok(false) = dir.try_exists() {
+      fs::create_dir_all(&dir)?;
+    }
+
+    Ok(dir)
   }
 
   pub async fn extract(&mut self) -> Result<()> {
@@ -108,26 +125,6 @@ impl Book {
     self.pages.sort_unstable();
 
     Ok(())
-  }
-
-  pub async fn open(&mut self) -> Result<()> {
-    self.extract().await?;
-
-    println!("open book: {}", self.title);
-
-    Ok(())
-  }
-
-  fn book_cache(config: &Config) -> Result<PathBuf> {
-    let dir = app_cache_dir(config)
-      .map(|dir| dir.join("books"))
-      .ok_or_else(|| Error::CacheNotFound)?;
-
-    if let Ok(false) = dir.try_exists() {
-      fs::create_dir_all(&dir)?;
-    }
-
-    Ok(dir)
   }
 }
 

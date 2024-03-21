@@ -20,8 +20,16 @@ impl MigrationTrait for Migration {
           )
           .col(ColumnDef::new(Book::Title).string().not_null())
           .col(ColumnDef::new(Book::Path).string().not_null())
-          .col(ColumnDef::new(Book::CreatedAt).string().not_null())
-          .col(ColumnDef::new(Book::UpdatedAt).string().not_null())
+          .col(
+            ColumnDef::new(Book::CreatedAt)
+              .string()
+              .not_null(),
+          )
+          .col(
+            ColumnDef::new(Book::UpdatedAt)
+              .string()
+              .not_null(),
+          )
           .col(ColumnDef::new(Book::DeletedAt).string())
           .to_owned(),
       )

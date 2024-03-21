@@ -4,7 +4,8 @@ import type { SidebarItem } from 'manatsu';
 const sidebarItems: SidebarItem[] = [{ key: 'library', label: 'Library' }];
 
 async function openFile() {
-  await invoke(Command.OpenFile);
+  const book = await invoke(Command.OpenFile);
+  console.log(book);
 }
 </script>
 

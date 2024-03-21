@@ -5,6 +5,8 @@ use serde::Serialize;
 use std::path::Path;
 use tempfile::tempdir_in;
 
+pub type Json = serde_json::Value;
+
 #[derive(Debug)]
 pub struct TempDir(tempfile::TempDir);
 
