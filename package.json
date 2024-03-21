@@ -22,10 +22,10 @@
     "vite:build": "pnpm run type-check && vite build"
   },
   "dependencies": {
-    "@manatsu/style": "^0.5.12",
+    "@manatsu/style": "^0.5.13",
     "@tauri-apps/api": "^1.5.3",
     "@vueuse/core": "^10.9.0",
-    "manatsu": "^0.5.12",
+    "manatsu": "^0.5.13",
     "pinia": "^2.1.7",
     "vue": "~3.4.21",
     "vue-router": "^4.3.0"
