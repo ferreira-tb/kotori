@@ -1,3 +1,6 @@
+use serde::ser::Serializer;
+use serde::Serialize;
+
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
@@ -25,10 +28,10 @@ pub enum Error {
   Zip(#[from] zip::result::ZipError),
 }
 
-impl serde::Serialize for Error {
+impl Serialize for Error {
   fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
   where
-    S: serde::ser::Serializer,
+    S: Serializer,
   {
     serializer.serialize_str(self.to_string().as_ref())
   }

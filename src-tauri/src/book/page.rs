@@ -1,8 +1,10 @@
 use crate::error::{Error, Result};
+use serde::Serialize;
 use std::cmp::Ordering;
 use std::path::PathBuf;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all(serialize = "camelCase"))]
 pub struct Page {
   pub path: PathBuf,
   filename: String,

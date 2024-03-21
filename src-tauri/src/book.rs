@@ -2,19 +2,20 @@ mod extractor;
 mod page;
 
 use crate::error::{Error, Result};
-use crate::utils::img_globset;
+use crate::utils::{img_globset, TempDir};
 use crate::State;
 use extractor::Extractor;
 use page::Page;
+use serde::Serialize;
 use std::cmp::Ordering;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::api::path::app_cache_dir;
 use tauri::Config;
-use tempfile::{tempdir_in, TempDir};
 use walkdir::WalkDir;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
+#[serde(rename_all(serialize = "camelCase"))]
 pub struct Book {
   /// Original path of the book file.
   pub path: PathBuf,
@@ -40,7 +41,7 @@ impl Book {
     drop(books);
 
     let cache = Self::book_cache(config)?;
-    let temp_dir = tempdir_in(cache)?;
+    let temp_dir = TempDir::try_from(cache.as_path())?;
 
     let title = path
       .file_stem()
@@ -62,8 +63,9 @@ impl Book {
 
   pub async fn extract(&mut self) -> Result<()> {
     if !matches!(self.status, Status::Extracted) {
-      let extractor = Extractor::new(&self.path)?;
-      extractor.extract(&self.temp_dir).await?;
+      Extractor::new(&self.path)?
+        .extract(self.temp_dir.path())
+        .await?;
 
       self.status = Status::Extracted;
       self.update_pages()?;
@@ -74,8 +76,9 @@ impl Book {
 
   pub async fn extract_cover(&mut self) -> Result<()> {
     if matches!(self.status, Status::NotExtracted) {
-      let extractor = Extractor::new(&self.path)?;
-      extractor.extract_cover(&self.temp_dir).await?;
+      Extractor::new(&self.path)?
+        .extract_cover(self.temp_dir.path())
+        .await?;
 
       self.status = Status::OnlyCover;
       self.update_pages()?;
@@ -88,7 +91,7 @@ impl Book {
     self.pages.clear();
 
     let globset = img_globset()?;
-    let entries = WalkDir::new(&self.temp_dir)
+    let entries = WalkDir::new(self.temp_dir.path())
       .into_iter()
       .filter_map(|entry| {
         entry.ok().and_then(|entry| {
@@ -120,7 +123,6 @@ impl Book {
     Ok(())
   }
 
-  #[must_use]
   fn book_cache(config: &Config) -> Result<PathBuf> {
     let dir = app_cache_dir(config)
       .map(|dir| dir.join("books"))
@@ -154,15 +156,10 @@ impl Ord for Book {
   }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default, Serialize)]
 enum Status {
-  Extracted,
+  #[default]
   NotExtracted,
+  Extracted,
   OnlyCover,
-}
-
-impl Default for Status {
-  fn default() -> Self {
-    Status::NotExtracted
-  }
 }

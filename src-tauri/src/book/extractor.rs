@@ -24,7 +24,8 @@ impl Extractor {
     let globset = img_globset()?;
     let files: Vec<String> = zip
       .file_names()
-      .filter_map(|n| globset.is_match(n).then(|| n.to_owned()))
+      .filter(|n| globset.is_match(n))
+      .map(ToOwned::to_owned)
       .collect();
 
     if files.is_empty() {
