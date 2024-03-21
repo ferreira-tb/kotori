@@ -40,7 +40,7 @@ features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
 [dependencies.tokio]
 version = "1.36.0"
-features = ["macros", "rt-multi-thread"]
+features = ["fs", "macros", "rt-multi-thread"]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

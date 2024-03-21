@@ -10,8 +10,8 @@ mod utils;
 
 use book::Book;
 use sea_orm::DatabaseConnection;
-use std::sync::Mutex;
 use tauri::Manager;
+use tokio::sync::Mutex;
 
 pub struct Kotori {
   pub books: Mutex<Vec<Book>>,

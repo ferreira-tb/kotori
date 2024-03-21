@@ -6,6 +6,8 @@ pub enum Error {
   AlreadyExists,
   #[error("book cache dir not found")]
   CacheNotFound,
+  #[error("book is empty")]
+  Empty,
   #[error("{0}")]
   InvalidBook(String),
   #[error("{0}")]

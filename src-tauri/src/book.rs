@@ -1,18 +1,18 @@
+mod extractor;
 mod page;
 
 use crate::error::{Error, Result};
 use crate::utils::img_globset;
 use crate::State;
+use extractor::Extractor;
 use page::Page;
 use std::cmp::Ordering;
-use std::fs::{self, File};
-use std::io::{Read, Write};
+use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::api::path::app_cache_dir;
 use tauri::Config;
 use tempfile::{tempdir_in, TempDir};
 use walkdir::WalkDir;
-use zip::ZipArchive;
 
 #[derive(Debug)]
 pub struct Book {
@@ -23,16 +23,16 @@ pub struct Book {
 
   title: String,
   pages: Vec<Page>,
-  extract_status: ExtractStatus,
+  extract_status: extractor::Status,
 }
 
 impl Book {
-  pub fn new<P>(path: P, config: &Config, state: &State<'_>) -> Result<Self>
+  pub async fn new<P>(path: P, config: &Config, state: &State<'_>) -> Result<Self>
   where
     P: AsRef<Path>,
   {
     let path = path.as_ref();
-    let books = state.books.lock().unwrap();
+    let books = state.books.lock().await;
     if books.iter().any(|b| b.path == path) {
       return Err(Error::AlreadyExists);
     }
@@ -54,43 +54,21 @@ impl Book {
       temp_dir,
       title,
       pages: Vec::default(),
-      extract_status: ExtractStatus::default(),
+      extract_status: extractor::Status::default(),
     };
 
     Ok(book)
   }
 
-  pub fn extract(&mut self) -> Result<()> {
-    if matches!(self.extract_status, ExtractStatus::Extracted) {
+  pub async fn extract(&mut self) -> Result<()> {
+    if matches!(self.extract_status, extractor::Status::Extracted) {
       return Ok(());
     }
 
-    let zip = File::open(&self.path)?;
-    let mut zip = ZipArchive::new(zip).unwrap();
+    let extractor = Extractor::new(&self.path)?;
+    extractor.extract(&self.temp_dir).await?;
 
-    let globset = img_globset()?;
-    let file_names: Vec<String> = zip
-      .file_names()
-      .filter_map(|n| globset.is_match(n).then(|| n.to_owned()))
-      .collect();
-
-    for file_name in file_names {
-      let mut file = zip.by_name(&file_name)?;
-      let mut buf = Vec::new();
-      file.read_to_end(&mut buf)?;
-
-      let file_name = Path::new(&file_name)
-        .file_name()
-        .and_then(|name| name.to_str());
-
-      if let Some(file_name) = file_name {
-        let path = self.temp_dir.path().join(file_name);
-        let mut file = File::create(&path)?;
-        file.write_all(&buf)?;
-      }
-    }
-
-    self.extract_status = ExtractStatus::Extracted;
+    self.extract_status = extractor::Status::Extracted;
 
     self.update_pages()?;
 
@@ -125,8 +103,8 @@ impl Book {
     Ok(())
   }
 
-  pub fn open(&mut self) -> Result<()> {
-    self.extract()?;
+  pub async fn open(&mut self) -> Result<()> {
+    self.extract().await?;
 
     println!("open book: {}", self.title);
 
@@ -164,18 +142,5 @@ impl PartialOrd for Book {
 impl Ord for Book {
   fn cmp(&self, other: &Self) -> Ordering {
     natord::compare_ignore_case(&self.title, &other.title)
-  }
-}
-
-#[derive(Debug)]
-enum ExtractStatus {
-  Extracted,
-  NotExtracted,
-  // OnlyCover,
-}
-
-impl Default for ExtractStatus {
-  fn default() -> Self {
-    ExtractStatus::NotExtracted
   }
 }
