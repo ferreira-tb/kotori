@@ -19,6 +19,8 @@ pub enum Error {
   Io(#[from] std::io::Error),
   #[error(transparent)]
   Unknown(#[from] anyhow::Error),
+  #[error(transparent)]
+  Zip(#[from] zip::result::ZipError),
 }
 
 impl serde::Serialize for Error {

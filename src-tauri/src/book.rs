@@ -1,13 +1,12 @@
 mod page;
 
 use crate::error::{Error, Result};
-use crate::utils::img_glob;
+use crate::utils::img_globset;
 use crate::State;
-use globset::GlobSetBuilder;
 use page::Page;
 use std::cmp::Ordering;
-use std::fs;
-use std::io::Cursor;
+use std::fs::{self, File};
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use tauri::api::path::app_cache_dir;
 use tauri::Config;
@@ -66,13 +65,30 @@ impl Book {
       return Ok(());
     }
 
-    let bytes = fs::read(&self.path)?;
-    let cursor = Cursor::new(bytes);
+    let zip = File::open(&self.path)?;
+    let mut zip = ZipArchive::new(zip).unwrap();
 
-    ZipArchive::new(cursor)
-      .unwrap()
-      .extract(&self.temp_dir)
-      .unwrap();
+    let globset = img_globset()?;
+    let file_names: Vec<String> = zip
+      .file_names()
+      .filter_map(|n| globset.is_match(n).then(|| n.to_owned()))
+      .collect();
+
+    for file_name in file_names {
+      let mut file = zip.by_name(&file_name)?;
+      let mut buf = Vec::new();
+      file.read_to_end(&mut buf)?;
+
+      let file_name = Path::new(&file_name)
+        .file_name()
+        .and_then(|name| name.to_str());
+
+      if let Some(file_name) = file_name {
+        let path = self.temp_dir.path().join(file_name);
+        let mut file = File::create(&path)?;
+        file.write_all(&buf)?;
+      }
+    }
 
     self.extract_status = ExtractStatus::Extracted;
 
@@ -82,32 +98,24 @@ impl Book {
   }
 
   fn update_pages(&mut self) -> Result<()> {
-    let globset = GlobSetBuilder::new()
-      .add(img_glob("*.jpg").unwrap())
-      .add(img_glob("*.jpeg").unwrap())
-      .add(img_glob("*.png").unwrap())
-      .add(img_glob("*.gif").unwrap())
-      .add(img_glob("*.webp").unwrap())
-      .build()
-      .unwrap();
-
     self.pages.clear();
 
-    for entry in WalkDir::new(&self.temp_dir) {
-      if !matches!(entry, Ok(ref entry) if entry.file_type().is_file()) {
-        continue;
-      }
+    let globset = img_globset()?;
+    let entries = WalkDir::new(&self.temp_dir)
+      .into_iter()
+      .filter_map(|entry| {
+        entry.ok().and_then(|entry| {
+          let path = entry.path();
+          if entry.file_type().is_file() && globset.is_match(path) {
+            Some(path.to_path_buf())
+          } else {
+            None
+          }
+        })
+      });
 
-      let path = entry
-        .expect("entry already checked")
-        .path()
-        .to_path_buf();
-
-      if !globset.is_match(&path) {
-        continue;
-      }
-
-      let page = Page::new(path)?;
+    for entry in entries {
+      let page = Page::new(entry)?;
       self.pages.push(page);
     }
 
@@ -121,11 +129,6 @@ impl Book {
     self.extract()?;
 
     println!("open book: {}", self.title);
-    for page in &self.pages {
-      println!("  page: {}", page.path.display());
-    }
-
-    println!("\n\n");
 
     Ok(())
   }
