@@ -16,6 +16,7 @@ const autoImportOptions = autoImportConfig({
   },
   imports: [
     {
+      '@/stores': ['useReaderStore'],
       '@/utils': ['Command', 'useInvoke']
     }
   ]

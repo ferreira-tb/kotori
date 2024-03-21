@@ -1,11 +1,19 @@
 <script setup lang="ts">
+import { convertBookSrc } from '@/utils';
 import type { SidebarItem } from 'manatsu';
+
+const router = useRouter();
+const readerStore = useReaderStore();
 
 const sidebarItems: SidebarItem[] = [{ key: 'library', label: 'Library' }];
 
 async function openFile() {
-  const book = await invoke(Command.OpenFile);
-  console.log(book);
+  const book = await invoke<Book | null>(Command.OpenFile);
+  if (book) {
+    readerStore.book = convertBookSrc(book);
+    await nextTick();
+    await router.push('/reader');
+  }
 }
 </script>
 

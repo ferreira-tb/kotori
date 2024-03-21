@@ -6,10 +6,12 @@
 export {}
 declare global {
   const Command: (typeof import('@/utils'))['Command'];
+  const NavigationFailureType: (typeof import('vue-router'))['NavigationFailureType'];
   const computed: (typeof import('vue'))['computed'];
   const computedAsync: (typeof import('@vueuse/core'))['computedAsync'];
   const computedInject: (typeof import('@vueuse/core'))['computedInject'];
   const computedWithControl: (typeof import('@vueuse/core'))['computedWithControl'];
+  const convertFileSrc: (typeof import('@tauri-apps/api/tauri'))['convertFileSrc'];
   const css: (typeof import('@manatsu/style'))['css'];
   const customRef: (typeof import('vue'))['customRef'];
   const defineComponent: (typeof import('vue'))['defineComponent'];
@@ -20,12 +22,15 @@ declare global {
   const hasInjectionContext: (typeof import('vue'))['hasInjectionContext'];
   const inject: (typeof import('vue'))['inject'];
   const invoke: (typeof import('@tauri-apps/api/tauri'))['invoke'];
+  const isNavigationFailure: (typeof import('vue-router'))['isNavigationFailure'];
   const isNullish: (typeof import('@tb-dev/utils'))['isNullish'];
   const isRef: (typeof import('vue'))['isRef'];
   const markRaw: (typeof import('vue'))['markRaw'];
   const nextTick: (typeof import('vue'))['nextTick'];
   const onActivated: (typeof import('vue'))['onActivated'];
   const onBeforeMount: (typeof import('vue'))['onBeforeMount'];
+  const onBeforeRouteLeave: (typeof import('vue-router'))['onBeforeRouteLeave'];
+  const onBeforeRouteUpdate: (typeof import('vue-router'))['onBeforeRouteUpdate'];
   const onBeforeUnmount: (typeof import('vue'))['onBeforeUnmount'];
   const onBeforeUpdate: (typeof import('vue'))['onBeforeUpdate'];
   const onClickOutside: (typeof import('@vueuse/core'))['onClickOutside'];
@@ -88,6 +93,7 @@ declare global {
   const useOnline: (typeof import('@vueuse/core'))['useOnline'];
   const usePageLeave: (typeof import('@vueuse/core'))['usePageLeave'];
   const useParentElement: (typeof import('@vueuse/core'))['useParentElement'];
+  const useReaderStore: (typeof import('@/stores'))['useReaderStore'];
   const useResizeObserver: (typeof import('@vueuse/core'))['useResizeObserver'];
   const useRoute: (typeof import('vue-router'))['useRoute'];
   const useRouteHash: (typeof import('@vueuse/router'))['useRouteHash'];

@@ -1,7 +1,8 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+const store = useReaderStore();
+const { book } = storeToRefs(store);
+</script>
 
 <template>
-  <div></div>
+  <div>{{ book }}</div>
 </template>
-
-<style scoped lang="scss"></style>

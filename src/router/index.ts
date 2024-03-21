@@ -1,12 +1,22 @@
+import { registerNavigationGuards } from '@/router/guards';
 import { createRouter, createWebHistory } from 'vue-router';
 
-export const router = createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
       name: 'home',
       component: () => import('../views/Home.vue')
+    },
+    {
+      path: '/reader',
+      name: 'reader',
+      component: () => import('../views/Reader.vue')
     }
   ]
 });
+
+registerNavigationGuards(router);
+
+export { router };

@@ -25,6 +25,8 @@ pub struct Book {
 
   title: String,
   pages: Vec<Page>,
+
+  #[serde(skip_serializing)]
   status: Status,
 }
 
@@ -148,7 +150,7 @@ impl Ord for Book {
   }
 }
 
-#[derive(Debug, Default, Serialize)]
+#[derive(Debug, Default)]
 enum Status {
   #[default]
   NotExtracted,
