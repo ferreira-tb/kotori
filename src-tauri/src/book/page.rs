@@ -1,7 +1,7 @@
 use crate::error::{Error, Result};
 use serde::Serialize;
 use std::cmp::Ordering;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all(serialize = "camelCase"))]
@@ -20,6 +20,22 @@ impl Page {
 
     let page = Self { path, filename };
     Ok(page)
+  }
+}
+
+impl TryFrom<PathBuf> for Page {
+  type Error = crate::error::Error;
+
+  fn try_from(path: PathBuf) -> Result<Self> {
+    Self::new(path)
+  }
+}
+
+impl TryFrom<&Path> for Page {
+  type Error = crate::error::Error;
+
+  fn try_from(path: &Path) -> Result<Self> {
+    Self::new(path.to_path_buf())
   }
 }
 

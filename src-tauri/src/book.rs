@@ -88,27 +88,22 @@ impl Book {
   }
 
   fn update_pages(&mut self) -> Result<()> {
-    self.pages.clear();
-
     let globset = img_globset()?;
-    let entries = WalkDir::new(self.temp_dir.path())
+    let pages: Result<Vec<Page>> = WalkDir::new(self.temp_dir.path())
       .into_iter()
       .filter_map(|entry| {
         entry.ok().and_then(|entry| {
-          let path = entry.path();
-          if entry.file_type().is_file() && globset.is_match(path) {
-            Some(path.to_path_buf())
+          let path = entry.into_path();
+          if globset.is_match(&path) {
+            Some(Page::try_from(path))
           } else {
             None
           }
         })
-      });
+      })
+      .collect();
 
-    for entry in entries {
-      let page = Page::new(entry)?;
-      self.pages.push(page);
-    }
-
+    self.pages = pages?;
     self.pages.shrink_to_fit();
     self.pages.sort_unstable();
 
