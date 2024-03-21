@@ -61,16 +61,25 @@ impl Book {
   }
 
   pub async fn extract(&mut self) -> Result<()> {
-    if matches!(self.extract_status, extractor::Status::Extracted) {
-      return Ok(());
+    if !matches!(self.extract_status, extractor::Status::Extracted) {
+      let extractor = Extractor::new(&self.path)?;
+      extractor.extract(&self.temp_dir).await?;
+
+      self.extract_status = extractor::Status::Extracted;
+      self.update_pages()?;
     }
 
-    let extractor = Extractor::new(&self.path)?;
-    extractor.extract(&self.temp_dir).await?;
+    Ok(())
+  }
 
-    self.extract_status = extractor::Status::Extracted;
+  pub async fn extract_cover(&mut self) -> Result<()> {
+    if matches!(self.extract_status, extractor::Status::NotExtracted) {
+      let extractor = Extractor::new(&self.path)?;
+      extractor.extract_cover(&self.temp_dir).await?;
 
-    self.update_pages()?;
+      self.extract_status = extractor::Status::OnlyCover;
+      self.update_pages()?;
+    }
 
     Ok(())
   }

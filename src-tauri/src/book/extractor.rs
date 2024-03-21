@@ -104,7 +104,7 @@ impl Extractor {
 pub(super) enum Status {
   Extracted,
   NotExtracted,
-  // OnlyCover,
+  OnlyCover,
 }
 
 impl Default for Status {
