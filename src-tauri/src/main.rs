@@ -23,6 +23,7 @@ pub type State<'a> = tauri::State<'a, Kotori>;
 #[tokio::main]
 async fn main() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(|app| {
