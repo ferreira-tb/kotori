@@ -22,16 +22,16 @@
     "vite:build": "pnpm run type-check && vite build"
   },
   "dependencies": {
-    "@manatsu/style": "^0.5.13",
-    "@tauri-apps/api": "^1.5.3",
+    "@manatsu/style": "^0.6.0",
+    "@tauri-apps/api": "2.0.0-beta.6",
     "@vueuse/core": "^10.9.0",
-    "manatsu": "^0.5.13",
+    "manatsu": "^0.6.0",
     "pinia": "^2.1.7",
     "vue": "~3.4.21",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
-    "@tb-dev/auto-import-config": "^1.2.1",
+    "@tb-dev/auto-import-config": "^1.2.7",
     "@tb-dev/eslint-config": "^3.2.2",
     "@tb-dev/utility-types": "^1.2.2",
     "@tb-dev/vue-import-config": "^1.0.3",

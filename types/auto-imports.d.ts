@@ -11,7 +11,7 @@ declare global {
   const computedAsync: (typeof import('@vueuse/core'))['computedAsync'];
   const computedInject: (typeof import('@vueuse/core'))['computedInject'];
   const computedWithControl: (typeof import('@vueuse/core'))['computedWithControl'];
-  const convertFileSrc: (typeof import('@tauri-apps/api/tauri'))['convertFileSrc'];
+  const convertFileSrc: (typeof import('@tauri-apps/api/core'))['convertFileSrc'];
   const css: (typeof import('@manatsu/style'))['css'];
   const customRef: (typeof import('vue'))['customRef'];
   const defineComponent: (typeof import('vue'))['defineComponent'];
@@ -21,7 +21,8 @@ declare global {
   const h: (typeof import('vue'))['h'];
   const hasInjectionContext: (typeof import('vue'))['hasInjectionContext'];
   const inject: (typeof import('vue'))['inject'];
-  const invoke: (typeof import('@tauri-apps/api/tauri'))['invoke'];
+  const injectStrict: (typeof import('manatsu'))['injectStrict'];
+  const invoke: (typeof import('@tauri-apps/api/core'))['invoke'];
   const isNavigationFailure: (typeof import('vue-router'))['isNavigationFailure'];
   const isNullish: (typeof import('@tb-dev/utils'))['isNullish'];
   const isRef: (typeof import('vue'))['isRef'];
@@ -35,7 +36,10 @@ declare global {
   const onBeforeUpdate: (typeof import('vue'))['onBeforeUpdate'];
   const onClickOutside: (typeof import('@vueuse/core'))['onClickOutside'];
   const onDeactivated: (typeof import('vue'))['onDeactivated'];
+  const onKeyDown: (typeof import('@vueuse/core'))['onKeyDown'];
+  const onKeyPressed: (typeof import('@vueuse/core'))['onKeyPressed'];
   const onKeyStroke: (typeof import('@vueuse/core'))['onKeyStroke'];
+  const onKeyUp: (typeof import('@vueuse/core'))['onKeyUp'];
   const onMounted: (typeof import('vue'))['onMounted'];
   const onScopeDispose: (typeof import('vue'))['onScopeDispose'];
   const onUnmounted: (typeof import('vue'))['onUnmounted'];
@@ -46,6 +50,7 @@ declare global {
   const shallowReactive: (typeof import('vue'))['shallowReactive'];
   const shallowRef: (typeof import('vue'))['shallowRef'];
   const storeToRefs: (typeof import('pinia'))['storeToRefs'];
+  const symbols: (typeof import('manatsu'))['symbols'];
   const toRaw: (typeof import('vue'))['toRaw'];
   const toRef: (typeof import('vue'))['toRef'];
   const toValue: (typeof import('vue'))['toValue'];
@@ -73,6 +78,7 @@ declare global {
   const useArrayUnique: (typeof import('@vueuse/core'))['useArrayUnique'];
   const useAsyncState: (typeof import('@vueuse/core'))['useAsyncState'];
   const useCurrentElement: (typeof import('@vueuse/core'))['useCurrentElement'];
+  const useCycleList: (typeof import('@vueuse/core'))['useCycleList'];
   const useDraggable: (typeof import('@vueuse/core'))['useDraggable'];
   const useElementBounding: (typeof import('@vueuse/core'))['useElementBounding'];
   const useElementHover: (typeof import('@vueuse/core'))['useElementHover'];

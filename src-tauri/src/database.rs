@@ -5,11 +5,15 @@ use crate::error::Result;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use std::thread;
-use tauri::api::path::app_data_dir;
-use tauri::Config;
+use tauri::{Manager, Runtime};
 
-pub fn connect(config: &Config) -> Result<DatabaseConnection> {
-  let path = app_data_dir(config).unwrap().join("kotori.db");
+pub fn connect<M, R>(app: &M) -> Result<DatabaseConnection>
+where
+  R: Runtime,
+  M: Manager<R>,
+{
+  let resolver = app.path();
+  let path = resolver.app_data_dir().unwrap().join("kotori.db");
   let url = format!("sqlite://{}?mode=rwc", path.to_str().unwrap());
 
   let handle = thread::spawn(move || {

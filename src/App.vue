@@ -1,20 +1,8 @@
 <script setup lang="ts">
-import { convertBookSrc } from '@/utils';
+import { openFile } from '@/utils';
 import type { SidebarItem } from 'manatsu';
 
-const router = useRouter();
-const readerStore = useReaderStore();
-
-const sidebarItems: SidebarItem[] = [{ key: 'library', label: 'Library' }];
-
-async function openFile() {
-  const book = await invoke<Book | null>(Command.OpenFile);
-  if (book) {
-    readerStore.book = convertBookSrc(book);
-    await nextTick();
-    await router.push('/reader');
-  }
-}
+const sidebarItems: SidebarItem[] = [{ key: 'all', label: 'All' }];
 </script>
 
 <template>
@@ -24,8 +12,8 @@ async function openFile() {
     sidebar-item-class="flex items-center justify-center"
   >
     <template #top>
-      <m-top-appbar start-class="flex gap-4">
-        <template #start>
+      <m-top-appbar end-class="flex gap-4">
+        <template #end>
           <m-button variant="outlined" @click="openFile">Open</m-button>
           <m-button variant="outlined">Add to Library</m-button>
         </template>
@@ -35,9 +23,7 @@ async function openFile() {
     <template #default>
       <router-view #default="{ Component }">
         <template v-if="Component">
-          <keep-alive>
-            <component :is="Component" />
-          </keep-alive>
+          <component :is="Component" />
         </template>
       </router-view>
     </template>

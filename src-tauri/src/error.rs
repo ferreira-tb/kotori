@@ -25,6 +25,8 @@ pub enum Error {
   #[error(transparent)]
   Json(#[from] serde_json::Error),
   #[error(transparent)]
+  Tauri(#[from] tauri::Error),
+  #[error(transparent)]
   Unknown(#[from] anyhow::Error),
   #[error(transparent)]
   Zip(#[from] zip::result::ZipError),

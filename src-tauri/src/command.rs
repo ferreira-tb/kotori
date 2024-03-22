@@ -1,19 +1,20 @@
 use crate::prelude::*;
-use tauri::api::dialog::blocking::FileDialogBuilder;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
 #[tauri::command]
 pub async fn version(app: AppHandle) -> String {
-  app.config().package.version.clone().unwrap()
+  app.config().version.clone().unwrap()
 }
 
 #[tauri::command]
 pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<Option<Json>> {
-  let path = FileDialogBuilder::new()
+  let dialog = app.dialog().clone();
+  let response = FileDialogBuilder::new(dialog)
     .add_filter("Book", &["cbr", "cbz"])
-    .pick_file();
+    .blocking_pick_file();
 
-  if let Some(path) = path {
-    match Book::new(&path, &app.config(), &state).await {
+  if let Some(response) = response {
+    match Book::new(&response.path, &app, &state).await {
       Ok(mut book) => {
         book.extract().await?;
 
@@ -26,7 +27,7 @@ pub async fn open_file(app: AppHandle, state: State<'_>) -> Result<Option<Json>>
         let mut books = state.books.lock().await;
         let book = books
           .iter_mut()
-          .find(|b| b.path == path)
+          .find(|b| b.path == response.path)
           .expect("book should exist");
 
         book.extract().await?;

@@ -10,8 +10,7 @@ use serde::Serialize;
 use std::cmp::Ordering;
 use std::fs;
 use std::path::{Path, PathBuf};
-use tauri::api::path::app_cache_dir;
-use tauri::Config;
+use tauri::{Manager, Runtime};
 use walkdir::WalkDir;
 
 #[derive(Debug, Serialize)]
@@ -31,8 +30,10 @@ pub struct Book {
 }
 
 impl Book {
-  pub async fn new<P>(path: P, config: &Config, state: &State<'_>) -> Result<Self>
+  pub async fn new<P, M, R>(path: P, app: &M, state: &State<'_>) -> Result<Self>
   where
+    R: Runtime,
+    M: Manager<R>,
     P: AsRef<Path>,
   {
     let path = path.as_ref();
@@ -43,7 +44,7 @@ impl Book {
 
     drop(books);
 
-    let cache = Self::book_cache(config)?;
+    let cache = Self::book_cache(app)?;
     let temp_dir = TempDir::try_from(cache.as_path())?;
 
     let title = path
@@ -68,11 +69,12 @@ impl Book {
     serde_json::to_value(self).map_err(Into::into)
   }
 
-  fn book_cache(config: &Config) -> Result<PathBuf> {
-    let dir = app_cache_dir(config)
-      .map(|dir| dir.join("books"))
-      .ok_or_else(|| Error::CacheNotFound)?;
-
+  fn book_cache<M, R>(app: &M) -> Result<PathBuf>
+  where
+    R: Runtime,
+    M: Manager<R>,
+  {
+    let dir = app.path().app_cache_dir()?.join("books");
     if let Ok(false) = dir.try_exists() {
       fs::create_dir_all(&dir)?;
     }

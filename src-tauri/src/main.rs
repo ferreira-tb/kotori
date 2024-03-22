@@ -25,11 +25,10 @@ async fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
-    .plugin(tauri_plugin_manatsu::init())
     .setup(|app| {
       let kotori = Kotori {
         books: Mutex::new(Vec::default()),
-        database: database::connect(&app.config()).unwrap(),
+        database: database::connect(app).unwrap(),
       };
 
       app.manage(kotori);

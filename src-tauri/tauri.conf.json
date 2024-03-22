@@ -2,40 +2,26 @@
   "build": {
     "beforeDevCommand": "pnpm run vite:dev",
     "beforeBuildCommand": "pnpm run vite:build",
-    "devPath": "http://localhost:1422",
-    "distDir": "../dist",
-    "withGlobalTauri": false
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1422"
   },
-  "package": {
-    "productName": "kotori",
-    "version": "0.1.0"
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
   },
-  "tauri": {
-    "allowlist": {
-      "all": false,
-      "protocol": {
-        "asset": true,
-        "assetScope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"]
-      }
-    },
-    "bundle": {
-      "active": true,
-      "targets": "all",
-      "identifier": "tbdev.kotori",
-      "icon": [
-        "icons/32x32.png",
-        "icons/128x128.png",
-        "icons/128x128@2x.png",
-        "icons/icon.icns",
-        "icons/icon.ico"
-      ]
-    },
-    "security": {
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost"
-    },
-    "updater": {
-      "active": false
-    },
+  "productName": "kotori",
+  "version": "0.1.0",
+  "identifier": "tbdev.kotori",
+  "plugins": {},
+  "app": {
+    "withGlobalTauri": false,
     "windows": [
       {
         "label": "main",
@@ -46,6 +32,13 @@
         "fullscreen": false,
         "resizable": true
       }
-    ]
+    ],
+    "security": {
+      "assetProtocol": {
+        "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"],
+        "enable": true
+      },
+      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; connect-src ipc: http://ipc.localhost"
+    }
   }
 }
