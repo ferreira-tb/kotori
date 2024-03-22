@@ -10,8 +10,10 @@ mod utils;
 
 use book::Book;
 use sea_orm::DatabaseConnection;
+use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Manager;
 use tokio::sync::Mutex;
+use tokio::task;
 
 pub struct Kotori {
   pub books: Mutex<Vec<Book>>,
@@ -27,17 +29,38 @@ async fn main() {
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(|app| {
-      let kotori = Kotori {
+      app.manage(Kotori {
         books: Mutex::new(Vec::default()),
         database: database::connect(app).unwrap(),
-      };
+      });
 
-      app.manage(kotori);
+      let menu = MenuBuilder::new(app).build()?;
+
+      menu.append(
+        &SubmenuBuilder::new(app, "File")
+          .item(&MenuItemBuilder::with_id("open_book", "Open file").build(app)?)
+          .item(&MenuItemBuilder::with_id("add_to_library", "Add to library").build(app)?)
+          .separator()
+          .quit()
+          .build()?,
+      )?;
+
+      app.set_menu(menu)?;
+
+      app.on_menu_event(|handle, event| match event.id.0.as_str() {
+        "open_book" => {
+          let handle = handle.clone();
+          task::spawn(async move {
+            Book::open(&handle).await.unwrap();
+          });
+        }
+        _ => {}
+      });
 
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
-      command::open_file,
+      command::open_book,
       command::version
     ])
     .run(tauri::generate_context!())

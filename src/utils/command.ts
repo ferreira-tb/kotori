@@ -1,7 +1,7 @@
 import { defineInvoke } from 'manatsu';
 
 export enum Command {
-  OpenFile = 'open_file',
+  OpenBook = 'open_book',
   Version = 'version'
 }
 

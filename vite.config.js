@@ -13,13 +13,7 @@ const autoImportOptions = autoImportConfig({
     manatsuStyle: true,
     tauri: true,
     vueuseRouter: true
-  },
-  imports: [
-    {
-      '@/stores': ['useReaderStore'],
-      '@/utils': ['Command', 'useInvoke']
-    }
-  ]
+  }
 });
 
 export default defineConfig({

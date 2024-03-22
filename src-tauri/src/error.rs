@@ -5,8 +5,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-  #[error("book already exists")]
-  AlreadyExists,
   #[error("book cache dir not found")]
   CacheNotFound,
   #[error("book is empty")]

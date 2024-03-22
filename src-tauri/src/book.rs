@@ -2,8 +2,8 @@ mod extractor;
 mod page;
 
 use crate::error::{Error, Result};
-use crate::utils::{img_globset, Json, TempDir};
-use crate::State;
+use crate::utils::{img_globset, Event, Json, TempDir};
+use crate::Kotori;
 use extractor::Extractor;
 use page::Page;
 use serde::Serialize;
@@ -11,6 +11,7 @@ use std::cmp::Ordering;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tauri::{Manager, Runtime};
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use walkdir::WalkDir;
 
 #[derive(Debug, Serialize)]
@@ -30,23 +31,16 @@ pub struct Book {
 }
 
 impl Book {
-  pub async fn new<P, M, R>(path: P, app: &M, state: &State<'_>) -> Result<Self>
+  pub async fn new<M, R, P>(app: &M, path: P) -> Result<Self>
   where
     R: Runtime,
     M: Manager<R>,
     P: AsRef<Path>,
   {
-    let path = path.as_ref();
-    let books = state.books.lock().await;
-    if books.iter().any(|b| b.path == path) {
-      return Err(Error::AlreadyExists);
-    }
-
-    drop(books);
-
     let cache = Self::book_cache(app)?;
     let temp_dir = TempDir::try_from(cache.as_path())?;
 
+    let path = path.as_ref();
     let title = path
       .file_stem()
       .ok_or_else(|| Error::InvalidBook("file stem not found".to_string()))?
@@ -103,6 +97,46 @@ impl Book {
 
       self.status = Status::OnlyCover;
       self.update_pages()?;
+    }
+
+    Ok(())
+  }
+
+  pub async fn open<M, R>(app: &M) -> Result<()>
+  where
+    R: Runtime,
+    M: Manager<R>,
+  {
+    let dialog = app.dialog().clone();
+    let response = FileDialogBuilder::new(dialog)
+      .add_filter("Book", &["cbr", "cbz"])
+      .blocking_pick_file();
+
+    if let Some(response) = response {
+      let state = app.state::<Kotori>();
+      let mut books = state.books.lock().await;
+
+      if books.iter().any(|b| b.path == response.path) {
+        let book = books
+          .iter_mut()
+          .find(|b| b.path == response.path)
+          .expect("book should exist");
+
+        book.extract().await?;
+        
+        let json = book.as_json()?;
+        app.emit(Event::BookOpened.as_str(), json)?;
+
+        return Ok(());
+      }
+
+      let mut book = Book::new(app, &response.path).await?;
+      book.extract().await?;
+
+      let json = book.as_json()?;
+      app.emit(Event::BookOpened.as_str(), json)?;
+
+      books.push(book);
     }
 
     Ok(())

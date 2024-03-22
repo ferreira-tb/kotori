@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { openFile } from '@/utils';
+import { Command } from '@/utils';
+import { useReaderStore } from '@/stores';
+import { invoke } from '@tauri-apps/api/core';
 
 const store = useReaderStore();
 const { book } = storeToRefs(store);
@@ -9,7 +11,6 @@ const pages = computed(() => {
   return book.value.pages;
 });
 
-const showScaffoldSidebar = injectStrict(symbols.showScaffoldSidebar);
 const showOnlyScaffoldContent = injectStrict(symbols.showOnlyScaffoldContent);
 
 const { state: current, prev, next, go } = useCycleList(pages);
@@ -19,17 +20,15 @@ onKeyDown('Home', () => go(0));
 onKeyDown('End', () => go(pages.value.length - 1));
 
 const readerRef = shallowRef<HTMLElement | null>(null);
-useEventListener(readerRef, 'click', () => {
+useEventListener(readerRef, 'dblclick', () => {
   showOnlyScaffoldContent.value = !showOnlyScaffoldContent.value;
 });
 
 onBeforeMount(() => {
-  showScaffoldSidebar.value = false;
   showOnlyScaffoldContent.value = true;
 });
 
 onBeforeUnmount(() => {
-  showScaffoldSidebar.value = true;
   showOnlyScaffoldContent.value = false;
 });
 </script>
@@ -44,7 +43,7 @@ onBeforeUnmount(() => {
       <img :src="current.path" class="h-full w-full object-contain" />
     </div>
     <div v-else>
-      <m-button variant="outlined" @click="openFile">Open</m-button>
+      <m-button variant="outlined" @click="invoke(Command.OpenBook)">Open</m-button>
     </div>
   </div>
 </template>

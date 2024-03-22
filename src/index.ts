@@ -5,6 +5,7 @@ import App from '@/App.vue';
 import { createApp } from 'vue';
 import { router } from '@/router';
 import { createPinia } from 'pinia';
+import { setupEventListeners } from '@/utils';
 import { createManatsu, registerComponents } from 'manatsu';
 
 const app = createApp(App);
@@ -17,4 +18,7 @@ app.use(manatsu);
 
 registerComponents(app);
 
-app.mount('#app');
+void router
+  .isReady()
+  .then(() => app.mount('#app'))
+  .then(setupEventListeners);

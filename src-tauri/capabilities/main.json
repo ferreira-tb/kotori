@@ -4,6 +4,7 @@
   "windows": ["main"],
   "permissions": [
     "dialog:allow-open",
+    "event:allow-listen",
     "window-state:allow-restore-window-state",
     "window-state:allow-save-window-state"
   ]
