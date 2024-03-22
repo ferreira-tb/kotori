@@ -38,8 +38,8 @@ devDependencies:
     specifier: ^1.2.2
     version: 1.2.2
   '@tb-dev/vue-import-config':
-    specifier: ^1.0.3
-    version: 1.0.3(unplugin-vue-components@0.26.0)
+    specifier: ^1.0.4
+    version: 1.0.4(unplugin-vue-components@0.26.0)
   '@types/node':
     specifier: ^20.11.30
     version: 20.11.30
@@ -1354,10 +1354,10 @@ packages:
     dependencies:
       '@tb-dev/utility-types': 1.2.2
 
-  /@tb-dev/vue-import-config@1.0.3(unplugin-vue-components@0.26.0):
+  /@tb-dev/vue-import-config@1.0.4(unplugin-vue-components@0.26.0):
     resolution:
       {
-        integrity: sha512-wCItu3hlHODcdcGPcpnEKDtn8Lcs97HTjbLfQ02A2tswTfalHNGq5Xm7SidchT61cf96/UEAGIO5Z75lLFzjOA==
+        integrity: sha512-BbYcYntS3tp4rWRvt9o8V0OAwY11lbwgj//+IEAUAzzuyWVHlocu3XqCy0nbIp6XbA0RsZd/TVeFdW9yo0pvUw==
       }
     engines: { node: '>=20' }
     peerDependencies:

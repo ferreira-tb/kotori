@@ -34,7 +34,7 @@
     "@tb-dev/auto-import-config": "^1.2.8",
     "@tb-dev/eslint-config": "^3.2.2",
     "@tb-dev/utility-types": "^1.2.2",
-    "@tb-dev/vue-import-config": "^1.0.3",
+    "@tb-dev/vue-import-config": "^1.0.4",
     "@types/node": "^20.11.30",
     "@vitejs/plugin-vue": "~5.0.4",
     "autoprefixer": "^10.4.19",
