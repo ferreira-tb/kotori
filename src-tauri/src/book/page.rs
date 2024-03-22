@@ -1,7 +1,6 @@
-use crate::error::{Error, Result};
+use crate::prelude::*;
 use serde::Serialize;
 use std::cmp::Ordering;
-use std::path::{Path, PathBuf};
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all(serialize = "camelCase"))]

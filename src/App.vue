@@ -1,3 +1,11 @@
+<script setup lang="ts">
+const router = useRouter();
+
+onKeyDown('F1', () => {
+  void router.push({ name: 'library' });
+});
+</script>
+
 <template>
   <m-scaffold default-border="none">
     <template #default>

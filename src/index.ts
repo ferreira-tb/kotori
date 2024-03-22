@@ -17,8 +17,6 @@ app.use(pinia);
 app.use(manatsu);
 
 registerComponents(app);
+void setupEventListeners();
 
-void router
-  .isReady()
-  .then(() => app.mount('#app'))
-  .then(setupEventListeners);
+app.mount('#app');

@@ -5,15 +5,16 @@ mod book;
 mod command;
 pub mod database;
 pub mod error;
+mod events;
 pub mod prelude;
 mod utils;
 
 use book::Book;
+use events::menu_event_handler;
 use sea_orm::DatabaseConnection;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Manager;
 use tokio::sync::Mutex;
-use tokio::task;
 
 pub struct Kotori {
   pub books: Mutex<Vec<Book>>,
@@ -45,17 +46,18 @@ async fn main() {
           .build()?,
       )?;
 
-      app.set_menu(menu)?;
+      menu.append(
+        &SubmenuBuilder::new(app, "Browse")
+          .item(
+            &MenuItemBuilder::with_id("library", "Library")
+              .accelerator("F1")
+              .build(app)?,
+          )
+          .build()?,
+      )?;
 
-      app.on_menu_event(|handle, event| match event.id.0.as_str() {
-        "open_book" => {
-          let handle = handle.clone();
-          task::spawn(async move {
-            Book::open(&handle).await.unwrap();
-          });
-        }
-        _ => {}
-      });
+      app.set_menu(menu)?;
+      app.on_menu_event(menu_event_handler);
 
       Ok(())
     })

@@ -2,7 +2,6 @@ use crate::prelude::*;
 use crate::utils::img_globset;
 use std::fs::File;
 use std::io::Read;
-use std::path::Path;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
@@ -17,7 +16,10 @@ pub struct Extractor {
 }
 
 impl Extractor {
-  pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
+  pub fn new<P>(path: P) -> Result<Self>
+  where
+    P: AsRef<Path>,
+  {
     let zip = File::open(path.as_ref())?;
     let zip = ZipArchive::new(zip)?;
 
@@ -40,7 +42,10 @@ impl Extractor {
     Ok(extractor)
   }
 
-  pub async fn extract<P: AsRef<Path>>(self, directory: P) -> Result<()> {
+  pub async fn extract<P>(self, directory: P) -> Result<()>
+  where
+    P: AsRef<Path>,
+  {
     if self.files.is_empty() {
       return Err(Error::Empty);
     }
@@ -61,7 +66,10 @@ impl Extractor {
     Ok(())
   }
 
-  pub async fn extract_cover<P: AsRef<Path>>(mut self, directory: P) -> Result<()> {
+  pub async fn extract_cover<P>(mut self, directory: P) -> Result<()>
+  where
+    P: AsRef<Path>,
+  {
     self
       .files
       .sort_unstable_by(|a, b| natord::compare_ignore_case(a, b));

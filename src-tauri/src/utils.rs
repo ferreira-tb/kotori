@@ -39,18 +39,6 @@ impl Serialize for TempDir {
   }
 }
 
-pub enum Event {
-  BookOpened,
-}
-
-impl Event {
-  pub fn as_str(&self) -> &str {
-    match self {
-      Self::BookOpened => "book_opened",
-    }
-  }
-}
-
 pub fn img_glob(glob: &str) -> Result<Glob> {
   GlobBuilder::new(glob)
     .case_insensitive(true)

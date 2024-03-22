@@ -2,7 +2,8 @@ mod extractor;
 mod page;
 
 use crate::error::{Error, Result};
-use crate::utils::{img_globset, Event, Json, TempDir};
+use crate::events::Event;
+use crate::utils::{img_globset, Json, TempDir};
 use crate::Kotori;
 use extractor::Extractor;
 use page::Page;
@@ -123,7 +124,7 @@ impl Book {
           .expect("book should exist");
 
         book.extract().await?;
-        
+
         let json = book.as_json()?;
         app.emit(Event::BookOpened.as_str(), json)?;
 
