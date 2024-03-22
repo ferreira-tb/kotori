@@ -8,7 +8,11 @@ enum AppEvent {
 }
 
 export async function setupEventListeners() {
-  await listen<Book>(AppEvent.BookOpened, (e) => {
+  await Promise.all([onBookOpened()]);
+}
+
+function onBookOpened() {
+  return listen<Book>(AppEvent.BookOpened, (e) => {
     const store = useReaderStore();
     store.book = convertBookSrc(e.payload);
     void nextTick().then(() => router.push('/reader'));
