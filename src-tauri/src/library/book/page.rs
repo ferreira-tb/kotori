@@ -30,14 +30,6 @@ impl TryFrom<PathBuf> for Page {
   }
 }
 
-impl TryFrom<&Path> for Page {
-  type Error = crate::error::Error;
-
-  fn try_from(path: &Path) -> Result<Self> {
-    Self::new(path.to_path_buf())
-  }
-}
-
 impl PartialOrd for Page {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     Some(self.cmp(other))

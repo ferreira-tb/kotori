@@ -1,7 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
 
-mod book;
 mod command;
 pub mod database;
 pub mod error;
@@ -12,7 +13,9 @@ mod state;
 mod utils;
 
 use events::menu_event_handler;
-use state::Kotori;
+use library::Library;
+use state::{Kotori, BOOK_CACHE};
+use std::fs;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Manager;
 use tokio::sync::Mutex;
@@ -24,8 +27,15 @@ async fn main() {
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(|app| {
+      let book_cache = app.path().app_cache_dir()?.join("books");
+      if let Ok(false) = book_cache.try_exists() {
+        fs::create_dir_all(&book_cache)?;
+      }
+
+      BOOK_CACHE.set(book_cache).unwrap();
+
       app.manage(Kotori {
-        books: Mutex::new(Vec::default()),
+        library: Mutex::new(Library::new()),
         database: database::connect(app).unwrap(),
       });
 

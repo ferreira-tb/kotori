@@ -4,7 +4,6 @@ pub mod prelude;
 use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{ConnectOptions, Database, DatabaseConnection};
-use std::thread;
 
 pub fn connect<M, R>(app: &M) -> Result<DatabaseConnection>
 where
@@ -16,7 +15,7 @@ where
   let url = format!("sqlite://{}?mode=rwc", path.to_str().unwrap());
 
   let handle = thread::spawn(move || {
-    tauri::async_runtime::block_on(async {
+    async_runtime::block_on(async {
       let options = ConnectOptions::new(url);
       let conn = Database::connect(options).await?;
 

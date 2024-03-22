@@ -1,9 +1,13 @@
-use crate::book::Book;
+use crate::library::Library;
 use sea_orm::DatabaseConnection;
+use std::path::PathBuf;
+use std::sync::OnceLock;
 use tokio::sync::Mutex;
 
+pub static BOOK_CACHE: OnceLock<PathBuf> = OnceLock::new();
+
 pub struct Kotori {
-  pub books: Mutex<Vec<Book>>,
+  pub library: Mutex<Library>,
   pub database: DatabaseConnection,
 }
 

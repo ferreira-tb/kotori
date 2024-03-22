@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::utils::img_globset;
+use crate::utils::glob;
 use std::fs::File;
 use std::io::Read;
 use tokio::io::AsyncWriteExt;
@@ -22,7 +22,7 @@ impl Extractor {
     let zip = File::open(path.as_ref())?;
     let zip = ZipArchive::new(zip)?;
 
-    let globset = img_globset()?;
+    let globset = glob::book_page();
     let files: Vec<String> = zip
       .file_names()
       .filter(|n| globset.is_match(n))
@@ -59,7 +59,7 @@ impl Extractor {
     }
 
     while let Some(result) = set.join_next().await {
-      result.map_err(|e| anyhow::anyhow!(e))??;
+      result.map_err(|e| anyhow!(e))??;
     }
 
     Ok(())

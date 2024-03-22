@@ -1,4 +1,3 @@
-use crate::book::Book;
 use crate::library::Library;
 use crate::prelude::*;
 
@@ -9,7 +8,7 @@ pub async fn version(app: AppHandle) -> String {
 
 #[tauri::command]
 pub async fn open_book(app: AppHandle) -> Result<()> {
-  Book::open(&app).await
+  Library::open_book(&app).await
 }
 
 #[tauri::command]
