@@ -1,6 +1,6 @@
 use crate::book::Book;
+use crate::prelude::*;
 use tauri::menu::MenuEvent;
-use tauri::{AppHandle, Manager};
 use tokio::task;
 
 pub enum Event {

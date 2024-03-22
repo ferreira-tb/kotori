@@ -2,7 +2,6 @@ use crate::prelude::*;
 use crate::utils::img_globset;
 use std::fs::File;
 use std::io::Read;
-use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
 use tokio::sync::Mutex;
 use tokio::task::JoinSet;

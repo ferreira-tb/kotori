@@ -1,6 +1,6 @@
 import { router } from '@/router';
+import { convertBookSrc } from '@/utils';
 import { useReaderStore } from '@/stores';
-import { convertBookSrc } from '@/utils/book';
 import { listen } from '@tauri-apps/api/event';
 
 enum AppEvent {

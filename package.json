@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Multiplatform manga reader",
   "type": "module",
-  "packageManager": "pnpm@8.14.1",
+  "packageManager": "pnpm@8.15.5",
   "private": true,
   "lint-staged": {
     "*.{?(c|m)@(j|t)s,css,vue,md,json,yaml}": "prettier --write"
@@ -22,18 +22,18 @@
     "vite:build": "pnpm run type-check && vite build"
   },
   "dependencies": {
-    "@manatsu/style": "^0.6.0",
+    "@manatsu/style": "^0.6.1",
     "@tauri-apps/api": "2.0.0-beta.6",
     "@vueuse/core": "^10.9.0",
-    "manatsu": "^0.6.0",
+    "manatsu": "^0.6.1",
     "pinia": "^2.1.7",
     "vue": "~3.4.21",
     "vue-router": "^4.3.0"
   },
   "devDependencies": {
     "@tb-dev/auto-import-config": "^1.2.8",
-    "@tb-dev/eslint-config": "^3.2.2",
-    "@tb-dev/utility-types": "^1.2.2",
+    "@tb-dev/eslint-config": "^3.2.3",
+    "@tb-dev/utility-types": "^1.2.3",
     "@tb-dev/vue-import-config": "^1.0.4",
     "@types/node": "^20.11.30",
     "@vitejs/plugin-vue": "~5.0.4",
@@ -51,7 +51,7 @@
     "typescript": "^5.4.3",
     "unplugin-auto-import": "^0.17.5",
     "unplugin-vue-components": "^0.26.0",
-    "vite": "^5.2.2",
+    "vite": "^5.2.3",
     "vite-plugin-vue-devtools": "^7.0.20",
     "vue-tsc": "^2.0.7"
   }

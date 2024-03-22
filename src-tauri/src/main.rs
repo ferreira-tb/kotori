@@ -6,22 +6,16 @@ mod command;
 pub mod database;
 pub mod error;
 mod events;
+mod library;
 pub mod prelude;
+mod state;
 mod utils;
 
-use book::Book;
 use events::menu_event_handler;
-use sea_orm::DatabaseConnection;
+use state::Kotori;
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Manager;
 use tokio::sync::Mutex;
-
-pub struct Kotori {
-  pub books: Mutex<Vec<Book>>,
-  pub database: DatabaseConnection,
-}
-
-pub type State<'a> = tauri::State<'a, Kotori>;
 
 #[tokio::main]
 async fn main() {
@@ -62,6 +56,7 @@ async fn main() {
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
+      command::add_to_library,
       command::open_book,
       command::version
     ])
