@@ -7,6 +7,7 @@ use book::ActiveBook;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use walkdir::WalkDir;
 
+#[derive(Default)]
 pub struct Library {
   books: Vec<ActiveBook>,
 }
