@@ -18,8 +18,18 @@ impl MigrationTrait for Migration {
               .auto_increment()
               .primary_key(),
           )
-          .col(ColumnDef::new(Book::Title).string().not_null())
-          .col(ColumnDef::new(Book::Path).string().not_null())
+          .col(
+            ColumnDef::new(Book::Path)
+              .string()
+              .not_null()
+              .unique_key(),
+          )
+          .col(
+            ColumnDef::new(Book::Rating)
+              .integer()
+              .not_null()
+              .default(0),
+          )
           .col(
             ColumnDef::new(Book::CreatedAt)
               .string()
@@ -47,8 +57,8 @@ impl MigrationTrait for Migration {
 enum Book {
   Table,
   Id,
-  Title,
   Path,
+  Rating,
   CreatedAt,
   UpdatedAt,
   DeletedAt,

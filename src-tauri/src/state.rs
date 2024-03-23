@@ -6,9 +6,10 @@ use tokio::sync::Mutex;
 
 pub static BOOK_CACHE: OnceLock<PathBuf> = OnceLock::new();
 
-pub struct Kotori {
-  pub library: Mutex<Library>,
-  pub database: DatabaseConnection,
+pub struct Database {
+  pub conn: DatabaseConnection,
 }
 
-pub type State<'a> = tauri::State<'a, Kotori>;
+pub struct Kotori {
+  pub library: Mutex<Library>,
+}

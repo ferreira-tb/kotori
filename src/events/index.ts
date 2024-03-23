@@ -5,8 +5,8 @@ import { listen } from '@tauri-apps/api/event';
 
 enum AppEvent {
   AddToLibrary = 'add_to_library',
-  BookOpened = 'book_opened',
-  NavigateToLibrary = 'navigate_to_library'
+  NavigateToLibrary = 'navigate_to_library',
+  OpenBook = 'open_book'
 }
 
 export async function setupEventListeners() {
@@ -14,7 +14,7 @@ export async function setupEventListeners() {
 }
 
 function onBookOpened() {
-  return listen<Book>(AppEvent.BookOpened, (e) => {
+  return listen<Book>(AppEvent.OpenBook, (e) => {
     const store = useReaderStore();
     store.book = convertBookSrc(e.payload);
     void nextTick().then(() => router.push('/reader'));

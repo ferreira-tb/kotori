@@ -59,7 +59,7 @@ impl Extractor {
     }
 
     while let Some(result) = set.join_next().await {
-      result.map_err(|e| anyhow!(e))??;
+      result??;
     }
 
     Ok(())

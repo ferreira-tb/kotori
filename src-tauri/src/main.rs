@@ -6,17 +6,16 @@
 mod command;
 pub mod database;
 pub mod error;
-mod events;
+mod event;
 mod library;
+mod menu;
 pub mod prelude;
 mod state;
 mod utils;
 
-use events::menu_event_handler;
 use library::Library;
-use state::{Kotori, BOOK_CACHE};
+use state::{Database, Kotori, BOOK_CACHE};
 use std::fs;
-use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Manager;
 use tokio::sync::Mutex;
 
@@ -34,40 +33,23 @@ async fn main() {
 
       BOOK_CACHE.set(book_cache).unwrap();
 
-      app.manage(Kotori {
-        library: Mutex::new(Library::new()),
-        database: database::connect(app).unwrap(),
+      app.manage(Database {
+        conn: database::connect(app).unwrap(),
       });
 
-      let menu = MenuBuilder::new(app).build()?;
+      app.manage(Kotori {
+        library: Mutex::new(Library::new()),
+      });
 
-      menu.append(
-        &SubmenuBuilder::new(app, "File")
-          .item(&MenuItemBuilder::with_id("open_book", "Open file").build(app)?)
-          .item(&MenuItemBuilder::with_id("add_to_library", "Add to library").build(app)?)
-          .separator()
-          .quit()
-          .build()?,
-      )?;
-
-      menu.append(
-        &SubmenuBuilder::new(app, "Browse")
-          .item(
-            &MenuItemBuilder::with_id("library", "Library")
-              .accelerator("F1")
-              .build(app)?,
-          )
-          .build()?,
-      )?;
-
+      let menu = menu::build(app).unwrap();
       app.set_menu(menu)?;
-      app.on_menu_event(menu_event_handler);
+      app.on_menu_event(menu::event_handler);
 
       Ok(())
     })
     .invoke_handler(tauri::generate_handler![
-      command::add_to_library,
-      command::open_book,
+      command::add_to_library_with_dialog,
+      command::open_with_dialog,
       command::version
     ])
     .run(tauri::generate_context!())

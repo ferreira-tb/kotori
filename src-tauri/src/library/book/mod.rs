@@ -1,11 +1,9 @@
 mod extractor;
-mod metadata;
 mod page;
 
 use crate::prelude::*;
 use crate::utils::{glob, TempDir};
 use extractor::Extractor;
-use metadata::Metadata;
 use page::Page;
 use std::cmp::Ordering;
 use walkdir::WalkDir;
@@ -13,14 +11,16 @@ use walkdir::WalkDir;
 #[derive(Debug, Serialize)]
 #[serde(rename_all(serialize = "camelCase"))]
 pub struct ActiveBook {
+  pub(super) path: PathBuf,
+  pub(super) title: String,
+  pages: Vec<Page>,
+
   /// Temporary directory where the book is extracted.
   /// It will be automatically deleted when the book is dropped.
   temp_dir: TempDir,
 
   #[serde(skip_serializing)]
   status: Status,
-  pages: Vec<Page>,
-  pub metadata: Metadata,
 }
 
 impl ActiveBook {
@@ -36,16 +36,12 @@ impl ActiveBook {
       .into_owned()
       .replace('_', " ");
 
-    let metadata = Metadata {
-      path: path.to_owned(),
-      title,
-    };
-
     let book = Self {
+      path: path.to_owned(),
+      pages: Vec::new(),
+      title,
       temp_dir: TempDir::new()?,
       status: Status::default(),
-      pages: Vec::default(),
-      metadata,
     };
 
     Ok(book)
@@ -57,7 +53,7 @@ impl ActiveBook {
 
   pub async fn extract(&mut self) -> Result<()> {
     if !matches!(self.status, Status::Extracted) {
-      Extractor::new(&self.metadata.path)?
+      Extractor::new(&self.path)?
         .extract(self.temp_dir.path())
         .await?;
 
@@ -70,7 +66,7 @@ impl ActiveBook {
 
   pub async fn extract_cover(&mut self) -> Result<()> {
     if matches!(self.status, Status::NotExtracted) {
-      Extractor::new(&self.metadata.path)?
+      Extractor::new(&self.path)?
         .extract_cover(self.temp_dir.path())
         .await?;
 
@@ -103,7 +99,7 @@ impl ActiveBook {
 
 impl PartialEq for ActiveBook {
   fn eq(&self, other: &Self) -> bool {
-    self.metadata.path == other.metadata.path
+    self.path == other.path
   }
 }
 
@@ -117,7 +113,7 @@ impl PartialOrd for ActiveBook {
 
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
-    natord::compare_ignore_case(&self.metadata.title, &other.metadata.title)
+    natord::compare_ignore_case(&self.title, &other.title)
   }
 }
 

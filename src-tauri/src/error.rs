@@ -25,6 +25,8 @@ pub enum Error {
   #[error(transparent)]
   Tauri(#[from] tauri::Error),
   #[error(transparent)]
+  TokioJoin(#[from] tokio::task::JoinError),
+  #[error(transparent)]
   Unknown(#[from] anyhow::Error),
   #[error(transparent)]
   Zip(#[from] zip::result::ZipError),

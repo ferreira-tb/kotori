@@ -7,11 +7,11 @@ pub async fn version(app: AppHandle) -> String {
 }
 
 #[tauri::command]
-pub async fn open_book(app: AppHandle) -> Result<()> {
-  Library::open_book(&app).await
+pub async fn open_with_dialog(app: AppHandle) -> Result<()> {
+  Library::open_with_dialog(&app).await
 }
 
 #[tauri::command]
-pub async fn add_to_library(app: AppHandle) -> Result<()> {
-  Library::add(&app).await
+pub async fn add_to_library_with_dialog(app: AppHandle) -> Result<()> {
+  Library::add_with_dialog(&app).await
 }

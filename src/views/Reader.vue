@@ -43,7 +43,7 @@ onBeforeUnmount(() => {
       <img :src="current.path" class="h-full w-full object-contain" />
     </div>
     <div v-else>
-      <m-button variant="outlined" @click="invoke(Command.OpenBook)">Open</m-button>
+      <m-button variant="outlined" @click="invoke(Command.OpenWithDialog)">Open</m-button>
     </div>
   </div>
 </template>

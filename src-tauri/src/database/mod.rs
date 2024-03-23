@@ -1,9 +1,9 @@
-mod entities;
+pub mod entities;
 pub mod prelude;
 
 use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};
-use sea_orm::{ConnectOptions, Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, DatabaseConnection};
 
 pub fn connect<M, R>(app: &M) -> Result<DatabaseConnection>
 where
@@ -17,9 +17,10 @@ where
   let handle = thread::spawn(move || {
     async_runtime::block_on(async {
       let options = ConnectOptions::new(url);
-      let conn = Database::connect(options).await?;
+      let conn = sea_orm::Database::connect(options).await?;
 
-      Migrator::up(&conn, None).await?;
+      // Migrator::up(&conn, None).await?;
+      Migrator::fresh(&conn).await?;
 
       Ok(conn)
     })
