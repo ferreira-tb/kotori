@@ -125,7 +125,7 @@ impl Library {
         book.extract().await?;
 
         let json = book.as_json()?;
-        app.emit(Event::OpenBook.as_str(), json)?;
+        app.emit(&Event::OpenBook.to_string(), json)?;
 
         return Ok(());
       }
@@ -137,7 +137,7 @@ impl Library {
       book.extract().await?;
 
       let json = book.as_json()?;
-      app.emit(Event::OpenBook.as_str(), json)?;
+      app.emit(&Event::OpenBook.to_string(), json)?;
 
       let mut library = kotori.library.lock().await;
       library.insert_active(book);

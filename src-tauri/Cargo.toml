@@ -22,7 +22,10 @@ tempfile = "3.10.1"
 globset = "0.4.14"
 walkdir = "2.5.0"
 natord = "1.0.9"
-strum = { version = "0.26", features = ["derive"] }
+
+[dependencies.strum]
+version = "0.26.2"
+features = ["derive"]
 
 [dependencies.migration]
 version = "*"
@@ -38,11 +41,19 @@ features = ["derive"]
 
 [dependencies.sea-orm]
 version = "0.12.15"
-features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
+features = [
+    "macros",
+    "runtime-tokio-rustls",
+    "sqlx-sqlite",
+]
 
 [dependencies.tokio]
 version = "1.36.0"
-features = ["fs", "macros", "rt-multi-thread"]
+features = [
+    "fs",
+    "macros",
+    "rt-multi-thread",
+]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

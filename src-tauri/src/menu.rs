@@ -1,8 +1,7 @@
-use std::str::FromStr;
-
 use crate::event::Event;
 use crate::library::Library;
 use crate::prelude::*;
+use std::str::FromStr;
 use tauri::menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
 use tokio::task;
 
@@ -54,7 +53,7 @@ pub fn event_handler(app: &AppHandle, event: MenuEvent) {
       }
       Id::Library => {
         app
-          .emit(Event::NavigateToLibrary.as_str(), ())
+          .emit(&Event::NavigateToLibrary.to_string(), ())
           .ok();
       }
       Id::OpenBook => {

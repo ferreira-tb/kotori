@@ -1,9 +1,7 @@
 <script setup lang="ts">
 const router = useRouter();
 
-onKeyDown('F1', () => {
-  void router.push({ name: 'library' });
-});
+onKeyDown('F1', () => void router.push({ name: 'library' }));
 </script>
 
 <template>
