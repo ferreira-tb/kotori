@@ -80,7 +80,6 @@ impl Extractor {
     Ok(())
   }
 
-  #[allow(clippy::cast_possible_truncation)]
   async fn extract_file<P, F>(zip: Zip, file_name: F, directory: P) -> Result<()>
   where
     F: AsRef<str>,
@@ -91,7 +90,8 @@ impl Extractor {
       let mut zip = zip.lock().await;
       let mut file = zip.by_name(file_name)?;
 
-      let mut buf = Vec::with_capacity(file.size() as usize);
+      let size = usize::try_from(file.size()).unwrap_or_default();
+      let mut buf = Vec::with_capacity(size);
       file.read_to_end(&mut buf)?;
 
       buf

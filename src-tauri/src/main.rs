@@ -6,22 +6,24 @@
 
 mod command;
 pub mod database;
-pub mod error;
+mod error;
 mod event;
 mod library;
 mod menu;
-pub mod prelude;
+mod prelude;
+mod reader;
 mod state;
 mod utils;
 
 use library::Library;
-use state::{Database, Kotori, BOOK_CACHE};
+use prelude::*;
+use reader::Reader;
 use std::fs;
-use tauri::Manager;
-use tokio::sync::Mutex;
+use tauri::WindowEvent;
 
-#[tokio::main]
-async fn main() {
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_persisted_scope::init())
@@ -34,17 +36,31 @@ async fn main() {
 
       BOOK_CACHE.set(book_cache).unwrap();
 
-      app.manage(Database {
-        conn: database::connect(app).unwrap(),
-      });
+      let reader = Reader::new(app.handle().clone());
+      reader.serve();
 
-      app.manage(Kotori {
+      let kotori = Kotori {
+        db: database::connect(app).unwrap(),
         library: Mutex::new(Library::new()),
-      });
+        reader,
+      };
+
+      app.manage(kotori);
 
       let menu = menu::build(app).unwrap();
-      app.set_menu(menu)?;
-      app.on_menu_event(menu::event_handler);
+      let main_window = app.get_webview_window("main").unwrap();
+      main_window.set_menu(menu)?;
+
+      let handle = app.handle().clone();
+      main_window.on_menu_event(menu::event_handler(handle));
+
+      let handle = app.handle().clone();
+      main_window.on_window_event(move |event| {
+        if matches!(event, WindowEvent::Destroyed) {
+          handle.cleanup_before_exit();
+          handle.exit(0);
+        }
+      });
 
       Ok(())
     })

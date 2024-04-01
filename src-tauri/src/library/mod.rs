@@ -87,7 +87,7 @@ impl Library {
       Some(model)
     };
 
-    let database = app.state::<Database>();
+    let kotori = app.state::<Kotori>();
     let books: Vec<book::ActiveModel> = books.iter().filter_map(as_model).collect();
 
     if books.is_empty() {
@@ -101,7 +101,7 @@ impl Library {
     Book::insert_many(books)
       .on_conflict(on_conflict)
       .do_nothing()
-      .exec(&database.conn)
+      .exec(&kotori.db)
       .await?;
 
     Ok(())

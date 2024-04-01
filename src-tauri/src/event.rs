@@ -5,5 +5,4 @@ use strum::{Display, EnumString};
 pub enum Event {
   // AddToLibrary,
   OpenBook,
-  NavigateToLibrary,
 }

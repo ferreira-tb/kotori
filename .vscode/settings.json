@@ -1,7 +1,15 @@
 {
   "vsicons.associations.folders": [
-    { "icon": "theme", "extensions": ["composables"], "format": "svg" },
-    { "icon": "story", "extensions": ["store", "stores"], "format": "svg" }
+    {
+      "icon": "theme",
+      "extensions": ["composables"],
+      "format": "svg"
+    },
+    {
+      "icon": "story",
+      "extensions": ["store", "stores"],
+      "format": "svg"
+    }
   ],
   "prettier.requireConfig": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -19,18 +27,20 @@
     ".stylelintcache": true
   },
   "tailwindCSS.classAttributes": [
-    "class",
     "body-class",
     "bottom-class",
     "center-class",
+    "class",
     "content-class",
     "dialog-class",
+    "dropdown-class",
     "end-class",
     "footer-class",
     "header-class",
     "header-end-class",
     "header-start-class",
     "input-class",
+    "label-class",
     "logo-class",
     "media-class",
     "menu-class",

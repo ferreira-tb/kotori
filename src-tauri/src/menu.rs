@@ -1,14 +1,13 @@
-use crate::event::Event;
 use crate::library::Library;
 use crate::prelude::*;
 use std::str::FromStr;
-use tauri::menu::{Menu, MenuBuilder, MenuEvent, MenuItemBuilder, SubmenuBuilder};
-use tokio::task;
+use strum::{Display, EnumString};
+use tauri::menu::{Menu, MenuEvent, MenuItemBuilder, Submenu, SubmenuBuilder};
+use tauri::Window;
 
-#[derive(strum::Display, strum::EnumString)]
+#[derive(Display, EnumString)]
 enum Id {
   AddToLibrary,
-  Library,
   OpenBook,
 }
 
@@ -17,50 +16,56 @@ where
   R: Runtime,
   M: Manager<R>,
 {
-  let menu = MenuBuilder::new(app).build()?;
+  let menu = Menu::new(app)?;
+  menu.append(&file_menu(app)?)?;
 
-  menu.append(
-    &SubmenuBuilder::new(app, "File")
-      .item(&MenuItemBuilder::with_id(Id::OpenBook, "Open file").build(app)?)
-      .item(&MenuItemBuilder::with_id(Id::AddToLibrary, "Add to library").build(app)?)
-      .separator()
-      .quit()
-      .build()?,
-  )?;
+  Ok(menu)
+}
 
-  menu.append(
-    &SubmenuBuilder::new(app, "Browse")
-      .item(
-        &MenuItemBuilder::with_id(Id::Library, "Library")
-          .accelerator("F1")
-          .build(app)?,
-      )
-      .build()?,
-  )?;
+macro_rules! menu_item {
+  ($app:expr, $id:ident, $text:literal) => {{
+    MenuItemBuilder::with_id(Id::$id, $text).build($app)
+  }};
+  ($app:expr, $id:ident, $text:literal, $accelerator:literal) => {{
+    MenuItemBuilder::with_id(Id::$id, $text)
+      .accelerator($accelerator)
+      .build($app)
+  }};
+}
+
+fn file_menu<M, R>(app: &mut M) -> Result<Submenu<R>>
+where
+  R: Runtime,
+  M: Manager<R>,
+{
+  let menu = SubmenuBuilder::new(app, "File")
+    .item(&menu_item!(app, OpenBook, "Open file")?)
+    .item(&menu_item!(app, AddToLibrary, "Add to library")?)
+    .build()?;
 
   Ok(menu)
 }
 
 #[allow(clippy::needless_pass_by_value)]
-pub fn event_handler(app: &AppHandle, event: MenuEvent) {
-  if let Ok(id) = Id::from_str(event.id.0.as_str()) {
-    match id {
-      Id::AddToLibrary => {
-        let app = app.clone();
-        task::spawn(async move {
-          Library::add_with_dialog(&app).await.unwrap();
-        });
-      }
-      Id::Library => {
-        app
-          .emit(&Event::NavigateToLibrary.to_string(), ())
-          .ok();
-      }
-      Id::OpenBook => {
-        let app = app.clone();
-        task::spawn(async move {
-          Library::open_with_dialog(&app).await.unwrap();
-        });
+pub fn event_handler<R>(app: AppHandle) -> impl Fn(&Window<R>, MenuEvent) + Send + Sync + 'static
+where
+  R: Runtime,
+{
+  move |_, event| {
+    if let Ok(id) = Id::from_str(event.id.0.as_str()) {
+      match id {
+        Id::AddToLibrary => {
+          let app = app.clone();
+          async_runtime::spawn(async move {
+            Library::add_with_dialog(&app).await.unwrap();
+          });
+        }
+        Id::OpenBook => {
+          let app = app.clone();
+          async_runtime::spawn(async move {
+            Library::open_with_dialog(&app).await.unwrap();
+          });
+        }
       }
     }
   }

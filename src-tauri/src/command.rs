@@ -2,8 +2,8 @@ use crate::library::Library;
 use crate::prelude::*;
 
 #[tauri::command]
-pub async fn version(app: AppHandle) -> String {
-  app.config().version.clone().unwrap()
+pub async fn version() -> String {
+  crate::VERSION.to_string()
 }
 
 #[tauri::command]

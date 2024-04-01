@@ -2,7 +2,7 @@
 name = "kotori"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.76"
+rust-version = "1.77"
 publish = false
 
 [build-dependencies.tauri-build]
@@ -11,49 +11,44 @@ features = []
 
 [dependencies]
 anyhow = "1.0.81"
-chrono = "0.4.35"
-serde_json = "1.0.114"
+axum = "0.7.5"
+chrono = "0.4.37"
+futures = "0.3.30"
+globset = "0.4.14"
+itertools = "0.12.1"
+natord = "1.0.9"
+serde_json = "1.0.115"
 tauri-plugin-persisted-scope = "2.0.0-beta.3"
 tauri-plugin-window-state = "2.0.0-beta.3"
 tauri-plugin-dialog = "2.0.0-beta.3"
 thiserror = "1.0.58"
-zip = "0.6.6"
 tempfile = "3.10.1"
-globset = "0.4.14"
 walkdir = "2.5.0"
-natord = "1.0.9"
-
-[dependencies.strum]
-version = "0.26.2"
-features = ["derive"]
+zip = "0.6.6"
 
 [dependencies.migration]
 version = "*"
 path = "../migration"
 
-[dependencies.tauri]
-version = "2.0.0-beta.13"
-features = ["protocol-asset"]
+[dependencies.sea-orm]
+version = "0.12.15"
+features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
 [dependencies.serde]
 version = "1.0.197"
 features = ["derive"]
 
-[dependencies.sea-orm]
-version = "0.12.15"
-features = [
-    "macros",
-    "runtime-tokio-rustls",
-    "sqlx-sqlite",
-]
+[dependencies.strum]
+version = "0.26.2"
+features = ["derive"]
+
+[dependencies.tauri]
+version = "2.0.0-beta.13"
+features = ["protocol-asset"]
 
 [dependencies.tokio]
-version = "1.36.0"
-features = [
-    "fs",
-    "macros",
-    "rt-multi-thread",
-]
+version = "1.37.0"
+features = ["full"]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]
