@@ -1,7 +1,7 @@
 <script setup lang="ts">
-const router = useRouter();
+import { RouteName } from './router';
 
-onKeyDown('F1', () => void router.push({ name: 'library' }));
+navigateOnKeyDown('F1', { name: RouteName.Library });
 </script>
 
 <template>

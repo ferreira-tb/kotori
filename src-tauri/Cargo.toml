@@ -22,7 +22,7 @@ tauri-plugin-persisted-scope = "2.0.0-beta.3"
 tauri-plugin-window-state = "2.0.0-beta.3"
 tauri-plugin-dialog = "2.0.0-beta.3"
 thiserror = "1.0.58"
-tempfile = "3.10.1"
+tempfile = "3.10.1" # use for covers?
 walkdir = "2.5.0"
 zip = "0.6.6"
 
@@ -48,7 +48,7 @@ features = ["protocol-asset"]
 
 [dependencies.tokio]
 version = "1.37.0"
-features = ["full"]
+features = ["fs", "macros", "net", "process"]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

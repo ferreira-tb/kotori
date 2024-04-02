@@ -1,4 +1,4 @@
-use crate::library::Library;
+use crate::book::ActiveBook;
 use crate::prelude::*;
 use std::str::FromStr;
 use strum::{Display, EnumString};
@@ -47,23 +47,22 @@ where
 }
 
 #[allow(clippy::needless_pass_by_value)]
-pub fn event_handler<R>(app: AppHandle) -> impl Fn(&Window<R>, MenuEvent) + Send + Sync + 'static
+pub fn event_handler<R>(app: AppHandle) -> impl Fn(&Window<R>, MenuEvent)
 where
   R: Runtime,
 {
   move |_, event| {
     if let Ok(id) = Id::from_str(event.id.0.as_str()) {
       match id {
-        Id::AddToLibrary => {
-          let app = app.clone();
-          async_runtime::spawn(async move {
-            Library::add_with_dialog(&app).await.unwrap();
-          });
-        }
+        Id::AddToLibrary => {}
         Id::OpenBook => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            Library::open_with_dialog(&app).await.unwrap();
+            if let Some(book) = ActiveBook::from_dialog(&app).await.unwrap() {
+              let kotori = app.state::<Kotori>();
+              let mut reader = kotori.reader.lock().await;
+              reader.open_book(book).await.unwrap();
+            }
           });
         }
       }

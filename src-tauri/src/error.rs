@@ -2,11 +2,10 @@ use serde::ser::Serializer;
 use serde::Serialize;
 
 pub type Result<T> = std::result::Result<T, Error>;
+pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-  #[error("book cache dir not found")]
-  CacheNotFound,
   #[error("book is empty")]
   Empty,
   #[error("{0}")]
@@ -27,6 +26,8 @@ pub enum Error {
   #[error(transparent)]
   TokioJoin(#[from] tokio::task::JoinError),
   #[error(transparent)]
+  TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
+  #[error(transparent)]
   Unknown(#[from] anyhow::Error),
   #[error(transparent)]
   Zip(#[from] zip::result::ZipError),
@@ -39,4 +40,24 @@ impl Serialize for Error {
   {
     serializer.serialize_str(self.to_string().as_ref())
   }
+}
+
+#[macro_export]
+macro_rules! err {
+  ($e:ident) => {
+    Error::$e
+  };
+  ($e:ident, $($arg:tt)*) => {
+    Error::$e(format!($($arg)*))
+  };
+}
+
+#[macro_export]
+macro_rules! bail {
+  ($e:ident) => {
+    return Err($crate::err!($e));
+  };
+  ($e:ident, $($arg:tt)*) => {
+    return Err($crate::err!($e, $($arg)*));
+  };
 }
