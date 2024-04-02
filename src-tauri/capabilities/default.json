@@ -1,0 +1,13 @@
+{
+  "identifier": "default",
+  "description": "all windows",
+  "windows": ["main", "reader-*"],
+  "permissions": [
+    "dialog:allow-open",
+    "event:allow-emit",
+    "event:allow-listen",
+    "manatsu:allow-error-log-path",
+    "manatsu:allow-read-error-logs",
+    "manatsu:allow-save-error-log"
+  ]
+}

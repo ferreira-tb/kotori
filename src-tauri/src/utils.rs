@@ -62,6 +62,10 @@ pub mod webview {
     dir(app, format!("reader/{id}"))
   }
 
+  pub fn reader_label(id: u16) -> String {
+    format!("reader-{id}")
+  }
+
   pub fn reader_url() -> WebviewUrl {
     url("reader")
   }

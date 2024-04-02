@@ -1,8 +1,10 @@
 use crate::book::ActiveBook;
+use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::webview;
 use axum::routing::get;
 use axum::Router;
+use indoc::formatdoc;
 use tauri::{WebviewWindow, WebviewWindowBuilder, WindowEvent};
 use tokio::net::TcpListener;
 
@@ -46,13 +48,29 @@ impl Reader {
 
     let url = webview::reader_url();
     let dir = webview::reader_dir(&self.app, id)?;
-    let webview = WebviewWindowBuilder::new(&self.app, format!("reader{id}"), url)
+    let label = webview::reader_label(id);
+
+    let webview = WebviewWindowBuilder::new(&self.app, label, url)
       .data_directory(dir)
       .title(&book.title)
       .maximized(true)
       .resizable(true)
       .visible(false)
       .build()?;
+
+    let handle = self.app.clone();
+    webview.listen(Event::WillMountReader.to_string(), move |_| {
+      let label = webview::reader_label(id);
+      if let Some(webview) = handle.get_webview_window(&label) {
+        let js = formatdoc! {"
+          window.__KOTORI__ = {{
+            readerId: {id}
+          }};
+        "};
+
+        webview.eval(&js).ok();
+      }
+    });
 
     let books = Arc::clone(&self.books);
     webview.on_window_event(move |event| {

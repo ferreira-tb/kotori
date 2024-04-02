@@ -3,8 +3,10 @@ import 'manatsu/components/style';
 import '@manatsu/style/themes/mana';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { createManatsu, registerComponents } from 'manatsu';
+import { emit } from '@tauri-apps/api/event';
+import { createManatsu, handleError, registerComponents } from 'manatsu';
 import App from './App.vue';
+import { Event } from './events';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -15,4 +17,6 @@ app.use(manatsu);
 
 registerComponents(app);
 
-app.mount('#app');
+emit(Event.WillMountReader)
+  .then(() => app.mount('#app'))
+  .catch(handleError);
