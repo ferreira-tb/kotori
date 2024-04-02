@@ -1,3 +1,5 @@
+use axum::http::StatusCode;
+use axum::response::{IntoResponse, Response};
 use serde::ser::Serializer;
 use serde::Serialize;
 
@@ -6,12 +8,14 @@ pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+  #[error("book not found")]
+  BookNotFound,
+  #[error("page not found")]
+  PageNotFound,
   #[error("book is empty")]
   Empty,
   #[error("{0}")]
   InvalidBook(String),
-  #[error("{0}")]
-  InvalidPage(String),
 
   #[error(transparent)]
   Database(#[from] sea_orm::error::DbErr),
@@ -42,13 +46,25 @@ impl Serialize for Error {
   }
 }
 
+impl IntoResponse for Error {
+  fn into_response(self) -> Response {
+    let status = match self {
+      Error::BookNotFound => StatusCode::NOT_FOUND,
+      Error::PageNotFound => StatusCode::NOT_FOUND,
+      _ => StatusCode::INTERNAL_SERVER_ERROR,
+    };
+
+    (status, self.to_string()).into_response()
+  }
+}
+
 #[macro_export]
 macro_rules! err {
   ($e:ident) => {
-    Error::$e
+    crate::error::Error::$e
   };
   ($e:ident, $($arg:tt)*) => {
-    Error::$e(format!($($arg)*))
+    crate::error::Error::$e(format!($($arg)*))
   };
 }
 

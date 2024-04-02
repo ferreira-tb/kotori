@@ -1,18 +1,16 @@
 use crate::prelude::*;
 use crate::utils::glob;
+use natord::compare_ignore_case;
 use std::fs::File;
+use std::io::Read;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::sync::oneshot;
 use zip::ZipArchive;
 
-#[derive(Debug, Serialize)]
-#[serde(rename_all(serialize = "camelCase"))]
 pub struct ActiveBook {
+  pub file: BookFile,
   pub path: PathBuf,
   pub title: String,
-
-  #[serde(skip_serializing)]
-  file: Option<BookFile>,
 }
 
 impl ActiveBook {
@@ -26,9 +24,9 @@ impl ActiveBook {
       .replace('_', " ");
 
     let book = Self {
+      file: BookFile::new(path)?,
       path: path.to_owned(),
       title,
-      file: None,
     };
 
     Ok(book)
@@ -51,6 +49,10 @@ impl ActiveBook {
 
     Ok(None)
   }
+
+  pub fn get_pages_as_value(&self) -> Option<Value> {
+    serde_json::to_value(&self.file.pages).ok()
+  }
 }
 
 impl PartialEq for ActiveBook {
@@ -69,14 +71,13 @@ impl PartialOrd for ActiveBook {
 
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
-    natord::compare_ignore_case(&self.title, &other.title)
+    compare_ignore_case(&self.title, &other.title)
   }
 }
 
-#[derive(Debug)]
-struct BookFile {
+pub struct BookFile {
   handle: ZipArchive<File>,
-  entries: Vec<String>,
+  pub pages: HashMap<usize, String>,
 }
 
 impl BookFile {
@@ -85,21 +86,34 @@ impl BookFile {
     let zip = ZipArchive::new(zip)?;
 
     let globset = glob::book_page();
-    let entries = zip
+    let pages: HashMap<usize, String> = zip
       .file_names()
       .filter(|n| globset.is_match(n))
-      .map_into::<String>()
-      .collect_vec();
+      .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
+      .enumerate()
+      .map(|(i, p)| (i, p.to_string()))
+      .collect();
 
-    if entries.is_empty() {
+    if pages.is_empty() {
       bail!(Empty);
     }
 
-    let file = Self {
-      handle: zip,
-      entries,
-    };
+    let file = Self { handle: zip, pages };
 
     Ok(file)
+  }
+
+  pub fn get_page_as_bytes(&mut self, page: usize) -> Result<Vec<u8>> {
+    let name = self
+      .pages
+      .get(&page)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    let mut file = self.handle.by_name(name)?;
+    let size = usize::try_from(file.size()).unwrap_or_default();
+    let mut buf = Vec::with_capacity(size);
+    file.read_to_end(&mut buf)?;
+
+    Ok(buf)
   }
 }

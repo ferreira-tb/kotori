@@ -1,3 +1,3 @@
-/*export enum Command {
-  OpenWithDialog = 'open_with_dialog',
-}*/
+export enum Command {
+  GetActiveBook = 'get_active_book'
+}

@@ -25,13 +25,15 @@ use reader::Reader;
 use tauri::{App, WindowEvent};
 use utils::webview;
 
+const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
-    .invoke_handler(tauri::generate_handler![])
+    .invoke_handler(tauri::generate_handler![command::get_active_book])
     .run(tauri::generate_context!())
     .expect("could not start kotori");
 }
