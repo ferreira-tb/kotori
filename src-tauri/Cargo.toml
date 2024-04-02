@@ -6,7 +6,7 @@ rust-version = "1.77"
 publish = false
 
 [build-dependencies.tauri-build]
-version = "2.0.0-beta.10"
+version = "2.0.0-beta.11"
 features = []
 
 [dependencies]
@@ -19,12 +19,12 @@ indoc = "2.0.5"
 itertools = "0.12.1"
 natord = "1.0.9"
 serde_json = "1.0.115"
-tauri-plugin-dialog = "2.0.0-beta.3"
+tauri-plugin-dialog = "2.0.0-beta.4"
 tauri-plugin-manatsu = "0.7.2"
-tauri-plugin-persisted-scope = "2.0.0-beta.3"
-tauri-plugin-window-state = "2.0.0-beta.3"
+tauri-plugin-persisted-scope = "2.0.0-beta.4"
+tauri-plugin-window-state = "2.0.0-beta.4"
 thiserror = "1.0.58"
-tempfile = "3.10.1"                           # use for covers?
+tempfile = "3.10.1"
 walkdir = "2.5.0"
 zip = "0.6.6"
 
@@ -45,7 +45,7 @@ version = "0.26.2"
 features = ["derive"]
 
 [dependencies.tauri]
-version = "2.0.0-beta.13"
+version = "2.0.0-beta.14"
 features = ["protocol-asset"]
 
 [dependencies.tokio]
