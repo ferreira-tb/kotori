@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { URL, fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
@@ -33,6 +34,16 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    minify: false
+    minify: false,
+    rollupOptions: {
+      input: {
+        main: entry('main'),
+        reader: entry('reader')
+      }
+    }
   }
 });
+
+function entry(name) {
+  return resolve(__dirname, `src/windows/${name}/index.html`);
+}

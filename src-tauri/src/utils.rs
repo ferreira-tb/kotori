@@ -1,8 +1,3 @@
-use crate::prelude::*;
-use serde::ser::Serializer;
-use serde::Serialize;
-use tempfile::tempdir_in;
-
 pub mod date {
   use chrono::Local;
 
@@ -44,32 +39,34 @@ pub mod glob {
   }
 }
 
-#[derive(Debug)]
-pub struct TempDir(tempfile::TempDir);
+pub mod webview {
+  use crate::prelude::*;
+  use tauri::WebviewUrl;
 
-impl TempDir {
-  pub fn new() -> Result<Self> {
-    let book_cache = BOOK_CACHE.get().unwrap();
-    let temp_dir = tempdir_in(book_cache)?;
-    Ok(Self(temp_dir))
+  pub fn dir<N: AsRef<str>>(app: &AppHandle, name: N) -> Result<PathBuf> {
+    let name = name.as_ref();
+    let path = app
+      .path()
+      .app_data_dir()?
+      .join(format!("windows/{name}"));
+
+    Ok(path)
   }
 
-  pub fn path(&self) -> &Path {
-    self.0.path()
+  pub fn url<N: AsRef<str>>(name: N) -> WebviewUrl {
+    let name = name.as_ref();
+    WebviewUrl::App(format!("src/windows/{name}/index.html",).into())
   }
-}
 
-impl Serialize for TempDir {
-  fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    let path = self.0.path();
-    let path = path.to_str().ok_or_else(|| {
-      let err = format!("invalid path: {path:?}");
-      serde::ser::Error::custom(err)
-    })?;
+  pub fn reader_dir(app: &AppHandle, id: u16) -> Result<PathBuf> {
+    dir(app, format!("reader/{id}"))
+  }
 
-    serializer.serialize_str(path)
+  pub fn reader_label(id: u16) -> String {
+    format!("reader-{id}")
+  }
+
+  pub fn reader_url() -> WebviewUrl {
+    url("reader")
   }
 }

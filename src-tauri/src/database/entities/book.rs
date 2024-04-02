@@ -11,7 +11,6 @@ pub struct Model {
   pub id: i32,
   #[sea_orm(unique)]
   pub path: String,
-  pub rating: i32,
   pub created_at: String,
   pub updated_at: String,
   pub deleted_at: Option<String>,

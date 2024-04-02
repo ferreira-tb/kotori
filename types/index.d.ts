@@ -1,11 +1,7 @@
 interface Book {
-  pages: BookPage[];
+  pages?: number[];
   path: string;
-  tempDir: string;
   title: string;
 }
 
-interface BookPage {
-  filename: string;
-  path: string;
-}
+type BookStatus = 'not started' | 'pending' | 'done' | 'error';

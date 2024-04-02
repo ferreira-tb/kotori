@@ -1,4 +1,7 @@
 {
+  "productName": "kotori",
+  "version": "0.1.0",
+  "identifier": "tbdev.kotori",
   "build": {
     "beforeDevCommand": "pnpm run vite:dev",
     "beforeBuildCommand": "pnpm run vite:build",
@@ -16,16 +19,13 @@
       "icons/icon.ico"
     ]
   },
-  "productName": "kotori",
-  "version": "0.1.0",
-  "identifier": "tbdev.kotori",
-  "plugins": {},
   "app": {
     "withGlobalTauri": false,
     "windows": [
       {
         "label": "main",
         "title": "Kotori",
+        "url": "src/windows/main/index.html",
         "width": 800,
         "height": 600,
         "visible": false,
@@ -40,5 +40,6 @@
       },
       "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; connect-src ipc: http://ipc.localhost"
     }
-  }
+  },
+  "plugins": {}
 }
