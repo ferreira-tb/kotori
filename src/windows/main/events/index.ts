@@ -7,7 +7,7 @@ enum Event {
 }
 
 export function setupEventListeners() {
-  return Promise.all([onNavigateToLibrary()]);
+  return onNavigateToLibrary();
 }
 
 function onNavigateToLibrary() {

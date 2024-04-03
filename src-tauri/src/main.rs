@@ -8,22 +8,27 @@ mod book;
 mod command;
 pub mod database;
 mod error;
-mod event;
 mod library;
 mod menu;
 mod prelude;
 mod reader;
-mod state;
+mod server;
 mod utils;
 
 use error::BoxResult;
 use library::Library;
-use prelude::*;
 use reader::Reader;
-use tauri::{App, WindowEvent};
-use utils::webview;
+use sea_orm::DatabaseConnection;
+use tauri::async_runtime::Mutex;
+use tauri::{App, AppHandle, Manager, WindowEvent};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+pub struct Kotori {
+  pub db: DatabaseConnection,
+  pub library: Mutex<Library>,
+  pub reader: Mutex<Reader>,
+}
 
 fn main() {
   tauri::Builder::default()
@@ -41,39 +46,32 @@ fn main() {
 }
 
 fn setup(app: &mut App) -> BoxResult<()> {
-  let reader = Reader::new(app.handle().clone());
-  reader.serve();
-
+  let handle = app.handle();
   let kotori = Kotori {
-    db: database::connect(app).unwrap(),
+    db: database::connect(handle).unwrap(),
     library: Mutex::new(Library::new()),
-    reader: Mutex::new(reader),
+    reader: Mutex::new(Reader::new(handle)),
   };
 
   app.manage(kotori);
 
-  let menu = menu::build(app).unwrap();
+  let menu = menu::build(handle).unwrap();
   let main_window = app.get_webview_window("main").unwrap();
   main_window.set_menu(menu)?;
 
-  let handle = app.handle().clone();
   main_window.on_menu_event(menu::on_menu_event(handle));
-
-  let handle = app.handle().clone();
   main_window.on_window_event(on_main_window_event(handle));
+
+  // This depends on state managed by tauri, so it must be called after `app.manage`.
+  server::serve(handle);
 
   Ok(())
 }
 
-fn on_main_window_event(app: AppHandle) -> impl Fn(&WindowEvent) {
+fn on_main_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
+  let app = app.clone();
   move |event| {
     if matches!(event, WindowEvent::Destroyed) {
-      // Cleanup the reader webview artifacts before exiting.
-      let reader_dir = webview::dir(&app, "reader").unwrap();
-      if let Ok(true) = reader_dir.try_exists() {
-        std::fs::remove_dir_all(reader_dir).ok();
-      }
-
       app.cleanup_before_exit();
       app.exit(0);
     }

@@ -32,6 +32,8 @@ pub enum Error {
   #[error(transparent)]
   TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
   #[error(transparent)]
+  WalkDir(#[from] walkdir::Error),
+  #[error(transparent)]
   Unknown(#[from] anyhow::Error),
   #[error(transparent)]
   Zip(#[from] zip::result::ZipError),

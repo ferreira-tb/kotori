@@ -5,11 +5,7 @@ use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 
-pub fn connect<M, R>(app: &M) -> Result<DatabaseConnection>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app
     .path()
     .app_data_dir()

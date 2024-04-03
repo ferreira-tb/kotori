@@ -20,5 +20,5 @@ pub async fn close_webview_window(webview: WebviewWindow) -> Result<()> {
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.lock().await;
-  reader.switch_reader_focus().await
+  reader.switch_focus().await
 }

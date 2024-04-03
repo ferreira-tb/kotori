@@ -4,6 +4,7 @@ use std::str::FromStr;
 use strum::{Display, EnumString};
 use tauri::menu::{Menu, MenuEvent, MenuItemBuilder, Submenu, SubmenuBuilder};
 use tauri::Window;
+use crate::library::Library;
 
 #[derive(Display, EnumString)]
 enum Id {
@@ -11,7 +12,7 @@ enum Id {
   OpenBook,
 }
 
-pub fn build<M, R>(app: &mut M) -> Result<Menu<R>>
+pub fn build<M, R>(app: &M) -> Result<Menu<R>>
 where
   R: Runtime,
   M: Manager<R>,
@@ -33,35 +34,43 @@ macro_rules! menu_item {
   }};
 }
 
-fn file_menu<M, R>(app: &mut M) -> Result<Submenu<R>>
+fn file_menu<M, R>(app: &M) -> Result<Submenu<R>>
 where
   R: Runtime,
   M: Manager<R>,
 {
-  let menu = SubmenuBuilder::new(app, "File")
+  let mut menu = SubmenuBuilder::new(app, "File")
     .item(&menu_item!(app, OpenBook, "Open file")?)
-    .item(&menu_item!(app, AddToLibrary, "Add to library")?)
-    .build()?;
+    .item(&menu_item!(app, AddToLibrary, "Add to library")?);
 
-  Ok(menu)
+  if !cfg!(target_os = "linux") {
+    menu = menu.separator().quit();
+  }
+
+  menu.build().map_err(Into::into)
 }
 
-#[allow(clippy::needless_pass_by_value)]
-pub fn on_menu_event<R>(app: AppHandle) -> impl Fn(&Window<R>, MenuEvent)
+pub fn on_menu_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
 where
   R: Runtime,
 {
+  let app = app.clone();
   move |_, event| {
     if let Ok(id) = Id::from_str(event.id.0.as_str()) {
       match id {
-        Id::AddToLibrary => {}
+        Id::AddToLibrary => {
+          let app = app.clone();
+          async_runtime::spawn(async move {
+            Library::from_dialog(&app).await.ok();
+          });
+        }
         Id::OpenBook => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            if let Some(book) = ActiveBook::from_dialog(&app).await.unwrap() {
+            if let Ok(books) = ActiveBook::from_dialog(&app).await {
               let kotori = app.state::<Kotori>();
               let mut reader = kotori.reader.lock().await;
-              reader.open_book(book).await.unwrap();
+              reader.open_many(books).await.ok();
             }
           });
         }

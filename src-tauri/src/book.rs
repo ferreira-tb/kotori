@@ -3,8 +3,6 @@ use crate::utils::glob;
 use natord::compare_ignore_case;
 use std::fs::File;
 use std::io::Read;
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
-use tokio::sync::oneshot;
 use zip::ZipArchive;
 
 pub struct ActiveBook {
@@ -32,22 +30,24 @@ impl ActiveBook {
     Ok(book)
   }
 
-  pub async fn from_dialog(app: &AppHandle) -> Result<Option<Self>> {
+  pub async fn from_dialog(app: &AppHandle) -> Result<Vec<Self>> {
     let (tx, rx) = oneshot::channel();
     let dialog = app.dialog().clone();
 
     FileDialogBuilder::new(dialog)
       .add_filter("Book", &["cbr", "cbz"])
-      .pick_file(move |response| {
+      .pick_files(move |response| {
         tx.send(response).ok();
       });
 
     if let Some(response) = rx.await? {
-      let book = Self::new(response.path)?;
-      return Ok(Some(book));
+      return response
+        .into_iter()
+        .map(|r| Self::new(r.path))
+        .collect();
     }
 
-    Ok(None)
+    Ok(Vec::new())
   }
 }
 
@@ -97,6 +97,10 @@ impl BookFile {
     let file = Self { handle: zip, pages };
 
     Ok(file)
+  }
+
+  pub fn get_cover_as_bytes(&mut self) -> Result<Vec<u8>> {
+    self.get_page_as_bytes(0)
   }
 
   pub fn get_page_as_bytes(&mut self, page: usize) -> Result<Vec<u8>> {

@@ -1,56 +1,28 @@
 use crate::book::ActiveBook;
-use crate::event::Event;
 use crate::prelude::*;
+use crate::utils::event::Event;
 use crate::utils::webview;
-use crate::VERSION;
-use axum::extract::{Path, State};
-use axum::http::{HeaderValue, StatusCode};
-use axum::response::{Html, IntoResponse, Response};
-use axum::routing::get;
-use axum::Router;
-use indoc::formatdoc;
 use tauri::{WebviewWindowBuilder, WindowEvent};
-use tokio::net::TcpListener;
-use tower_http::cors::CorsLayer;
 
-type Books = Arc<Mutex<HashMap<u16, (ActiveBook, WebviewWindow)>>>;
+pub type BookMap = Arc<Mutex<HashMap<u16, (ActiveBook, WebviewWindow)>>>;
 
 pub struct Reader {
   app: AppHandle,
-  books: Books,
+  books: BookMap,
   id: u16,
 }
 
 impl Reader {
-  const URL: &'static str = "0.0.0.0:3000";
-
-  pub fn new(app: AppHandle) -> Self {
+  pub fn new(app: &AppHandle) -> Self {
     Self {
-      app,
+      app: app.clone(),
       books: Arc::new(Mutex::new(HashMap::new())),
       id: 0,
     }
   }
 
-  pub fn serve(&self) {
-    let books = Arc::clone(&self.books);
-    thread::spawn(|| {
-      async_runtime::block_on(async {
-        let mut router = Router::new()
-          .route("/", get(root))
-          .route("/reader/:book/:page", get(book_page))
-          .with_state(books);
-
-        if tauri::dev() {
-          let origin = HeaderValue::from_static("http://localhost:1422");
-          let layer = CorsLayer::new().allow_origin(origin);
-          router = router.layer(layer);
-        }
-
-        let listener = TcpListener::bind(Self::URL).await.unwrap();
-        axum::serve(listener, router).await.unwrap();
-      });
-    });
+  pub fn books(&self) -> BookMap {
+    Arc::clone(&self.books)
   }
 
   pub async fn open_book(&mut self, book: ActiveBook) -> Result<()> {
@@ -86,30 +58,41 @@ impl Reader {
     Ok(())
   }
 
-  pub async fn switch_reader_focus(&self) -> Result<()> {
+  pub async fn open_many<I>(&mut self, books: I) -> Result<()>
+  where
+    I: IntoIterator<Item = ActiveBook>,
+  {
+    for book in books {
+      self.open_book(book).await?;
+    }
+
+    Ok(())
+  }
+
+  pub async fn switch_focus(&self) -> Result<()> {
     let Some(focused) = self.get_focused_book().await else {
       return Ok(());
     };
 
-    // Better we make sure the key still exists after acquiring the lock.
-    // Would be nasty being trapped forever inside the while loops.
+    // We must make sure the key still exists after acquiring the lock.
     let books = self.books.lock().await;
     if books.len() < 2 || !books.contains_key(&focused) {
       return Ok(());
     }
 
-    // Move the iterator to the focused book.
-    let mut keys = books.keys().cycle();
-    while let Some(id) = keys.next() {
-      if id == &focused {
-        break;
-      }
-    }
+    let id = books
+      .keys()
+      .cycle()
+      .skip_while(|id| **id != focused)
+      .skip(1)
+      .find(|id| books.contains_key(id));
 
-    while let Some(id) = keys.next() {
-      if let Some((_, webview)) = books.get(id) {
-        return webview.set_focus().map_err(Into::into);
-      }
+    let Some(id) = id else {
+      return Ok(());
+    };
+
+    if let Some((_, webview)) = books.get(id) {
+      return webview.set_focus().map_err(Into::into);
     }
 
     Ok(())
@@ -147,12 +130,7 @@ impl Reader {
     webview.listen(Event::WillMountReader.to_string(), move |_| {
       let label = webview::reader_label(id);
       if let Some(webview) = handle.get_webview_window(&label) {
-        let js = formatdoc! {"
-          window.__KOTORI__ = {{
-            readerId: {id}
-          }};
-        "};
-
+        let js = format!("window.__KOTORI__ = {{ readerId: {id} }}");
         webview.eval(&js).ok();
       }
     });
@@ -171,40 +149,5 @@ impl Reader {
         });
       }
     });
-  }
-}
-
-async fn root(State(books): State<Books>) -> Html<String> {
-  let books = books.lock().await;
-  let amount = books.len();
-
-  let html = formatdoc! {"
-    <html lang='en'>
-      <head>
-        <meta charset='UTF-8'>
-        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-        <title>Kotori {VERSION}</title>
-      </head>
-      <body>
-        <h1>Kotori Reader</h1>
-        <p>Books: {amount}</p>
-      </body>
-    </html>
-  "};
-
-  Html(html)
-}
-
-async fn book_page(State(books): State<Books>, Path((book, page)): Path<(u16, usize)>) -> Response {
-  let mut books = books.lock().await;
-  let book = books.get_mut(&book).map(|(b, _)| b);
-
-  let Some(book) = book else {
-    return err!(BookNotFound).into_response();
-  };
-
-  match book.file.get_page_as_bytes(page) {
-    Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-    Err(err) => err.into_response(),
   }
 }

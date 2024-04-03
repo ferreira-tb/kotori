@@ -24,6 +24,12 @@ impl MigrationTrait for Migration {
               .not_null()
               .unique_key(),
           )
+          .col(
+            ColumnDef::new(Book::Rating)
+              .integer()
+              .not_null()
+              .default(0),
+          )
           .to_owned(),
       )
       .await
@@ -40,5 +46,6 @@ impl MigrationTrait for Migration {
 enum Book {
   Table,
   Id,
+  Rating,
   Path,
 }
