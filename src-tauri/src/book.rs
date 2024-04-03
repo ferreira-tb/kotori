@@ -49,10 +49,6 @@ impl ActiveBook {
 
     Ok(None)
   }
-
-  pub fn get_pages_as_value(&self) -> Option<Value> {
-    serde_json::to_value(&self.file.pages).ok()
-  }
 }
 
 impl PartialEq for ActiveBook {

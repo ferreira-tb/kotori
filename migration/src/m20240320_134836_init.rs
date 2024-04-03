@@ -24,17 +24,6 @@ impl MigrationTrait for Migration {
               .not_null()
               .unique_key(),
           )
-          .col(
-            ColumnDef::new(Book::CreatedAt)
-              .string()
-              .not_null(),
-          )
-          .col(
-            ColumnDef::new(Book::UpdatedAt)
-              .string()
-              .not_null(),
-          )
-          .col(ColumnDef::new(Book::DeletedAt).string())
           .to_owned(),
       )
       .await
@@ -52,7 +41,4 @@ enum Book {
   Table,
   Id,
   Path,
-  CreatedAt,
-  UpdatedAt,
-  DeletedAt,
 }

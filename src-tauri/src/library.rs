@@ -1,6 +1,5 @@
 use crate::database::prelude::Book;
 
-#[derive(Default)]
 pub struct Library {
   books: Vec<Book>,
 }

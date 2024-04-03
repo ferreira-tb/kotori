@@ -18,7 +18,7 @@ type Books = Arc<Mutex<HashMap<u16, (ActiveBook, WebviewWindow)>>>;
 pub struct Reader {
   app: AppHandle,
   books: Books,
-  current_id: u16,
+  id: u16,
 }
 
 impl Reader {
@@ -28,7 +28,7 @@ impl Reader {
     Self {
       app,
       books: Arc::new(Mutex::new(HashMap::new())),
-      current_id: 0,
+      id: 0,
     }
   }
 
@@ -49,7 +49,7 @@ impl Reader {
 
         let listener = TcpListener::bind(Self::URL).await.unwrap();
         axum::serve(listener, router).await.unwrap();
-      })
+      });
     });
   }
 
@@ -62,8 +62,8 @@ impl Reader {
 
     drop(books);
 
-    self.current_id += 1;
-    let id = self.current_id;
+    self.id += 1;
+    let id = self.id;
 
     let url = webview::reader_url();
     let dir = webview::reader_dir(&self.app, id)?;
@@ -77,37 +77,53 @@ impl Reader {
       .visible(false)
       .build()?;
 
-    let handle = self.app.clone();
-    webview.listen(Event::WillMountReader.to_string(), move |_| {
-      let label = webview::reader_label(id);
-      if let Some(webview) = handle.get_webview_window(&label) {
-        let js = formatdoc! {"
-          window.__KOTORI__ = {{
-            readerId: {id}
-          }};
-        "};
-
-        webview.eval(&js).ok();
-      }
-    });
-
-    let books = Arc::clone(&self.books);
-    webview.on_window_event(move |event| {
-      if matches!(event, WindowEvent::Destroyed) {
-        // They are captured by the closure, but we need to clone before moving into the async block.
-        // Otherwise, it wouldn't be possible to call the closure more than once.
-        let books = Arc::clone(&books);
-        async_runtime::spawn(async move {
-          let mut books = books.lock().await;
-          books.remove(&id);
-        });
-      }
-    });
+    self.set_webview_listeners(&webview, id);
+    self.set_webview_events(&webview, id);
 
     let mut books = self.books.lock().await;
     books.insert(id, (book, webview));
 
     Ok(())
+  }
+
+  pub async fn switch_reader_focus(&self) -> Result<()> {
+    let Some(focused) = self.get_focused_book().await else {
+      return Ok(());
+    };
+
+    // Better we make sure the key still exists after acquiring the lock.
+    // Would be nasty being trapped forever inside the while loops.
+    let books = self.books.lock().await;
+    if books.len() < 2 || !books.contains_key(&focused) {
+      return Ok(());
+    }
+
+    // Move the iterator to the focused book.
+    let mut keys = books.keys().cycle();
+    while let Some(id) = keys.next() {
+      if id == &focused {
+        break;
+      }
+    }
+
+    while let Some(id) = keys.next() {
+      if let Some((_, webview)) = books.get(id) {
+        return webview.set_focus().map_err(Into::into);
+      }
+    }
+
+    Ok(())
+  }
+
+  async fn get_focused_book(&self) -> Option<u16> {
+    let books = self.books.lock().await;
+    for (id, (_, webview)) in books.iter() {
+      if webview.is_focused().unwrap_or(false) {
+        return Some(*id);
+      }
+    }
+
+    None
   }
 
   pub async fn get_book_as_value(&self, id: u16) -> Option<Value> {
@@ -124,6 +140,37 @@ impl Reader {
     });
 
     Some(json)
+  }
+
+  fn set_webview_listeners(&self, webview: &WebviewWindow, id: u16) {
+    let handle = self.app.clone();
+    webview.listen(Event::WillMountReader.to_string(), move |_| {
+      let label = webview::reader_label(id);
+      if let Some(webview) = handle.get_webview_window(&label) {
+        let js = formatdoc! {"
+          window.__KOTORI__ = {{
+            readerId: {id}
+          }};
+        "};
+
+        webview.eval(&js).ok();
+      }
+    });
+  }
+
+  fn set_webview_events(&self, webview: &WebviewWindow, id: u16) {
+    let books = Arc::clone(&self.books);
+    webview.on_window_event(move |event| {
+      if matches!(event, WindowEvent::Destroyed) {
+        // They are captured by the closure, but we need to clone before moving into the async block.
+        // Otherwise, it wouldn't be possible to call the closure more than once.
+        let books = Arc::clone(&books);
+        async_runtime::spawn(async move {
+          let mut books = books.lock().await;
+          books.remove(&id);
+        });
+      }
+    });
   }
 }
 

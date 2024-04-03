@@ -3,8 +3,6 @@
 #![allow(clippy::missing_errors_doc)]
 #![allow(clippy::missing_panics_doc)]
 #![allow(clippy::module_name_repetitions)]
-#![allow(dead_code)]
-#![allow(unused_variables)]
 
 mod book;
 mod command;
@@ -33,7 +31,11 @@ fn main() {
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
-    .invoke_handler(tauri::generate_handler![command::get_active_book])
+    .invoke_handler(tauri::generate_handler![
+      command::close_webview_window,
+      command::get_active_book,
+      command::switch_reader_focus
+    ])
     .run(tauri::generate_context!())
     .expect("could not start kotori");
 }
@@ -55,21 +57,25 @@ fn setup(app: &mut App) -> BoxResult<()> {
   main_window.set_menu(menu)?;
 
   let handle = app.handle().clone();
-  main_window.on_menu_event(menu::event_handler(handle));
+  main_window.on_menu_event(menu::on_menu_event(handle));
 
   let handle = app.handle().clone();
-  main_window.on_window_event(move |event| {
+  main_window.on_window_event(on_main_window_event(handle));
+
+  Ok(())
+}
+
+fn on_main_window_event(app: AppHandle) -> impl Fn(&WindowEvent) {
+  move |event| {
     if matches!(event, WindowEvent::Destroyed) {
       // Cleanup the reader webview artifacts before exiting.
-      let reader_dir = webview::dir(&handle, "reader").unwrap();
+      let reader_dir = webview::dir(&app, "reader").unwrap();
       if let Ok(true) = reader_dir.try_exists() {
         std::fs::remove_dir_all(reader_dir).ok();
       }
 
-      handle.cleanup_before_exit();
-      handle.exit(0);
+      app.cleanup_before_exit();
+      app.exit(0);
     }
-  });
-
-  Ok(())
+  }
 }

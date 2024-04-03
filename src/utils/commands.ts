@@ -1,3 +1,5 @@
 export enum Command {
-  GetActiveBook = 'get_active_book'
+  CloseWebviewWindow = 'close_webview_window',
+  GetActiveBook = 'get_active_book',
+  SwitchReaderFocus = 'switch_reader_focus'
 }

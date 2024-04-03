@@ -49,8 +49,7 @@ impl Serialize for Error {
 impl IntoResponse for Error {
   fn into_response(self) -> Response {
     let status = match self {
-      Error::BookNotFound => StatusCode::NOT_FOUND,
-      Error::PageNotFound => StatusCode::NOT_FOUND,
+      Error::BookNotFound | Error::PageNotFound => StatusCode::NOT_FOUND,
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 
@@ -61,10 +60,10 @@ impl IntoResponse for Error {
 #[macro_export]
 macro_rules! err {
   ($e:ident) => {
-    crate::error::Error::$e
+    $crate::error::Error::$e
   };
   ($e:ident, $($arg:tt)*) => {
-    crate::error::Error::$e(format!($($arg)*))
+    $crate::error::Error::$e(format!($($arg)*))
   };
 }
 
