@@ -112,17 +112,7 @@ impl Reader {
   pub async fn get_book_as_value(&self, id: u16) -> Option<Value> {
     let books = self.books.lock().await;
     let book = books.get(&id).map(|(b, _)| b)?;
-
-    let mut pages = book.file.pages.keys().copied().collect_vec();
-    pages.sort_unstable();
-
-    let json = json!({
-      "path": book.path,
-      "title": book.title,
-      "pages": pages
-    });
-
-    Some(json)
+    Some(book.as_value())
   }
 
   fn set_webview_listeners(&self, webview: &WebviewWindow, id: u16) {

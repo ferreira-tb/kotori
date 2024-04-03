@@ -49,6 +49,22 @@ impl ActiveBook {
 
     Ok(Vec::new())
   }
+
+  pub fn as_value(&self) -> Value {
+    let pages = self
+      .file
+      .pages
+      .keys()
+      .copied()
+      .sorted_unstable()
+      .collect_vec();
+
+    json!({
+      "path": self.path,
+      "title": self.title,
+      "pages": pages
+    })
+  }
 }
 
 impl PartialEq for ActiveBook {
@@ -73,7 +89,7 @@ impl Ord for ActiveBook {
 
 pub struct BookFile {
   handle: ZipArchive<File>,
-  pub pages: HashMap<usize, String>,
+  pages: HashMap<usize, String>,
 }
 
 impl BookFile {

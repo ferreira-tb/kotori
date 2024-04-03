@@ -6,7 +6,7 @@ use axum::http::{HeaderValue, StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
-use indoc::formatdoc;
+use dioxus_ssr::render_element;
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
 
@@ -21,8 +21,8 @@ pub fn serve(app: &AppHandle) {
       drop(reader);
 
       let mut router = Router::new()
+        .route("/library/:book/cover", get(book_cover))
         .route("/reader", get(reader_root))
-        .route("/reader/:book/cover", get(book_cover))
         .route("/reader/:book/:page", get(book_page))
         .with_state(books);
 
@@ -39,39 +39,29 @@ pub fn serve(app: &AppHandle) {
 }
 
 async fn reader_root(State(books): State<BookMap>) -> Html<String> {
+  use dioxus::prelude::*;
+
   let books = books.lock().await;
   let amount = books.len();
 
-  macro_rules! row {
-    ($($td:expr),*) => {{
-      let mut row = String::from("<tr>");
-      $(row.push_str(&format!("<td>{}</td>", $td));)*
-      row.push_str("</tr>");
-      row
-    }};
-  }
-
-  let table = books
+  let rows = books
     .iter()
     .sorted_unstable_by_key(|(id, _)| *id)
-    .map(|(id, (book, _))| row!(id, book.title))
-    .collect::<String>();
+    .map(|(id, (book, _))| (id, &book.title));
 
-  let html = formatdoc! {"
-    <html lang='en'>
-      <head>
-        <title>Kotori {VERSION}</title>
-      </head>
-      <body>
-        <p>Active books: {amount}</p>
-        <table>
-          {table}
-        </table>
-      </body>
-    </html>
-  "};
+  let html = rsx! {
+    head { title { "Kotori {VERSION}" } }
+    body {
+      p { "Active books: {amount}" }
+      table {
+        for (id, title) in rows {
+          tr { td { "{id}" } td { "{title}" } }
+        }
+      }
+    }
+  };
 
-  Html(html)
+  Html(render_element(html))
 }
 
 async fn book_cover(State(books): State<BookMap>, Path(book): Path<u16>) -> Response {
