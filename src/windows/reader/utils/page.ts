@@ -1,18 +1,21 @@
 import { api } from '@/utils/server';
-import { handleError } from 'manatsu';
+import { useReaderStore } from '../stores';
 
 export class Page {
   public status: BookStatus = 'not started';
   public url: string | null = null;
 
-  private constructor(public readonly id: number) {}
+  private static lookahead = 5;
+  private static lookbehind: number | null = -1;
+
+  constructor(public readonly id: number) {}
 
   public async fetch() {
     try {
       if (this.status !== 'not started') return;
       this.status = 'pending';
 
-      const readerId = window.__KOTORI__.readerId;
+      const { readerId } = useReaderStore();
       const response = await fetch(api(`/reader/${readerId}/${this.id}`));
       const blob = await response.blob();
 
@@ -24,7 +27,8 @@ export class Page {
     }
   }
 
-  public eagerFetch(pages: Page[]) {
+  public eagerFetch() {
+    const { pages, findNext, lastIndex } = useReaderStore();
     if (pages.length === 0) return;
 
     const promises: Promise<void>[] = [];
@@ -32,34 +36,40 @@ export class Page {
       promises.push(this.fetch());
     }
 
-    for (let i = 1; i <= 5; i++) {
-      const nextIndex = findIndex(pages, this.id) + i;
-      if (pages[nextIndex] && pages[nextIndex].status === 'not started') {
-        promises.push(pages[nextIndex].fetch());
+    if (Page.lookahead > 0) {
+      for (let step = 1; step <= Page.lookahead; step++) {
+        const next = findNext(this.id, step);
+        if (next && next.status === 'not started') {
+          promises.push(next.fetch());
+        }
+      }
+
+      const pagesUntilLast = lastIndex() - this.id;
+      Page.lookahead = Math.min(pagesUntilLast, Page.lookahead + 1);
+    }
+
+    if (Page.lookbehind && Math.abs(Page.lookbehind) < pages.length) {
+      const behind = pages.at(Page.lookbehind);
+      if (behind) {
+        if (behind.status === 'not started') {
+          promises.push(behind.fetch());
+          Page.lookbehind--;
+        } else {
+          Page.lookbehind = null;
+        }
       }
     }
 
     Promise.all(promises).catch(handleError);
   }
 
-  public revoke() {
-    if (this.url) {
-      URL.revokeObjectURL(this.url);
-      this.url = null;
+  public static revokeAll() {
+    const { pages } = useReaderStore();
+    for (const page of pages) {
+      if (page.url) {
+        URL.revokeObjectURL(page.url);
+        page.url = null;
+      }
     }
   }
-
-  public static from(page: number): Page;
-  public static from(pages: number[]): Page[];
-  public static from(source: number | number[]): Page | Page[] {
-    if (Array.isArray(source)) {
-      return source.map((id) => new Page(id));
-    }
-
-    return new Page(source);
-  }
-}
-
-function findIndex(pages: Page[], id: number) {
-  return pages.findIndex((page) => page.id === id);
 }

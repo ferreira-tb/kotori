@@ -1,6 +1,5 @@
 use crate::book::ActiveBook;
 use crate::prelude::*;
-use crate::utils::event::Event;
 use crate::utils::webview;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -49,8 +48,7 @@ impl Reader {
       .visible(false)
       .build()?;
 
-    self.set_webview_listeners(&webview, window_id);
-    self.set_webview_events(&webview, window_id);
+    self.set_window_events(&webview, window_id);
 
     let mut windows = self.windows.write().await;
     let window = ReaderWindow { book, webview };
@@ -117,18 +115,15 @@ impl Reader {
       .map(|window| window.book.as_value())
   }
 
-  fn set_webview_listeners(&self, webview: &WebviewWindow, window_id: u16) {
-    let handle = self.app.clone();
-    let label = webview::reader_label(window_id);
-    webview.listen(Event::WillMountReader, move |_| {
-      if let Some(webview) = handle.get_webview_window(&label) {
-        let js = format!("window.__KOTORI__ = {{ readerId: {window_id} }}");
-        webview.eval(&js).ok();
-      }
-    });
+  pub async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
+    let windows = self.windows.read().await;
+    windows
+      .iter()
+      .find(|(_, window)| window.webview.label() == label)
+      .map(|(id, _)| *id)
   }
 
-  fn set_webview_events(&self, webview: &WebviewWindow, window_id: u16) {
+  fn set_window_events(&self, webview: &WebviewWindow, window_id: u16) {
     let windows = self.windows();
     webview.on_window_event(move |event| {
       if matches!(event, WindowEvent::Destroyed) {

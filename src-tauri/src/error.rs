@@ -12,6 +12,8 @@ pub enum Error {
   BookNotFound,
   #[error("page not found")]
   PageNotFound,
+  #[error("window not found")]
+  WindowNotFound,
   #[error("book is empty")]
   Empty,
   #[error("{0}")]

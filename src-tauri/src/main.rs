@@ -41,6 +41,7 @@ fn main() {
       command::close_webview_window,
       command::focus_main_window,
       command::get_active_book,
+      command::get_reader_window_id,
       command::switch_reader_focus,
     ])
     .run(tauri::generate_context!())

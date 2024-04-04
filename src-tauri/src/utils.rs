@@ -1,5 +1,3 @@
-pub mod event;
-
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
 

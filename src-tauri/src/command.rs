@@ -15,9 +15,25 @@ pub async fn focus_main_window(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn get_active_book(app: AppHandle, id: u16) -> Result<Value> {
+pub async fn get_reader_window_id(app: AppHandle, window: WebviewWindow) -> Result<u16> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.lock().await;
+
+  reader
+    .get_window_id_by_label(window.label())
+    .await
+    .ok_or_else(|| err!(WindowNotFound))
+}
+
+#[tauri::command]
+pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
+  let kotori = app.state::<Kotori>();
+  let reader = kotori.reader.lock().await;
+
+  let id = reader
+    .get_window_id_by_label(window.label())
+    .await
+    .ok_or_else(|| err!(WindowNotFound))?;
 
   reader
     .get_book_as_value(id)

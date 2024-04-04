@@ -3,10 +3,9 @@ import 'manatsu/components/style';
 import '@manatsu/style/themes/mana';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
-import { emit } from '@tauri-apps/api/event';
-import { createManatsu, handleError, registerComponents } from 'manatsu';
+import { createManatsu, registerComponents } from 'manatsu';
 import App from './App.vue';
-import { Event } from './events';
+import { useReaderStore } from './stores';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -17,6 +16,10 @@ app.use(manatsu);
 
 registerComponents(app);
 
-emit(Event.WillMountReader)
+const store = useReaderStore();
+const { readerId } = storeToRefs(store);
+
+until(readerId)
+  .toMatch((id) => typeof id === 'number', { timeout: 5000, throwOnTimeout: true })
   .then(() => app.mount('#app'))
   .catch(handleError);
