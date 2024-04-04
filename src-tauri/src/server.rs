@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use crate::reader::BookMap;
+use crate::reader::WindowMap;
 use crate::VERSION;
 use axum::extract::{Path, State};
 use axum::http::{HeaderValue, StatusCode};
@@ -16,7 +16,7 @@ pub fn serve(app: &AppHandle) {
     async_runtime::block_on(async move {
       let kotori = app.state::<Kotori>();
       let reader = kotori.reader.lock().await;
-      let books = reader.books();
+      let windows = reader.windows();
 
       drop(reader);
 
@@ -24,7 +24,7 @@ pub fn serve(app: &AppHandle) {
         .route("/library/:book/cover", get(book_cover))
         .route("/reader", get(reader_root))
         .route("/reader/:book/:page", get(book_page))
-        .with_state(books);
+        .with_state(windows);
 
       if tauri::dev() {
         let origin = HeaderValue::from_static("http://localhost:1422");
@@ -38,16 +38,16 @@ pub fn serve(app: &AppHandle) {
   });
 }
 
-async fn reader_root(State(books): State<BookMap>) -> Html<String> {
+async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
   use dioxus::prelude::*;
 
-  let books = books.lock().await;
-  let amount = books.len();
+  let windows = windows.lock().await;
+  let amount = windows.len();
 
-  let rows = books
+  let rows = windows
     .iter()
     .sorted_unstable_by_key(|(id, _)| *id)
-    .map(|(id, (book, _))| (id, &book.title));
+    .map(|(id, window)| (id, window.book.title.as_str()));
 
   let html = rsx! {
     head { title { "Kotori {VERSION}" } }
@@ -64,33 +64,29 @@ async fn reader_root(State(books): State<BookMap>) -> Html<String> {
   Html(render_element(html))
 }
 
-async fn book_cover(State(books): State<BookMap>, Path(book): Path<u16>) -> Response {
-  let mut books = books.lock().await;
-  let book = books.get_mut(&book).map(|(b, _)| b);
-
-  let Some(book) = book else {
-    return err!(BookNotFound).into_response();
+async fn book_cover(State(windows): State<WindowMap>, Path(book): Path<u16>) -> Response {
+  let mut windows = windows.lock().await;
+  if let Some(window) = windows.get_mut(&book) {
+    return match window.book.get_cover_as_bytes() {
+      Ok(bytes) => (StatusCode::OK, bytes).into_response(),
+      Err(err) => err.into_response(),
+    };
   };
 
-  match book.file.get_cover_as_bytes() {
-    Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-    Err(err) => err.into_response(),
-  }
+  err!(BookNotFound).into_response()
 }
 
 async fn book_page(
-  State(books): State<BookMap>,
+  State(windows): State<WindowMap>,
   Path((book, page)): Path<(u16, usize)>,
 ) -> Response {
-  let mut books = books.lock().await;
-  let book = books.get_mut(&book).map(|(b, _)| b);
-
-  let Some(book) = book else {
-    return err!(BookNotFound).into_response();
+  let mut windows = windows.lock().await;
+  if let Some(window) = windows.get_mut(&book) {
+    return match window.book.get_page_as_bytes(page) {
+      Ok(bytes) => (StatusCode::OK, bytes).into_response(),
+      Err(err) => err.into_response(),
+    };
   };
 
-  match book.file.get_page_as_bytes(page) {
-    Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-    Err(err) => err.into_response(),
-  }
+  err!(BookNotFound).into_response()
 }

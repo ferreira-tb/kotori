@@ -55,7 +55,7 @@ features = ["protocol-asset"]
 
 [dependencies.tokio]
 version = "1.37.0"
-features = ["fs", "macros", "net", "process"]
+features = ["fs", "macros", "net", "process", "sync"]
 
 [dependencies.tower-http]
 version = "0.5.2"

@@ -1,6 +1,5 @@
+import { api } from '@/utils/server';
 import { handleError } from 'manatsu';
-
-const API_URL = 'http://localhost:3000/reader';
 
 export class Page {
   public status: BookStatus = 'not started';
@@ -14,7 +13,7 @@ export class Page {
       this.status = 'pending';
 
       const readerId = window.__KOTORI__.readerId;
-      const response = await fetch(`${API_URL}/${readerId}/${this.id}`);
+      const response = await fetch(api(`/reader/${readerId}/${this.id}`));
       const blob = await response.blob();
 
       this.url = URL.createObjectURL(blob);

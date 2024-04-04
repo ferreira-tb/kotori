@@ -39,7 +39,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       command::close_webview_window,
       command::get_active_book,
-      command::switch_reader_focus
+      command::switch_reader_focus,
     ])
     .run(tauri::generate_context!())
     .expect("could not start kotori");

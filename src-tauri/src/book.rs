@@ -6,9 +6,11 @@ use std::io::Read;
 use zip::ZipArchive;
 
 pub struct ActiveBook {
-  pub file: BookFile,
   pub path: PathBuf,
   pub title: String,
+
+  handle: ZipArchive<File>,
+  pages: HashMap<usize, String>,
 }
 
 impl ActiveBook {
@@ -21,10 +23,23 @@ impl ActiveBook {
       .into_owned()
       .replace('_', " ");
 
+    let file = File::open(path)?;
+    let handle = ZipArchive::new(file)?;
+
+    let globset = glob::book_page();
+    let pages = handle
+      .file_names()
+      .filter(|n| globset.is_match(n))
+      .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
+      .enumerate()
+      .map(|(i, p)| (i, p.to_string()))
+      .collect();
+
     let book = Self {
-      file: BookFile::new(path)?,
       path: path.to_owned(),
       title,
+      handle,
+      pages,
     };
 
     Ok(book)
@@ -52,7 +67,6 @@ impl ActiveBook {
 
   pub fn as_value(&self) -> Value {
     let pages = self
-      .file
       .pages
       .keys()
       .copied()
@@ -64,6 +78,24 @@ impl ActiveBook {
       "title": self.title,
       "pages": pages
     })
+  }
+
+  pub fn get_cover_as_bytes(&mut self) -> Result<Vec<u8>> {
+    self.get_page_as_bytes(0)
+  }
+
+  pub fn get_page_as_bytes(&mut self, page: usize) -> Result<Vec<u8>> {
+    let name = self
+      .pages
+      .get(&page)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    let mut file = self.handle.by_name(name)?;
+    let size = usize::try_from(file.size()).unwrap_or_default();
+    let mut buf = Vec::with_capacity(size);
+    file.read_to_end(&mut buf)?;
+
+    Ok(buf)
   }
 }
 
@@ -84,52 +116,5 @@ impl PartialOrd for ActiveBook {
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
     compare_ignore_case(&self.title, &other.title)
-  }
-}
-
-pub struct BookFile {
-  handle: ZipArchive<File>,
-  pages: HashMap<usize, String>,
-}
-
-impl BookFile {
-  fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
-    let zip = File::open(path.as_ref())?;
-    let zip = ZipArchive::new(zip)?;
-
-    let globset = glob::book_page();
-    let pages: HashMap<usize, String> = zip
-      .file_names()
-      .filter(|n| globset.is_match(n))
-      .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
-      .enumerate()
-      .map(|(i, p)| (i, p.to_string()))
-      .collect();
-
-    if pages.is_empty() {
-      bail!(Empty);
-    }
-
-    let file = Self { handle: zip, pages };
-
-    Ok(file)
-  }
-
-  pub fn get_cover_as_bytes(&mut self) -> Result<Vec<u8>> {
-    self.get_page_as_bytes(0)
-  }
-
-  pub fn get_page_as_bytes(&mut self, page: usize) -> Result<Vec<u8>> {
-    let name = self
-      .pages
-      .get(&page)
-      .ok_or_else(|| err!(PageNotFound))?;
-
-    let mut file = self.handle.by_name(name)?;
-    let size = usize::try_from(file.size()).unwrap_or_default();
-    let mut buf = Vec::with_capacity(size);
-    file.read_to_end(&mut buf)?;
-
-    Ok(buf)
   }
 }

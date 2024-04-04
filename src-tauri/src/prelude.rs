@@ -1,6 +1,6 @@
+pub use crate::err;
 pub use crate::error::Result;
 pub use crate::Kotori;
-pub use crate::{bail, err};
 pub use itertools::Itertools;
 pub use serde_json::{json, Value};
 pub use std::cmp::Ordering;
