@@ -17,6 +17,7 @@ onKeyDown('End', () => go(pages.value.length - 1));
 
 invokeOnKeyDown('Escape', Command.CloseWebviewWindow);
 invokeOnKeyDown('Tab', Command.SwitchReaderFocus);
+invokeOnKeyDown('F1', Command.FocusMainWindow);
 
 whenever(book, (value) => {
   if (!value.pages) return;

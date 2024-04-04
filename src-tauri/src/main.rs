@@ -34,10 +34,12 @@ fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_webview_window,
+      command::focus_main_window,
       command::get_active_book,
       command::switch_reader_focus,
     ])

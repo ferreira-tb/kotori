@@ -119,8 +119,8 @@ impl Reader {
 
   fn set_webview_listeners(&self, webview: &WebviewWindow, window_id: u16) {
     let handle = self.app.clone();
-    webview.listen(Event::WillMountReader.to_string(), move |_| {
-      let label = webview::reader_label(window_id);
+    let label = webview::reader_label(window_id);
+    webview.listen(Event::WillMountReader, move |_| {
       if let Some(webview) = handle.get_webview_window(&label) {
         let js = format!("window.__KOTORI__ = {{ readerId: {window_id} }}");
         webview.eval(&js).ok();
@@ -132,8 +132,6 @@ impl Reader {
     let windows = self.windows();
     webview.on_window_event(move |event| {
       if matches!(event, WindowEvent::Destroyed) {
-        // They are captured by the closure, but we need to clone before moving into the async block.
-        // Otherwise, it wouldn't be possible to call the closure more than once.
         let windows = Arc::clone(&windows);
         async_runtime::spawn(async move {
           let mut windows = windows.write().await;

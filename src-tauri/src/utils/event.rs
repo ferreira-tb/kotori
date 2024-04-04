@@ -6,3 +6,9 @@ pub enum Event {
   // AddToLibrary,
   WillMountReader,
 }
+
+impl From<Event> for String {
+  fn from(event: Event) -> Self {
+    event.to_string()
+  }
+}
