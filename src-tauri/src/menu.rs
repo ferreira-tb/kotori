@@ -69,7 +69,7 @@ where
           async_runtime::spawn(async move {
             if let Ok(books) = ActiveBook::from_dialog(&app).await {
               let kotori = app.state::<Kotori>();
-              let mut reader = kotori.reader.lock().await;
+              let mut reader = kotori.reader.write().await;
               reader.open_many(books).await.ok();
             }
           });

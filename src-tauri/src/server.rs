@@ -15,7 +15,7 @@ pub fn serve(app: &AppHandle) {
   thread::spawn(move || {
     async_runtime::block_on(async move {
       let kotori = app.state::<Kotori>();
-      let reader = kotori.reader.lock().await;
+      let reader = kotori.reader.read().await;
       let windows = reader.windows();
 
       drop(reader);

@@ -19,15 +19,15 @@ use error::BoxResult;
 use library::Library;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use tauri::async_runtime::Mutex;
+use tauri::async_runtime::RwLock;
 use tauri::{App, AppHandle, Manager, WindowEvent};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
   pub db: DatabaseConnection,
-  pub library: Mutex<Library>,
-  pub reader: Mutex<Reader>,
+  pub library: RwLock<Library>,
+  pub reader: RwLock<Reader>,
 }
 
 fn main() {
@@ -52,8 +52,8 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
   let kotori = Kotori {
     db: database::connect(handle).unwrap(),
-    library: Mutex::new(Library::new()),
-    reader: Mutex::new(Reader::new(handle)),
+    library: RwLock::new(Library::new()),
+    reader: RwLock::new(Reader::new(handle)),
   };
 
   app.manage(kotori);

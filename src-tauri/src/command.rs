@@ -17,7 +17,7 @@ pub async fn focus_main_window(app: AppHandle) -> Result<()> {
 #[tauri::command]
 pub async fn get_reader_window_id(app: AppHandle, window: WebviewWindow) -> Result<u16> {
   let kotori = app.state::<Kotori>();
-  let reader = kotori.reader.lock().await;
+  let reader = kotori.reader.read().await;
 
   reader
     .get_window_id_by_label(window.label())
@@ -28,7 +28,7 @@ pub async fn get_reader_window_id(app: AppHandle, window: WebviewWindow) -> Resu
 #[tauri::command]
 pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
   let kotori = app.state::<Kotori>();
-  let reader = kotori.reader.lock().await;
+  let reader = kotori.reader.read().await;
 
   let id = reader
     .get_window_id_by_label(window.label())
@@ -44,6 +44,6 @@ pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Va
 #[tauri::command]
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
   let kotori = app.state::<Kotori>();
-  let reader = kotori.reader.lock().await;
+  let reader = kotori.reader.read().await;
   reader.switch_focus().await
 }
