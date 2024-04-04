@@ -20,6 +20,7 @@ export class Page {
       const blob = await response.blob();
 
       this.url = URL.createObjectURL(blob);
+      console.log('Fetched page', this.id);
       this.status = 'done';
     } catch (err) {
       this.status = 'error';
