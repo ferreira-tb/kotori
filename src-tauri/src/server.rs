@@ -41,7 +41,7 @@ pub fn serve(app: &AppHandle) {
 async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
   use dioxus::prelude::*;
 
-  let windows = windows.lock().await;
+  let windows = windows.read().await;
   let amount = windows.len();
 
   let rows = windows
@@ -65,7 +65,7 @@ async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
 }
 
 async fn book_cover(State(windows): State<WindowMap>, Path(book): Path<u16>) -> Response {
-  let mut windows = windows.lock().await;
+  let mut windows = windows.write().await;
   if let Some(window) = windows.get_mut(&book) {
     return match window.book.get_cover_as_bytes() {
       Ok(bytes) => (StatusCode::OK, bytes).into_response(),
@@ -80,7 +80,7 @@ async fn book_page(
   State(windows): State<WindowMap>,
   Path((book, page)): Path<(u16, usize)>,
 ) -> Response {
-  let mut windows = windows.lock().await;
+  let mut windows = windows.write().await;
   if let Some(window) = windows.get_mut(&book) {
     return match window.book.get_page_as_bytes(page) {
       Ok(bytes) => (StatusCode::OK, bytes).into_response(),

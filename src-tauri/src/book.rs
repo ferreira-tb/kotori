@@ -1,8 +1,10 @@
 use crate::prelude::*;
 use crate::utils::glob;
 use natord::compare_ignore_case;
+use std::cmp::Ordering;
 use std::fs::File;
 use std::io::Read;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use zip::ZipArchive;
 
 pub struct ActiveBook {
@@ -20,7 +22,6 @@ impl ActiveBook {
       .file_stem()
       .ok_or_else(|| err!(InvalidBook, "invalid book path: {path:?}"))?
       .to_string_lossy()
-      .into_owned()
       .replace('_', " ");
 
     let file = File::open(path)?;
@@ -57,7 +58,7 @@ impl ActiveBook {
 
     if let Some(response) = rx.await? {
       return response
-        .into_iter()
+        .into_par_iter()
         .map(|r| Self::new(r.path))
         .collect();
     }

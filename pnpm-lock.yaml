@@ -9,7 +9,7 @@ dependencies:
     specifier: ^0.7.4
     version: 0.7.4(sass@1.72.0)
   '@tauri-apps/api':
-    specifier: ^2.0.0-beta.7
+    specifier: 2.0.0-beta.7
     version: 2.0.0-beta.7
   '@vueuse/core':
     specifier: ^10.9.0

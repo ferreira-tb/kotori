@@ -2,6 +2,7 @@ use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::utils::glob;
 use walkdir::WalkDir;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
 pub struct Library {
   _books: Vec<Book>,
