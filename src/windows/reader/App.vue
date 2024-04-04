@@ -10,10 +10,6 @@ const { pages } = storeToRefs(store);
 const list = useCycleList<Page | null>(pages, { initialValue: null });
 const current = list.state;
 
-watchEffect(() => {
-  console.log('Current page:', current.value);
-});
-
 onKeyDown('ArrowLeft', () => list.prev());
 onKeyDown('ArrowRight', () => list.next());
 onKeyDown('Home', () => list.go(0));
