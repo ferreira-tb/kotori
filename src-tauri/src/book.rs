@@ -1,7 +1,9 @@
 use crate::prelude::*;
 use crate::utils::glob;
 use natord::compare_ignore_case;
+use serde::Serialize;
 use std::cmp::Ordering;
+use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -9,7 +11,7 @@ use zip::ZipArchive;
 
 pub struct ActiveBook {
   pub path: PathBuf,
-  pub title: String,
+  pub title: Title,
 
   handle: ZipArchive<File>,
   pages: HashMap<usize, String>,
@@ -18,11 +20,7 @@ pub struct ActiveBook {
 impl ActiveBook {
   pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
     let path = path.as_ref();
-    let title = path
-      .file_stem()
-      .ok_or_else(|| err!(InvalidBook, "invalid book path: {path:?}"))?
-      .to_string_lossy()
-      .replace('_', " ");
+    let title = path.try_into()?;
 
     let file = File::open(path)?;
     let handle = ZipArchive::new(file)?;
@@ -116,6 +114,29 @@ impl PartialOrd for ActiveBook {
 
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
-    compare_ignore_case(&self.title, &other.title)
+    compare_ignore_case(&self.title.0, &other.title.0)
+  }
+}
+
+#[derive(Serialize, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Title(String);
+
+impl TryFrom<&Path> for Title {
+  type Error = crate::error::Error;
+
+  fn try_from(path: &Path) -> Result<Self> {
+    let title = path
+      .file_stem()
+      .ok_or_else(|| err!(InvalidBook, "invalid book path: {path:?}"))?
+      .to_string_lossy()
+      .replace('_', " ");
+
+    Ok(Self(title))
+  }
+}
+
+impl fmt::Display for Title {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.0)
   }
 }

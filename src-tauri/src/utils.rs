@@ -18,6 +18,7 @@ pub mod glob {
 
   pub fn book_page() -> GlobSet {
     GlobSetBuilder::new()
+      .add(glob("*.bmp"))
       .add(glob("*.gif"))
       .add(glob("*.jpg"))
       .add(glob("*.jpeg"))

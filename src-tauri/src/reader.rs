@@ -42,7 +42,7 @@ impl Reader {
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
       .data_directory(dir)
-      .title(&book.title)
+      .title(book.title.to_string())
       .maximized(true)
       .resizable(true)
       .visible(false)

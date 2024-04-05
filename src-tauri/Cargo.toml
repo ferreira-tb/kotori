@@ -28,6 +28,11 @@ thiserror = "1.0.58"
 walkdir = "2.5.0"
 zip = "0.6.6"
 
+[dependencies.image]
+version = "0.25.1"
+default-features = false
+features = ["rayon", "bmp", "gif", "jpeg", "png", "webp"]
+
 [dependencies.migration]
 version = "*"
 path = "../migration"

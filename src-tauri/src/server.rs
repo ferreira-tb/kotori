@@ -14,17 +14,17 @@ pub fn serve(app: &AppHandle) {
   let app = app.clone();
   thread::spawn(move || {
     async_runtime::block_on(async move {
-      let kotori = app.state::<Kotori>();
-      let reader = kotori.reader.read().await;
-      let windows = reader.windows();
-
-      drop(reader);
+      let reader_windows = {
+        let kotori = app.state::<Kotori>();
+        let reader = kotori.reader.read().await;
+        reader.windows()
+      };
 
       let mut router = Router::new()
         .route("/library/:book/cover", get(book_cover))
         .route("/reader", get(reader_root))
         .route("/reader/:book/:page", get(book_page))
-        .with_state(windows);
+        .with_state(reader_windows);
 
       if tauri::dev() {
         let origin = HeaderValue::from_static("http://localhost:1422");

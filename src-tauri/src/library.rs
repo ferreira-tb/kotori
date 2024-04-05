@@ -6,7 +6,7 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
 #[derive(Default)]
 pub struct Library {
-  _books: Vec<Book>,
+  _books: HashMap<i32, Book>,
 }
 
 impl Library {
