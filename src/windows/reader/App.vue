@@ -15,7 +15,8 @@ onKeyDown('ArrowRight', () => list.next());
 onKeyDown('Home', () => list.go(0));
 onKeyDown('End', () => list.go(store.lastIndex()));
 
-invokeOnKeyDown('Escape', Command.CloseWebviewWindow);
+invokeOnKeyDown('o', Command.OpenBookFromDialog, null, { ctrlKey: true });
+invokeOnKeyDown('Escape', Command.CloseCurrentWindow);
 invokeOnKeyDown('Tab', Command.SwitchReaderFocus);
 invokeOnKeyDown('F1', Command.FocusMainWindow);
 

@@ -2,13 +2,12 @@ use crate::prelude::*;
 use crate::reader::WindowMap;
 use crate::VERSION;
 use axum::extract::{Path, State};
-use axum::http::{HeaderValue, StatusCode};
+use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
 use indoc::formatdoc;
 use tokio::net::TcpListener;
-use tower_http::cors::CorsLayer;
 
 pub fn serve(app: &AppHandle) {
   let app = app.clone();
@@ -20,17 +19,11 @@ pub fn serve(app: &AppHandle) {
         reader.windows()
       };
 
-      let mut router = Router::new()
+      let router = Router::new()
         .route("/library/:book/cover", get(book_cover))
         .route("/reader", get(reader_root))
         .route("/reader/:book/:page", get(book_page))
         .with_state(reader_windows);
-
-      if tauri::dev() {
-        let origin = HeaderValue::from_static("http://localhost:1422");
-        let layer = CorsLayer::new().allow_origin(origin);
-        router = router.layer(layer);
-      }
 
       let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
       axum::serve(listener, router).await.unwrap();

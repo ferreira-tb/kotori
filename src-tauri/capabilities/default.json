@@ -8,6 +8,10 @@
     "event:allow-listen",
     "manatsu:allow-error-log-path",
     "manatsu:allow-read-error-logs",
-    "manatsu:allow-save-error-log"
+    "manatsu:allow-save-error-log",
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "http://localhost:3000/*" }]
+    }
   ]
 }

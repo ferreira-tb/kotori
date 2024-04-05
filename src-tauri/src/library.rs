@@ -4,16 +4,9 @@ use crate::utils::glob;
 use walkdir::WalkDir;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
-#[derive(Default)]
-pub struct Library {
-  _books: HashMap<i32, Book>,
-}
+pub struct Library;
 
 impl Library {
-  pub fn new() -> Self {
-    Self::default()
-  }
-
   pub async fn from_dialog(app: &AppHandle) -> Result<()> {
     let (tx, rx) = oneshot::channel();
     let dialog = app.dialog().clone();

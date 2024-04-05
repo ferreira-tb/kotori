@@ -1,10 +1,10 @@
-use crate::book::ActiveBook;
+use crate::book::ReaderBook;
+use crate::library::Library;
 use crate::prelude::*;
 use std::str::FromStr;
 use strum::{Display, EnumString};
 use tauri::menu::{Menu, MenuEvent, MenuItemBuilder, Submenu, SubmenuBuilder};
 use tauri::Window;
-use crate::library::Library;
 
 #[derive(Display, EnumString)]
 enum Id {
@@ -40,7 +40,7 @@ where
   M: Manager<R>,
 {
   let mut menu = SubmenuBuilder::new(app, "File")
-    .item(&menu_item!(app, OpenBook, "Open file")?)
+    .item(&menu_item!(app, OpenBook, "Open file", "Ctrl+O")?)
     .item(&menu_item!(app, AddToLibrary, "Add to library")?);
 
   if !cfg!(target_os = "linux") {
@@ -67,11 +67,7 @@ where
         Id::OpenBook => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            if let Ok(books) = ActiveBook::from_dialog(&app).await {
-              let kotori = app.state::<Kotori>();
-              let mut reader = kotori.reader.write().await;
-              reader.open_many(books).await.ok();
-            }
+            ReaderBook::open_book_from_dialog(&app).await.ok();
           });
         }
       }

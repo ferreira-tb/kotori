@@ -9,7 +9,7 @@ use std::io::Read;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use zip::ZipArchive;
 
-pub struct ActiveBook {
+pub struct ReaderBook {
   pub path: PathBuf,
   pub title: Title,
 
@@ -17,7 +17,7 @@ pub struct ActiveBook {
   pages: HashMap<usize, String>,
 }
 
-impl ActiveBook {
+impl ReaderBook {
   pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
     let path = path.as_ref();
     let title = path.try_into()?;
@@ -44,7 +44,7 @@ impl ActiveBook {
     Ok(book)
   }
 
-  pub async fn from_dialog(app: &AppHandle) -> Result<Vec<Self>> {
+  async fn show_dialog(app: &AppHandle) -> Result<Vec<Self>> {
     let (tx, rx) = oneshot::channel();
     let dialog = app.dialog().clone();
 
@@ -62,6 +62,18 @@ impl ActiveBook {
     }
 
     Ok(Vec::new())
+  }
+
+  pub async fn open_book_from_dialog(app: &AppHandle) -> Result<()> {
+    let books = Self::show_dialog(app).await?;
+
+    if !books.is_empty() {
+      let kotori = app.state::<Kotori>();
+      let mut reader = kotori.reader.write().await;
+      return reader.open_many(books).await.map_err(Into::into);
+    }
+
+    Ok(())
   }
 
   pub fn as_value(&self) -> Value {
@@ -98,21 +110,21 @@ impl ActiveBook {
   }
 }
 
-impl PartialEq for ActiveBook {
+impl PartialEq for ReaderBook {
   fn eq(&self, other: &Self) -> bool {
     self.path == other.path
   }
 }
 
-impl Eq for ActiveBook {}
+impl Eq for ReaderBook {}
 
-impl PartialOrd for ActiveBook {
+impl PartialOrd for ReaderBook {
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
     Some(self.cmp(other))
   }
 }
 
-impl Ord for ActiveBook {
+impl Ord for ReaderBook {
   fn cmp(&self, other: &Self) -> Ordering {
     compare_ignore_case(&self.title.0, &other.title.0)
   }

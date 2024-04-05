@@ -21,7 +21,7 @@ natord = "1.0.9"
 rayon = "1.10.0"
 serde_json = "1.0.115"
 tauri-plugin-dialog = "2.0.0-beta.4"
-tauri-plugin-manatsu = "0.7.5"
+tauri-plugin-manatsu = "0.7.7"
 tauri-plugin-persisted-scope = "2.0.0-beta.4"
 tauri-plugin-window-state = "2.0.0-beta.4"
 thiserror = "1.0.58"
@@ -53,13 +53,13 @@ features = ["derive"]
 version = "2.0.0-beta.14"
 features = ["protocol-asset"]
 
+[dependencies.tauri-plugin-http]
+version = "2.0.0-beta.4"
+features = ["rustls-tls"]
+
 [dependencies.tokio]
 version = "1.37.0"
 features = ["fs", "macros", "net", "process", "sync"]
-
-[dependencies.tower-http]
-version = "0.5.2"
-features = ["cors"]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

@@ -38,8 +38,7 @@
         "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"],
         "enable": true
       },
-      "csp": "default-src 'self'; img-src 'self' asset: https://asset.localhost; connect-src ipc: http://ipc.localhost"
+      "csp": "default-src 'self'; img-src 'self' blob: https://asset.localhost; connect-src http://ipc.localhost"
     }
-  },
-  "plugins": {}
+  }
 }

@@ -6,17 +6,20 @@ settings:
 
 dependencies:
   '@manatsu/style':
-    specifier: ^0.7.5
-    version: 0.7.5(sass@1.74.1)
+    specifier: ^0.7.7
+    version: 0.7.7(sass@1.74.1)
   '@tauri-apps/api':
     specifier: ^2.0.0-beta.7
     version: 2.0.0-beta.7
+  '@tauri-apps/plugin-http':
+    specifier: 2.0.0-beta.2
+    version: 2.0.0-beta.2
   '@vueuse/core':
     specifier: ^10.9.0
     version: 10.9.0(vue@3.4.21)
   manatsu:
-    specifier: ^0.7.5
-    version: 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+    specifier: ^0.7.7
+    version: 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
   pinia:
     specifier: ^2.1.7
     version: 2.1.7(typescript@5.4.4)(vue@3.4.21)
@@ -30,7 +33,7 @@ dependencies:
 devDependencies:
   '@tb-dev/auto-import-config':
     specifier: ^1.2.19
-    version: 1.2.19(@manatsu/style@0.7.5)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.4.4)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.7.5)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21)
+    version: 1.2.19(@manatsu/style@0.7.7)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.4.4)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.7.7)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21)
   '@tb-dev/eslint-config':
     specifier: ^3.4.0
     version: 3.4.0(eslint@8.57.0)(typescript@5.4.4)
@@ -975,10 +978,10 @@ packages:
       '@jridgewell/sourcemap-codec': 1.4.15
     dev: true
 
-  /@manatsu/components@0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /@manatsu/components@0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-kSvcjQlVxtudeNf5qtSx8mgzDOmGBiIPt1IZBkf4lWXC4WgC90IoRmTc2NQJo7G3/XDKhiCwia+ENZMTBaoFqg==
+        integrity: sha512-V5RLtlWWt5aFpgGLjvwO4AgvQZkjrfWYWtUShYqc9f5ImQt7zcn7W6rZ/xE1MbgqmRMZujw9VSNQcaQR/vCpuQ==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -987,9 +990,9 @@ packages:
       vue: ^3.4.21
       vue-router: ^4.3.0
     dependencies:
-      '@manatsu/composables': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/shared': 0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/vue-plugin': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/composables': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/shared': 0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/vue-plugin': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
       '@tb-dev/utils': 1.4.4
@@ -997,10 +1000,10 @@ packages:
       vue: 3.4.21(typescript@5.4.4)
       vue-router: 4.3.0(vue@3.4.21)
 
-  /@manatsu/composables@0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /@manatsu/composables@0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-RSoyN8obbdwFUmzob0DphErk/F4+N1PcOvHUzq1NvGH7vnPn3oKjwpnIBNy0GawJEZxQwTXrAJG+qvi+bB9HMg==
+        integrity: sha512-BUpdx2KpYrQBHhmBL9H5dZasupKDfI/JXvMDqr68203OcSZMmz9hv+/WJtrVWaI7/YXKyns6e/I6HjGTlquPRQ==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -1009,7 +1012,7 @@ packages:
       vue: ^3.4.21
       vue-router: ^4.3.0
     dependencies:
-      '@manatsu/shared': 0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/shared': 0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
       '@tb-dev/utils': 1.4.4
@@ -1017,10 +1020,10 @@ packages:
       vue: 3.4.21(typescript@5.4.4)
       vue-router: 4.3.0(vue@3.4.21)
 
-  /@manatsu/shared@0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /@manatsu/shared@0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-O+Dtioar2qh6fsprUCxluwCanh5j0JTouR3VGK9WnX8fJssuACf2IKwYa0Qbz2ugr5FYmVutxeAPZsoQjq+N0A==
+        integrity: sha512-xrChkwOs9QcJKuBY4RCJpkTYPHLmabZIvEbYNgcFwL8YVQFC9dlYqnoVaV4ZRsx+iVOkxh9qKzbGVKmlWrvMeA==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -1034,10 +1037,10 @@ packages:
       vue: 3.4.21(typescript@5.4.4)
       vue-router: 4.3.0(vue@3.4.21)
 
-  /@manatsu/style@0.7.5(sass@1.74.1):
+  /@manatsu/style@0.7.7(sass@1.74.1):
     resolution:
       {
-        integrity: sha512-SHnDslbSIKnfXZNOqyyspkyki6SB2PTbCARReQA5VIIGn33sBpSBt1eOK6cKoH2eHoCD8kOXUoeKkdXhNCxodQ==
+        integrity: sha512-WGq2rUgwslX0sv/SQjVq8fKSRvqxdMRs/wV0qGVbWhnFHZrgCfZkxE8GIBskE/BlAomSd7QNs+gse3MBLBad7Q==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -1045,16 +1048,16 @@ packages:
     dependencies:
       sass: 1.74.1
 
-  /@manatsu/tauri-plugin@0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /@manatsu/tauri-plugin@0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-5nMEFeVfmVVR1fnF5J/f8/7JaRmGABaflnQRGoUdZlEAZ2V8/jYSiw4tVFJGdR1YQhHYqWm6kWGrRc0bl5bGqQ==
+        integrity: sha512-pS7IazzzCmlINefQgOEdKcLT184v5XH0oChsn41FXE66rtMajpX6u6uyWqboL3ChJ0M+TecoBVsHcPEYjntGvA==
       }
     engines: { node: '>=20' }
     peerDependencies:
       '@tauri-apps/api': ^2.0.0-beta.6
     dependencies:
-      '@manatsu/shared': 0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/shared': 0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
     transitivePeerDependencies:
@@ -1062,10 +1065,10 @@ packages:
       - vue
       - vue-router
 
-  /@manatsu/vue-plugin@0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /@manatsu/vue-plugin@0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-I3nd9S+xeCHh/5WNqYZxAfArdGu7avrhxkYn4eQT8c8AHmdX2l71OmYtvZDZAihotJhp2PeStkRVh8+xjl1LYA==
+        integrity: sha512-W64o0yWNXMXXQIKIDcYxTl5XEDY0S2ntHFc64hzmY6g5JvKXbHPwzHClomugipL0RfWtaN3CziqTSryUVuqPcg==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -1074,8 +1077,8 @@ packages:
       vue: ^3.4.21
       vue-router: ^4.3.0
     dependencies:
-      '@manatsu/shared': 0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/tauri-plugin': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/shared': 0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/tauri-plugin': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
       '@tb-dev/utils': 1.4.4
@@ -1290,6 +1293,14 @@ packages:
     dev: true
     optional: true
 
+  /@tauri-apps/api@2.0.0-beta.4:
+    resolution:
+      {
+        integrity: sha512-Nxtj28NYUo5iwYkpYslxmOPkdI2WkELU2e3UH9nbJm9Ydki2CQwJVGQxx4EANtdZcMNsEsUzRqaDTvEUYH1l6w==
+      }
+    engines: { node: '>= 18', npm: '>= 6.6.0', yarn: '>= 1.19.1' }
+    dev: false
+
   /@tauri-apps/api@2.0.0-beta.7:
     resolution:
       {
@@ -1297,7 +1308,16 @@ packages:
       }
     engines: { node: '>= 18', npm: '>= 6.6.0', yarn: '>= 1.19.1' }
 
-  /@tb-dev/auto-import-config@1.2.19(@manatsu/style@0.7.5)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.4.4)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.7.5)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21):
+  /@tauri-apps/plugin-http@2.0.0-beta.2:
+    resolution:
+      {
+        integrity: sha512-g/FA/w/+a2uQQlXoVTy5HXIi/YZo3q3lnxhKkwCWE/IZOMoraDlTzM/H+MB9hUaubLAnuPUMth5LaeFC9jwdRw==
+      }
+    dependencies:
+      '@tauri-apps/api': 2.0.0-beta.4
+    dev: false
+
+  /@tb-dev/auto-import-config@1.2.19(@manatsu/style@0.7.7)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.4.4)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.7.7)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
         integrity: sha512-8jAYSb4+9mWnbju4qkox4Yrp9mlMVzhLZrmaFLEm4jNxjU0V4xLB9IBqOibOrcqcFDX0DjDhJKQCTpEVFk1qmg==
@@ -1317,14 +1337,14 @@ packages:
       vue: ^3.4.21
       vue-router: ^4.3.0
     dependencies:
-      '@manatsu/style': 0.7.5(sass@1.74.1)
+      '@manatsu/style': 0.7.7(sass@1.74.1)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
       '@tb-dev/utils': 1.4.4
       '@vueuse/core': 10.9.0(vue@3.4.21)
       '@vueuse/math': 10.9.0(vue@3.4.21)
       '@vueuse/router': 10.9.0(vue-router@4.3.0)(vue@3.4.21)
-      manatsu: 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      manatsu: 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       pinia: 2.1.7(typescript@5.4.4)(vue@3.4.21)
       unplugin-auto-import: 0.17.5(@vueuse/core@10.9.0)
       vue: 3.4.21(typescript@5.4.4)
@@ -3887,10 +3907,10 @@ packages:
     dependencies:
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  /manatsu@0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
+  /manatsu@0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-xnytSuj3ynAeFmlfLvDcn/cpR7o57AOoOvVklle92u6PJonqOqZ7K/uwwq5os7CwfcHgdixWQAvxKNqhGYUrgQ==
+        integrity: sha512-RtRog/N+MUkCagScgfvPBCCAo6yDLI/WI9+giAv9PTDF9h25vQQ+pTCeuatPoNQ+SLxI1hlRJ8MiB8fe+yGLAg==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -3899,10 +3919,10 @@ packages:
       vue: ^3.4.21
       vue-router: ^4.3.0
     dependencies:
-      '@manatsu/components': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/composables': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/shared': 0.7.5(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
-      '@manatsu/vue-plugin': 0.7.5(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/components': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/composables': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/shared': 0.7.7(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
+      '@manatsu/vue-plugin': 0.7.7(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
       '@tauri-apps/api': 2.0.0-beta.7
       '@tb-dev/utility-types': 1.2.5
       '@tb-dev/utils': 1.4.4

@@ -1,4 +1,5 @@
 import { api } from '@/utils/server';
+import { fetch } from '@tauri-apps/plugin-http';
 import { useReaderStore } from '../stores';
 
 export class Page {
