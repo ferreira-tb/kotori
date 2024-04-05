@@ -1,4 +1,4 @@
-use crate::book::ReaderBook;
+use crate::book::ActiveBook;
 use crate::library::Library;
 use crate::prelude::*;
 use std::str::FromStr;
@@ -67,7 +67,7 @@ where
         Id::OpenBook => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            ReaderBook::open_book_from_dialog(&app).await.ok();
+            ActiveBook::open_book_from_dialog(&app).await.ok();
           });
         }
       }

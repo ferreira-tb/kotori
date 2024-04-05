@@ -1,8 +1,8 @@
-use crate::book::ReaderBook;
+use crate::book::ActiveBook;
 use crate::prelude::*;
 
 #[tauri::command]
-pub async fn get_reader_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
+pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.read().await;
 
@@ -30,7 +30,7 @@ pub async fn get_reader_window_id(app: AppHandle, window: WebviewWindow) -> Resu
 
 #[tauri::command]
 pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
-  ReaderBook::open_book_from_dialog(&app).await
+  ActiveBook::open_book_from_dialog(&app).await
 }
 
 #[tauri::command]

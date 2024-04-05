@@ -8,6 +8,8 @@ pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+  #[error("failed to acquire book handle")]
+  BookHandle,
   #[error("book not found")]
   BookNotFound,
   #[error("page not found")]

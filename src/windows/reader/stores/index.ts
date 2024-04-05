@@ -3,7 +3,7 @@ import { Command } from '@/utils/commands';
 import { Page } from '../utils/page';
 
 export const useReaderStore = defineStore('reader', () => {
-  const book = useInvoke<Book | null>(Command.GetReaderBook, null);
+  const book = useInvoke<Book | null>(Command.GetActiveBook, null);
   const readerId = useInvoke<number | null>(Command.GetReaderWindowId, null);
 
   // This MUST be a ref.

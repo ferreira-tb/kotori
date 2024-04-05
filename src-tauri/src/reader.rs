@@ -1,4 +1,4 @@
-use crate::book::ReaderBook;
+use crate::book::ActiveBook;
 use crate::prelude::*;
 use crate::utils::webview;
 use ahash::AHasher;
@@ -28,7 +28,7 @@ impl Reader {
     Arc::clone(&self.windows)
   }
 
-  pub async fn open_book(&mut self, book: ReaderBook) -> Result<()> {
+  pub async fn open_book(&mut self, book: ActiveBook) -> Result<()> {
     let windows = self.windows.read().await;
     if let Some(window) = windows.values().find(|w| w.book == book) {
       window.webview.set_focus()?;
@@ -63,7 +63,7 @@ impl Reader {
 
   pub async fn open_many<I>(&mut self, books: I) -> Result<()>
   where
-    I: IntoIterator<Item = ReaderBook>,
+    I: IntoIterator<Item = ActiveBook>,
   {
     for book in books {
       self.open_book(book).await?;
@@ -114,9 +114,8 @@ impl Reader {
 
   pub async fn get_book_as_value(&self, window_id: u16) -> Option<Value> {
     let windows = self.windows.read().await;
-    windows
-      .get(&window_id)
-      .map(|window| window.book.as_value())
+    let window = windows.get(&window_id)?;
+    window.book.as_value().await.ok()
   }
 
   pub async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
@@ -142,6 +141,6 @@ impl Reader {
 }
 
 pub struct ReaderWindow {
-  pub book: ReaderBook,
+  pub book: ActiveBook,
   webview: WebviewWindow,
 }

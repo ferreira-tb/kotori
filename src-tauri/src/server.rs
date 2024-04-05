@@ -57,9 +57,7 @@ async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
       </head>
       <body>
         <p>Active books: {amount}</p>
-        <table>
-          {table}
-        </table>
+        <table>{table}</table>
       </body>
     </html>
   "};
@@ -68,9 +66,9 @@ async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
 }
 
 async fn book_cover(State(windows): State<WindowMap>, Path(book): Path<u16>) -> Response {
-  let mut windows = windows.write().await;
-  if let Some(window) = windows.get_mut(&book) {
-    return match window.book.get_cover_as_bytes() {
+  let windows = windows.read().await;
+  if let Some(window) = windows.get(&book) {
+    return match window.book.get_cover_as_bytes().await {
       Ok(bytes) => (StatusCode::OK, bytes).into_response(),
       Err(err) => err.into_response(),
     };
@@ -83,9 +81,9 @@ async fn book_page(
   State(windows): State<WindowMap>,
   Path((book, page)): Path<(u16, usize)>,
 ) -> Response {
-  let mut windows = windows.write().await;
-  if let Some(window) = windows.get_mut(&book) {
-    return match window.book.get_page_as_bytes(page) {
+  let windows = windows.read().await;
+  if let Some(window) = windows.get(&book) {
+    return match window.book.get_page_as_bytes(page).await {
       Ok(bytes) => (StatusCode::OK, bytes).into_response(),
       Err(err) => err.into_response(),
     };

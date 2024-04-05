@@ -8,6 +8,6 @@ pub use serde_json::{json, Value};
 pub use std::path::{Path, PathBuf};
 pub use std::sync::Arc;
 pub use std::thread;
-pub use tauri::async_runtime::{self, RwLock};
+pub use tauri::async_runtime::{self, Mutex, RwLock};
 pub use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 pub use tokio::sync::oneshot;
