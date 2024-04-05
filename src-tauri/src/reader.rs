@@ -126,7 +126,7 @@ impl Reader {
   fn set_window_events(&self, webview: &WebviewWindow, window_id: u16) {
     let windows = self.windows();
     webview.on_window_event(move |event| {
-      if matches!(event, WindowEvent::Destroyed) {
+      if matches!(event, WindowEvent::CloseRequested { .. }) {
         let windows = Arc::clone(&windows);
         async_runtime::spawn(async move {
           let mut windows = windows.write().await;

@@ -6,7 +6,7 @@ use axum::http::{HeaderValue, StatusCode};
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
-use dioxus_ssr::render_element;
+use indoc::formatdoc;
 use tokio::net::TcpListener;
 use tower_http::cors::CorsLayer;
 
@@ -39,29 +39,39 @@ pub fn serve(app: &AppHandle) {
 }
 
 async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
-  use dioxus::prelude::*;
-
   let windows = windows.read().await;
   let amount = windows.len();
 
-  let rows = windows
+  macro_rules! row {
+    ($($td:expr),*) => {{
+      let mut row = String::from("<tr>");
+      $(row.push_str(&format!("<td>{}</td>", $td));)*
+      row.push_str("</tr>");
+      row
+    }};
+  }
+
+  let table = windows
     .iter()
     .sorted_unstable_by_key(|(id, _)| *id)
-    .map(|(id, window)| (id, window.book.title.as_str()));
+    .map(|(id, window)| row!(id, window.book.title))
+    .collect::<String>();
 
-  let html = rsx! {
-    head { title { "Kotori {VERSION}" } }
-    body {
-      p { "Active books: {amount}" }
-      table {
-        for (id, title) in rows {
-          tr { td { "{id}" } td { "{title}" } }
-        }
-      }
-    }
-  };
+  let html = formatdoc! {"
+    <html lang='en'>
+      <head>
+        <title>Kotori {VERSION}</title>
+      </head>
+      <body>
+        <p>Active books: {amount}</p>
+        <table>
+          {table}
+        </table>
+      </body>
+    </html>
+  "};
 
-  Html(render_element(html))
+  Html(html)
 }
 
 async fn book_cover(State(windows): State<WindowMap>, Path(book): Path<u16>) -> Response {

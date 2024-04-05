@@ -4,14 +4,14 @@ use crate::utils::glob;
 use walkdir::WalkDir;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
+#[derive(Default)]
 pub struct Library {
   _books: Vec<Book>,
 }
 
 impl Library {
-  #[allow(clippy::new_without_default)]
   pub fn new() -> Self {
-    Self { _books: Vec::new() }
+    Self::default()
   }
 
   pub async fn from_dialog(app: &AppHandle) -> Result<()> {
