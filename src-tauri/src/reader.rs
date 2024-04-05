@@ -1,9 +1,12 @@
 use crate::book::ReaderBook;
 use crate::prelude::*;
 use crate::utils::webview;
+use ahash::AHasher;
+use indexmap::IndexMap;
+use std::hash::BuildHasherDefault;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
-pub type WindowMap = Arc<RwLock<HashMap<u16, ReaderWindow>>>;
+pub type WindowMap = Arc<RwLock<IndexMap<u16, ReaderWindow, BuildHasherDefault<AHasher>>>>;
 
 pub struct Reader {
   app: AppHandle,
@@ -13,9 +16,10 @@ pub struct Reader {
 
 impl Reader {
   pub fn new(app: &AppHandle) -> Self {
+    let windows = IndexMap::<u16, ReaderWindow, BuildHasherDefault<AHasher>>::default();
     Self {
       app: app.clone(),
-      windows: Arc::new(RwLock::new(HashMap::new())),
+      windows: Arc::new(RwLock::new(windows)),
       current_id: 0,
     }
   }
@@ -84,7 +88,7 @@ impl Reader {
       .cycle()
       .skip_while(|id| **id != focused)
       .skip(1)
-      .find(|id| windows.contains_key(id));
+      .find(|id| windows.contains_key(*id));
 
     let Some(id) = id else {
       return Ok(());
@@ -130,7 +134,7 @@ impl Reader {
         let windows = Arc::clone(&windows);
         async_runtime::spawn(async move {
           let mut windows = windows.write().await;
-          windows.remove(&window_id);
+          windows.shift_remove(&window_id);
         });
       }
     });

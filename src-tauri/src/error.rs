@@ -53,7 +53,7 @@ impl Serialize for Error {
 impl IntoResponse for Error {
   fn into_response(self) -> Response {
     let status = match self {
-      Error::BookNotFound | Error::PageNotFound => StatusCode::NOT_FOUND,
+      Error::BookNotFound | Error::PageNotFound | Error::WindowNotFound => StatusCode::NOT_FOUND,
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

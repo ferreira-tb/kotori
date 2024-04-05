@@ -10,11 +10,14 @@ version = "2.0.0-beta.11"
 features = []
 
 [dependencies]
+ahash = "0.8.11"
 anyhow = "1.0.81"
 axum = "0.7.5"
 chrono = "0.4.37"
 futures = "0.3.30"
 globset = "0.4.14"
+hashbrown = "0.14.3"
+indexmap = "2.2.6"
 indoc = "2.0.5"
 itertools = "0.12.1"
 natord = "1.0.9"
