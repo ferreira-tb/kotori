@@ -1,0 +1,26 @@
+use crate::prelude::*;
+use serde::Serialize;
+use std::fmt;
+
+#[derive(Serialize, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Title(pub(super) String);
+
+impl TryFrom<&Path> for Title {
+  type Error = crate::error::Error;
+
+  fn try_from(path: &Path) -> Result<Self> {
+    let title = path
+      .file_stem()
+      .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?
+      .to_string_lossy()
+      .replace('_', " ");
+
+    Ok(Self(title))
+  }
+}
+
+impl fmt::Display for Title {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    write!(f, "{}", self.0)
+  }
+}

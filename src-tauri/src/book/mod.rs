@@ -1,17 +1,19 @@
+mod title;
 mod value;
 
+pub use title::Title;
+pub use value::{IntoValue, LibraryBook, ReaderBook};
+
+use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::utils::glob;
 use crate::utils::OrderedMap;
 use natord::compare_ignore_case;
-use serde::Serialize;
 use std::cmp::Ordering;
-use std::fmt;
 use std::fs::File;
 use std::io::Read;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::sync::OnceCell;
-pub use value::{IntoValue, LibraryBook, ReaderBook};
 use zip::ZipArchive;
 
 type BookHandle = Arc<Mutex<Option<ZipArchive<File>>>>;
@@ -22,19 +24,41 @@ pub struct ActiveBook {
 
   handle: BookHandle,
   pages: OnceCell<OrderedMap<usize, String>>,
+
+  /// Book id in the database.
+  id: OnceCell<i32>,
 }
 
 impl ActiveBook {
-  pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
+  pub fn new(path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref();
     let book = Self {
       path: path.to_owned(),
       title: Title::try_from(path)?,
+
       handle: Arc::new(Mutex::new(None)),
       pages: OnceCell::new(),
+
+      id: OnceCell::new(),
     };
 
     Ok(book)
+  }
+
+  pub fn with_model(model: &BookModel) -> Result<Self> {
+    let book = Self::new(&model.path)?;
+    book.id.set(model.id).ok();
+
+    Ok(book)
+  }
+
+  pub async fn id(&self, app: &AppHandle) -> Option<i32> {
+    let id = self.id.get_or_try_init(|| async {
+      let model = self.get_model(app).await?;
+      Ok::<i32, Error>(model.id)
+    });
+
+    id.await.ok().copied()
   }
 
   async fn handle(&self) -> Result<BookHandle> {
@@ -92,7 +116,7 @@ impl ActiveBook {
 
     if let Some(response) = rx.await? {
       return response
-        .into_par_iter()
+        .into_iter()
         .map(|it| Self::new(it.path))
         .collect();
     }
@@ -112,8 +136,39 @@ impl ActiveBook {
     Ok(())
   }
 
-  pub async fn get_cover(&self) -> Result<PathBuf> {
-    Ok(PathBuf::default())
+  pub async fn get_cover(&self, app: &AppHandle) -> Result<PathBuf> {
+    let id = self
+      .id(app)
+      .await
+      .ok_or_else(|| err!(BookNotFound))?;
+
+    let path = app
+      .path()
+      .app_cache_dir()?
+      .join(format!("covers/{id}"));
+
+    if let Ok(true) = path.try_exists() {
+      return Ok(path);
+    }
+
+    self.extract_cover().await
+  }
+
+  async fn extract_cover(&self) -> Result<PathBuf> {
+    let first = {
+      let pages = self.get_pages().await?;
+      pages
+        .first()
+        .map(|(_, name)| name)
+        .ok_or_else(|| err!(PageNotFound))?
+    };
+
+    let handle = self.handle().await?;
+    if let Some(ref mut handle) = *handle.lock().await {
+      let _ = handle.by_name(first)?;
+    }
+
+    Err(err!(BookHandle))
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
@@ -134,6 +189,20 @@ impl ActiveBook {
     }
 
     Err(err!(BookHandle))
+  }
+
+  async fn get_model(&self, app: &AppHandle) -> Result<BookModel> {
+    let kotori = app.state::<Kotori>();
+    let path = self
+      .path
+      .to_str()
+      .ok_or_else(|| err!(InvalidBookPath, "{}", self.path.display()))?;
+
+    Book::find()
+      .filter(BookColumn::Path.eq(path))
+      .one(&kotori.db)
+      .await?
+      .ok_or_else(|| err!(BookNotFound))
   }
 }
 
@@ -162,28 +231,5 @@ impl TryFrom<&Path> for ActiveBook {
 
   fn try_from(path: &Path) -> Result<Self> {
     Self::new(path)
-  }
-}
-
-#[derive(Serialize, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Title(String);
-
-impl TryFrom<&Path> for Title {
-  type Error = crate::error::Error;
-
-  fn try_from(path: &Path) -> Result<Self> {
-    let title = path
-      .file_stem()
-      .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?
-      .to_string_lossy()
-      .replace('_', " ");
-
-    Ok(Self(title))
-  }
-}
-
-impl fmt::Display for Title {
-  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-    write!(f, "{}", self.0)
   }
 }

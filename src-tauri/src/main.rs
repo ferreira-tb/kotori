@@ -65,7 +65,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   main_window.on_menu_event(menu::on_menu_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
 
-  // This depends on state managed by tauri, so it must be called after `app.manage`.
+  // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
   server::serve(handle);
 
   Ok(())

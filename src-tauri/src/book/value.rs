@@ -36,17 +36,17 @@ impl IntoValue for ReaderBook<'_> {
   }
 }
 
-pub struct LibraryBook<'a>(pub &'a book::Model);
+pub struct LibraryBook<'a>(pub &'a AppHandle, pub &'a BookModel);
 
 impl IntoValue for LibraryBook<'_> {
   async fn into_value(self) -> Result<Value> {
-    let active = ActiveBook::new(&self.0.path)?;
-    let cover = active.get_cover().await?;
+    let active = ActiveBook::with_model(self.1)?;
+    let cover = active.get_cover(self.0).await?;
 
     let value = json!({
-      "id": self.0.id,
-      "path": self.0.path,
-      "rating": self.0.rating,
+      "id": self.1.id,
+      "path": self.1.path,
+      "rating": self.1.rating,
       "cover": cover
     });
 

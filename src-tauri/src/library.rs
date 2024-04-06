@@ -45,7 +45,7 @@ impl Library {
         .map(ToOwned::to_owned)
         .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?;
 
-      let model = book::ActiveModel {
+      let model = BookActiveModel {
         path: Set(path),
         ..Default::default()
       };
@@ -57,7 +57,7 @@ impl Library {
       return Ok(());
     }
 
-    let on_conflict = OnConflict::column(book::Column::Path)
+    let on_conflict = OnConflict::column(BookColumn::Path)
       .do_nothing()
       .to_owned();
 

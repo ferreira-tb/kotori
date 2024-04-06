@@ -39,7 +39,7 @@ pub mod webview {
   use crate::prelude::*;
   use tauri::WebviewUrl;
 
-  pub fn dir<N: AsRef<str>>(app: &AppHandle, name: N) -> Result<PathBuf> {
+  pub fn dir(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
     let name = name.as_ref();
     let path = app
       .path()
@@ -49,7 +49,7 @@ pub mod webview {
     Ok(path)
   }
 
-  pub fn url<N: AsRef<str>>(name: N) -> WebviewUrl {
+  pub fn url(name: impl AsRef<str>) -> WebviewUrl {
     let name = name.as_ref();
     WebviewUrl::App(format!("src/windows/{name}/index.html",).into())
   }

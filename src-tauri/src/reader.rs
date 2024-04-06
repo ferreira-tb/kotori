@@ -64,11 +64,7 @@ impl Reader {
   where
     I: IntoIterator<Item = ActiveBook>,
   {
-    let books = books
-      .into_iter()
-      .map(|book| async move { self.open_book(book).await })
-      .collect_vec();
-
+    let books = books.into_iter().map(|book| self.open_book(book));
     try_join_all(books).await?;
 
     Ok(())
