@@ -19,7 +19,7 @@ impl IntoValue for ReaderBook<'_> {
   async fn into_value(self) -> Result<Value> {
     let pages = self
       .0
-      .get_pages()
+      .pages()
       .await?
       .keys()
       .copied()

@@ -10,8 +10,6 @@ pub type JoinResult<T> = JoinHandle<Result<T>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-  #[error("failed to acquire book handle")]
-  BookHandle,
   #[error("book is empty")]
   EmptyBook,
   #[error("{0}")]
