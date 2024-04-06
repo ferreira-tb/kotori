@@ -1,9 +1,9 @@
 pub use crate::err;
-pub use crate::error::Result;
+pub use crate::error::{JoinResult, Result};
 pub use crate::Kotori;
-pub use hashbrown::HashMap;
+pub use futures::future::{FutureExt, TryFutureExt};
 pub use itertools::Itertools;
-pub use rayon::iter::{IntoParallelIterator, ParallelIterator};
+pub use rayon::prelude::*;
 pub use serde_json::{json, Value};
 pub use std::path::{Path, PathBuf};
 pub use std::sync::Arc;

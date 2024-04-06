@@ -1,3 +1,9 @@
+use ahash::AHasher;
+use indexmap::IndexMap;
+use std::hash::BuildHasherDefault;
+
+pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
+
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
 

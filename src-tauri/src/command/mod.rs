@@ -1,3 +1,4 @@
+pub mod library;
 pub mod reader;
 
 use crate::prelude::*;
@@ -9,9 +10,9 @@ pub async fn close_current_window(webview: WebviewWindow) -> Result<()> {
 
 #[tauri::command]
 pub async fn focus_main_window(app: AppHandle) -> Result<()> {
-  if let Some(window) = app.get_webview_window("main") {
-    return window.set_focus().map_err(Into::into);
-  };
-
-  Ok(())
+  app
+    .get_webview_window("main")
+    .ok_or_else(|| err!(WindowNotFound, "main"))?
+    .set_focus()
+    .map_err(Into::into)
 }

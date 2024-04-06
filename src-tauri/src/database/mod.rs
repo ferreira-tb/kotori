@@ -17,8 +17,8 @@ pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
     let url = format!("sqlite://{}?mode=rwc", path.to_str().unwrap());
     let conn = Database::connect(url).await?;
 
-    // Migrator::up(&conn, None).await?;
-    Migrator::fresh(&conn).await?;
+    Migrator::up(&conn, None).await?;
+    // Migrator::fresh(&conn).await?;
 
     Ok(conn)
   })

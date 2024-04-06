@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { Command } from '@/utils/commands';
-import { RouteName } from './router';
-
-navigateOnKeyDown('F1', { name: RouteName.Library });
 
 invokeOnKeyDown('o', Command.OpenBookFromDialog, null, { ctrlKey: true });
 </script>

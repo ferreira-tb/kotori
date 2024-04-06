@@ -3,7 +3,7 @@ import { fetch } from '@tauri-apps/plugin-http';
 import { useReaderStore } from '../stores';
 
 export class Page {
-  public status: BookStatus = 'not started';
+  public status: ReaderBookStatus = 'not started';
   public url: string | null = null;
 
   private static lookahead = 5;

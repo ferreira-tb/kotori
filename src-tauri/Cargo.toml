@@ -62,7 +62,7 @@ features = ["rustls-tls"]
 
 [dependencies.tokio]
 version = "1.37.0"
-features = ["fs", "macros", "net", "process", "sync"]
+features = ["full"]
 
 [features]
 custom-protocol = ["tauri/custom-protocol"]

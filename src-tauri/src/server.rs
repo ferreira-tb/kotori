@@ -20,7 +20,6 @@ pub fn serve(app: &AppHandle) {
       };
 
       let router = Router::new()
-        .route("/library/:book/cover", get(book_cover))
         .route("/reader", get(reader_root))
         .route("/reader/:book/:page", get(book_page))
         .with_state(reader_windows);
@@ -63,18 +62,6 @@ async fn reader_root(State(windows): State<WindowMap>) -> Html<String> {
   "};
 
   Html(html)
-}
-
-async fn book_cover(State(windows): State<WindowMap>, Path(book): Path<u16>) -> Response {
-  let windows = windows.read().await;
-  if let Some(window) = windows.get(&book) {
-    return match window.book.get_cover_as_bytes().await {
-      Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-      Err(err) => err.into_response(),
-    };
-  };
-
-  err!(BookNotFound).into_response()
 }
 
 async fn book_page(

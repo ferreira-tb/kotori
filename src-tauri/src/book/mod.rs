@@ -1,5 +1,8 @@
+mod value;
+
 use crate::prelude::*;
 use crate::utils::glob;
+use crate::utils::OrderedMap;
 use natord::compare_ignore_case;
 use serde::Serialize;
 use std::cmp::Ordering;
@@ -8,6 +11,7 @@ use std::fs::File;
 use std::io::Read;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::sync::OnceCell;
+pub use value::{IntoValue, LibraryBook, ReaderBook};
 use zip::ZipArchive;
 
 type BookHandle = Arc<Mutex<Option<ZipArchive<File>>>>;
@@ -17,7 +21,7 @@ pub struct ActiveBook {
   pub title: Title,
 
   handle: BookHandle,
-  pages: OnceCell<HashMap<usize, String>>,
+  pages: OnceCell<OrderedMap<usize, String>>,
 }
 
 impl ActiveBook {
@@ -34,34 +38,40 @@ impl ActiveBook {
   }
 
   async fn handle(&self) -> Result<BookHandle> {
-    let mut handle = self.handle.lock().await;
+    if self.handle.lock().await.is_none() {
+      let path = self.path.clone();
+      let join: JoinResult<ZipArchive<File>> = async_runtime::spawn_blocking(move || {
+        let file = File::open(path)?;
+        ZipArchive::new(file).map_err(Into::into)
+      });
 
-    if handle.is_none() {
-      let file = File::open(&self.path)?;
-      let zip = ZipArchive::new(file)?;
+      let zip = join.await??;
+      let mut handle = self.handle.lock().await;
       *handle = Some(zip);
     }
 
     Ok(Arc::clone(&self.handle))
   }
 
-  async fn pages(&self) -> Result<&HashMap<usize, String>> {
+  /// This should never be called while holding the handle lock.
+  /// It'll deadlock if it isn't initialized.
+  pub async fn get_pages(&self) -> Result<&OrderedMap<usize, String>> {
     self
       .pages
       .get_or_try_init(|| self.read_pages())
       .await
   }
 
-  async fn read_pages(&self) -> Result<HashMap<usize, String>> {
+  async fn read_pages(&self) -> Result<OrderedMap<usize, String>> {
     let handle = self.handle().await?;
     if let Some(ref handle) = *handle.lock().await {
       let globset = glob::book_page();
       let pages = handle
         .file_names()
-        .filter(|n| globset.is_match(n))
+        .filter(|name| globset.is_match(name))
         .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
         .enumerate()
-        .map(|(i, p)| (i, p.to_string()))
+        .map(|(idx, name)| (idx, name.to_string()))
         .collect();
 
       return Ok(pages);
@@ -83,7 +93,7 @@ impl ActiveBook {
     if let Some(response) = rx.await? {
       return response
         .into_par_iter()
-        .map(|r| Self::new(r.path))
+        .map(|it| Self::new(it.path))
         .collect();
     }
 
@@ -95,40 +105,20 @@ impl ActiveBook {
 
     if !books.is_empty() {
       let kotori = app.state::<Kotori>();
-      let mut reader = kotori.reader.write().await;
+      let reader = kotori.reader.read().await;
       return reader.open_many(books).await.map_err(Into::into);
     }
 
     Ok(())
   }
 
-  pub async fn as_value(&self) -> Result<Value> {
-    let pages = self
-      .pages()
-      .await?
-      .keys()
-      .copied()
-      .sorted_unstable()
-      .collect_vec();
-
-    let value = json!({
-      "path": self.path,
-      "title": self.title,
-      "pages": pages
-    });
-
-    Ok(value)
-  }
-
-  pub async fn get_cover_as_bytes(&self) -> Result<Vec<u8>> {
-    self.get_page_as_bytes(0).await
+  pub async fn get_cover(&self) -> Result<PathBuf> {
+    Ok(PathBuf::default())
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
-    // This MUST come before the lock to avoid a deadlock.
-    // The call to `self.pages()` will lock the handle if `pages` isn't initialized.
     let name = self
-      .pages()
+      .get_pages()
       .await?
       .get(&page)
       .ok_or_else(|| err!(PageNotFound))?;
@@ -184,7 +174,7 @@ impl TryFrom<&Path> for Title {
   fn try_from(path: &Path) -> Result<Self> {
     let title = path
       .file_stem()
-      .ok_or_else(|| err!(InvalidBook, "invalid book path: {path:?}"))?
+      .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?
       .to_string_lossy()
       .replace('_', " ");
 

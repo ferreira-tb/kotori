@@ -2,24 +2,29 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::ser::Serializer;
 use serde::Serialize;
+use tauri::async_runtime::JoinHandle;
 
 pub type Result<T> = std::result::Result<T, Error>;
 pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+pub type JoinResult<T> = JoinHandle<Result<T>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
   #[error("failed to acquire book handle")]
   BookHandle,
+  #[error("book is empty")]
+  EmptyBook,
+  #[error("{0}")]
+  InvalidBook(String),
+  #[error("invalid book path: {0}")]
+  InvalidBookPath(String),
+
   #[error("book not found")]
   BookNotFound,
   #[error("page not found")]
   PageNotFound,
-  #[error("window not found")]
-  WindowNotFound,
-  #[error("book is empty")]
-  Empty,
-  #[error("{0}")]
-  InvalidBook(String),
+  #[error("window not found: {0}")]
+  WindowNotFound(String),
 
   #[error(transparent)]
   Database(#[from] sea_orm::error::DbErr),
@@ -55,7 +60,7 @@ impl Serialize for Error {
 impl IntoResponse for Error {
   fn into_response(self) -> Response {
     let status = match self {
-      Error::BookNotFound | Error::PageNotFound | Error::WindowNotFound => StatusCode::NOT_FOUND,
+      Error::BookNotFound | Error::PageNotFound | Error::WindowNotFound(_) => StatusCode::NOT_FOUND,
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

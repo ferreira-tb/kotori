@@ -1,26 +1,26 @@
-use crate::book::ActiveBook;
+use crate::book::{ActiveBook, IntoValue, ReaderBook};
 use crate::prelude::*;
-use crate::utils::webview;
-use ahash::AHasher;
-use indexmap::IndexMap;
-use std::hash::BuildHasherDefault;
+use crate::utils::{webview, OrderedMap};
+use futures::future::try_join_all;
+use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
-pub type WindowMap = Arc<RwLock<IndexMap<u16, ReaderWindow, BuildHasherDefault<AHasher>>>>;
+/// Counter for window IDs.
+static ID: AtomicU16 = AtomicU16::new(0);
+
+pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
 
 pub struct Reader {
   app: AppHandle,
   windows: WindowMap,
-  current_id: u16,
 }
 
 impl Reader {
   pub fn new(app: &AppHandle) -> Self {
-    let windows = IndexMap::<u16, ReaderWindow, BuildHasherDefault<AHasher>>::default();
+    let windows = OrderedMap::<u16, ReaderWindow>::default();
     Self {
       app: app.clone(),
       windows: Arc::new(RwLock::new(windows)),
-      current_id: 0,
     }
   }
 
@@ -28,7 +28,7 @@ impl Reader {
     Arc::clone(&self.windows)
   }
 
-  pub async fn open_book(&mut self, book: ActiveBook) -> Result<()> {
+  pub async fn open_book(&self, book: ActiveBook) -> Result<()> {
     let windows = self.windows.read().await;
     if let Some(window) = windows.values().find(|w| w.book == book) {
       window.webview.set_focus()?;
@@ -37,8 +37,7 @@ impl Reader {
 
     drop(windows);
 
-    self.current_id += 1;
-    let window_id = self.current_id;
+    let window_id = ID.fetch_add(1, atomic::Ordering::SeqCst);
 
     let url = webview::reader_url();
     let dir = webview::reader_dir(&self.app, window_id)?;
@@ -61,13 +60,16 @@ impl Reader {
     Ok(())
   }
 
-  pub async fn open_many<I>(&mut self, books: I) -> Result<()>
+  pub async fn open_many<I>(&self, books: I) -> Result<()>
   where
     I: IntoIterator<Item = ActiveBook>,
   {
-    for book in books {
-      self.open_book(book).await?;
-    }
+    let books = books
+      .into_iter()
+      .map(|book| async move { self.open_book(book).await })
+      .collect_vec();
+
+    try_join_all(books).await?;
 
     Ok(())
   }
@@ -103,7 +105,7 @@ impl Reader {
 
   async fn get_focused_window_id(&self) -> Option<u16> {
     let windows = self.windows.read().await;
-    for (id, window) in windows.iter() {
+    for (id, window) in &*windows {
       if window.webview.is_focused().unwrap_or(false) {
         return Some(*id);
       }
@@ -113,9 +115,15 @@ impl Reader {
   }
 
   pub async fn get_book_as_value(&self, window_id: u16) -> Option<Value> {
-    let windows = self.windows.read().await;
-    let window = windows.get(&window_id)?;
-    window.book.as_value().await.ok()
+    self
+      .windows
+      .read()
+      .await
+      .get(&window_id)
+      .map(ReaderBook::from_reader_window)?
+      .into_value()
+      .await
+      .ok()
   }
 
   pub async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {

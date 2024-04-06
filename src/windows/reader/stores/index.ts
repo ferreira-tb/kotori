@@ -3,8 +3,8 @@ import { Command } from '@/utils/commands';
 import { Page } from '../utils/page';
 
 export const useReaderStore = defineStore('reader', () => {
-  const book = useInvoke<Book | null>(Command.GetActiveBook, null);
-  const readerId = useInvoke<number | null>(Command.GetReaderWindowId, null);
+  const book = useInvoke<ReaderBook | null>(Command.GetCurrentReaderBook, null);
+  const readerId = useInvoke<number | null>(Command.GetCurrentReaderWindowId, null);
 
   // This MUST be a ref.
   // Computed will fail to update once the page is fetched.

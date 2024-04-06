@@ -6,7 +6,6 @@ import { createPinia } from 'pinia';
 import { createManatsu, registerComponents } from 'manatsu';
 import App from './App.vue';
 import { RouteName, router } from './router';
-import { setupEventListeners } from './events';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -17,7 +16,6 @@ app.use(pinia);
 app.use(manatsu);
 
 registerComponents(app);
-void setupEventListeners();
 
 router
   .push({ name: RouteName.Library })

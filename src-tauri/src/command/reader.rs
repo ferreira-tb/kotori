@@ -2,14 +2,15 @@ use crate::book::ActiveBook;
 use crate::prelude::*;
 
 #[tauri::command]
-pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
+pub async fn get_current_reader_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.read().await;
 
+  let label = window.label();
   let id = reader
-    .get_window_id_by_label(window.label())
+    .get_window_id_by_label(label)
     .await
-    .ok_or_else(|| err!(WindowNotFound))?;
+    .ok_or_else(|| err!(WindowNotFound, "{label}"))?;
 
   reader
     .get_book_as_value(id)
@@ -18,14 +19,15 @@ pub async fn get_active_book(app: AppHandle, window: WebviewWindow) -> Result<Va
 }
 
 #[tauri::command]
-pub async fn get_reader_window_id(app: AppHandle, window: WebviewWindow) -> Result<u16> {
+pub async fn get_current_reader_window_id(app: AppHandle, window: WebviewWindow) -> Result<u16> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.read().await;
 
+  let label = window.label();
   reader
-    .get_window_id_by_label(window.label())
+    .get_window_id_by_label(label)
     .await
-    .ok_or_else(|| err!(WindowNotFound))
+    .ok_or_else(|| err!(WindowNotFound, "{label}"))
 }
 
 #[tauri::command]

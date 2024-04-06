@@ -43,7 +43,7 @@ impl Library {
       let path = path
         .to_str()
         .map(ToOwned::to_owned)
-        .ok_or_else(|| err!(InvalidBook, "invalid book path: {path:?}"))?;
+        .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?;
 
       let model = book::ActiveModel {
         path: Set(path),
