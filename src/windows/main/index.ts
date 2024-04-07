@@ -6,6 +6,7 @@ import PrimeVue from 'primevue/config';
 import { createManatsu } from 'manatsu';
 import App from './App.vue';
 import { RouteName, router } from './router';
+import { setupEventListeners } from './events';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -15,6 +16,8 @@ app.use(router);
 app.use(pinia);
 app.use(manatsu);
 app.use(PrimeVue);
+
+setupEventListeners();
 
 router
   .push({ name: RouteName.Library })

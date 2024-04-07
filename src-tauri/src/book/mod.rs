@@ -1,7 +1,9 @@
+mod cover;
 mod handle;
 mod title;
 mod value;
 
+pub use cover::Cover;
 pub use title::Title;
 pub use value::{IntoValue, LibraryBook, ReaderBook};
 
@@ -123,41 +125,48 @@ impl ActiveBook {
     Ok(Vec::new())
   }
 
-  pub async fn get_cover(&self, app: &AppHandle) -> Result<PathBuf> {
+  pub async fn get_cover(self, app: &AppHandle) -> Result<Cover> {
     let id = self
       .id(app)
       .await
       .ok_or_else(|| err!(BookNotFound))?;
 
-    let path = app
-      .path()
-      .app_cache_dir()?
-      .join(format!("covers/{id}"));
-
+    let path = Cover::path(app, id)?;
     if path.try_exists()? {
-      return Ok(path);
+      return Ok(path.into());
     }
 
-    Err(err!(CoverNotExtracted))
+    self.extract_cover(app, path);
+
+    Ok(Cover::NotExtracted)
   }
 
-  #[allow(dead_code)]
-  pub async fn extract_cover(&self, path: impl AsRef<Path>) -> Result<()> {
-    let first = self
-      .pages()
-      .await?
-      .first()
-      .map(|(_, name)| name)
-      .ok_or_else(|| err!(PageNotFound))?;
+  pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
+    let app = app.clone();
+    async_runtime::spawn(async move {
+      let first = self
+        .pages()
+        .await?
+        .first()
+        .map(|(_, name)| name)
+        .ok_or_else(|| err!(PageNotFound))?;
 
-    let handle = self.handle().await?;
-    let page = handle.by_name(first).await?;
+      let handle = self.handle().await?;
+      let page = handle.by_name(first).await?;
 
-    if let Some(parent_dir) = path.as_ref().parent() {
-      fs::create_dir_all(parent_dir).await?;
-    }
+      if let Some(parent_dir) = path.parent() {
+        fs::create_dir_all(parent_dir).await?;
+      }
 
-    fs::write(&path, page).await.map_err(Into::into)
+      fs::write(&path, page).await?;
+
+      if let Some(id) = self.id(&app).await {
+        let cover = Cover::Extracted(path);
+        cover.notify(&app, id)?;
+      }
+
+      Ok::<(), Error>(())
+    });
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
@@ -211,5 +220,13 @@ impl TryFrom<&Path> for ActiveBook {
 
   fn try_from(path: &Path) -> Result<Self> {
     Self::new(path)
+  }
+}
+
+impl TryFrom<BookModel> for ActiveBook {
+  type Error = crate::error::Error;
+
+  fn try_from(model: BookModel) -> Result<Self> {
+    Self::with_model(&model)
   }
 }

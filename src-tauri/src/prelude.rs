@@ -1,7 +1,7 @@
 pub use crate::err;
 pub use crate::error::{Error, JoinResult, Result};
 pub use crate::Kotori;
-pub use futures::future::{FutureExt, TryFutureExt};
+pub use futures::future::{join_all, FutureExt, TryFutureExt};
 pub use itertools::Itertools;
 pub use serde_json::{json, Value};
 pub use std::path::{Path, PathBuf};

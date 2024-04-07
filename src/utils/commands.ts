@@ -2,6 +2,7 @@ import { handleError } from 'manatsu';
 import { invoke } from '@tauri-apps/api/core';
 
 export enum Command {
+  AddToLibraryFromDialog = 'add_to_library_from_dialog',
   CloseCurrentWindow = 'close_current_window',
   FocusMainWindow = 'focus_main_window',
   GetCurrentReaderBook = 'get_current_reader_book',

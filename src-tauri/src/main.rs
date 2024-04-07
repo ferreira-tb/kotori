@@ -6,7 +6,7 @@
 
 mod book;
 mod command;
-pub mod database;
+mod database;
 mod error;
 mod library;
 mod menu;
@@ -38,6 +38,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       command::close_current_window,
       command::focus_main_window,
+      command::library::add_to_library_from_dialog,
       command::library::get_library_books,
       command::reader::get_current_reader_book,
       command::reader::get_current_reader_window_id,

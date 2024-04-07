@@ -44,18 +44,14 @@ impl IntoValue for LibraryBook<'_> {
     let active = ActiveBook::with_model(self.1)?;
     let title = Title::try_from(self.1.path.as_str())?;
 
-    let cover = match active.get_cover(self.0).await {
-      Ok(cover) => Some(cover),
-      Err(Error::CoverNotExtracted) => None,
-      Err(err) => return Err(err),
-    };
+    let cover = active.get_cover(self.0).await?;
 
     let value = json!({
       "id": self.1.id,
       "path": self.1.path,
       "title": title,
       "rating": self.1.rating,
-      "cover": cover
+      "cover": Value::from(cover),
     });
 
     Ok(value)

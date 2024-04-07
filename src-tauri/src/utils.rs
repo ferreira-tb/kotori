@@ -4,6 +4,26 @@ use std::hash::BuildHasherDefault;
 
 pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
 
+pub mod event {
+  use strum::{AsRefStr, Display, EnumString};
+  use tauri::EventTarget;
+
+  #[derive(AsRefStr, Display, EnumString)]
+  #[strum(serialize_all = "snake_case")]
+  pub enum Event {
+    BookAdded,
+    CoverExtracted,
+  }
+
+  impl Event {
+    pub fn target() -> EventTarget {
+      EventTarget::WebviewWindow {
+        label: "main".into(),
+      }
+    }
+  }
+}
+
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
 

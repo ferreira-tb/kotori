@@ -1,15 +1,15 @@
 interface LibraryBook {
   cover?: string;
-  id: number;
-  path: string;
-  rating: number;
-  title: string;
+  readonly id: number;
+  readonly path: string;
+  readonly rating: number;
+  readonly title: string;
 }
 
 interface ReaderBook {
-  pages?: number[];
-  path: string;
-  title: string;
+  readonly pages?: number[];
+  readonly path: string;
+  readonly title: string;
 }
 
 type ReaderBookStatus = 'not started' | 'pending' | 'done' | 'error';

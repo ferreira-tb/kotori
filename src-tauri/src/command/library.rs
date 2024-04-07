@@ -1,16 +1,31 @@
 use crate::book::{IntoValue, LibraryBook};
 use crate::database::prelude::*;
+use crate::library::Library;
 use crate::prelude::*;
-use futures::future::try_join_all;
+
+#[tauri::command]
+pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
+  Library::add_from_dialog(&app).await
+}
 
 #[tauri::command]
 pub async fn get_library_books(app: AppHandle) -> Result<Value> {
   let kotori = app.state::<Kotori>();
   let books = Book::find().all(&kotori.db).await?;
 
-  let futures = books
-    .iter()
-    .map(|model| LibraryBook(&app, model).into_value());
+  let tasks = books.into_iter().map(|model| {
+    let app = app.clone();
+    async_runtime::spawn(async move {
+      let book = LibraryBook(&app, &model).into_value().await;
+      book.ok()
+    })
+  });
 
-  try_join_all(futures).await.map(Value::Array)
+  let books = join_all(tasks)
+    .await
+    .into_iter()
+    .filter_map(std::result::Result::unwrap_or_default)
+    .collect_vec();
+
+  Ok(Value::Array(books))
 }

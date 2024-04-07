@@ -41,7 +41,7 @@ where
 {
   let mut menu = SubmenuBuilder::new(app, "File")
     .item(&menu_item!(app, OpenBook, "Open file", "Ctrl+O")?)
-    .item(&menu_item!(app, AddToLibrary, "Add to library")?);
+    .item(&menu_item!(app, AddToLibrary, "Add to library", "Ctrl+Shift+A")?);
 
   if !cfg!(target_os = "linux") {
     menu = menu.separator().quit();
@@ -61,7 +61,7 @@ where
         Id::AddToLibrary => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            Library::from_dialog(&app).await.ok();
+            Library::add_from_dialog(&app).await.ok();
           });
         }
         Id::OpenBook => {
