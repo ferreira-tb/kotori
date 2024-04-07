@@ -16,6 +16,7 @@ mod server;
 mod utils;
 
 use error::BoxResult;
+use library::Library;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::async_runtime::RwLock;
@@ -25,6 +26,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
   pub db: DatabaseConnection,
+  pub library: Library,
   pub reader: RwLock<Reader>,
 }
 
@@ -32,6 +34,7 @@ fn main() {
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
+    .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
@@ -54,6 +57,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
   let kotori = Kotori {
     db: database::connect(handle)?,
+    library: Library::new(handle),
     reader: RwLock::new(Reader::new(handle)),
   };
 

@@ -6,6 +6,7 @@
     "dialog:allow-open",
     "event:allow-emit",
     "event:allow-listen",
+    "manatsu:default",
     {
       "identifier": "http:default",
       "allow": [{ "url": "http://localhost:3000/*" }]

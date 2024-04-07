@@ -1,11 +1,11 @@
 use crate::book::{IntoValue, LibraryBook};
 use crate::database::prelude::*;
-use crate::library::Library;
 use crate::prelude::*;
 
 #[tauri::command]
 pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
-  Library::add_from_dialog(&app).await
+  let kotori = app.state::<Kotori>();
+  kotori.library.add_from_dialog().await
 }
 
 #[tauri::command]

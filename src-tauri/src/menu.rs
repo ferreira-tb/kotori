@@ -1,5 +1,4 @@
 use crate::book::ActiveBook;
-use crate::library::Library;
 use crate::prelude::*;
 use std::str::FromStr;
 use strum::{Display, EnumString};
@@ -23,7 +22,7 @@ where
   Ok(menu)
 }
 
-macro_rules! menu_item {
+macro_rules! item {
   ($app:expr, $id:ident, $text:literal) => {{
     MenuItemBuilder::with_id(Id::$id, $text).build($app)
   }};
@@ -40,8 +39,8 @@ where
   M: Manager<R>,
 {
   let mut menu = SubmenuBuilder::new(app, "File")
-    .item(&menu_item!(app, OpenBook, "Open file", "Ctrl+O")?)
-    .item(&menu_item!(app, AddToLibrary, "Add to library", "Ctrl+Shift+A")?);
+    .item(&item!(app, OpenBook, "Open file", "Ctrl+O")?)
+    .item(&item!(app, AddToLibrary, "Add to library", "Ctrl+Shift+A")?);
 
   if !cfg!(target_os = "linux") {
     menu = menu.separator().quit();
@@ -61,7 +60,8 @@ where
         Id::AddToLibrary => {
           let app = app.clone();
           async_runtime::spawn(async move {
-            Library::add_from_dialog(&app).await.ok();
+            let kotori = app.state::<Kotori>();
+            kotori.library.add_from_dialog().await.ok();
           });
         }
         Id::OpenBook => {

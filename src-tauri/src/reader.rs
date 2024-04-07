@@ -1,12 +1,10 @@
 use crate::book::{ActiveBook, IntoValue, ReaderBook};
 use crate::prelude::*;
 use crate::utils::{window, OrderedMap};
-use futures::future::try_join_all;
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
-/// Counter for window IDs.
-static ID: AtomicU16 = AtomicU16::new(0);
+static NEXT_WINDOW_ID: AtomicU16 = AtomicU16::new(0);
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
 
@@ -37,7 +35,7 @@ impl Reader {
 
     drop(windows);
 
-    let window_id = ID.fetch_add(1, atomic::Ordering::SeqCst);
+    let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
 
     let url = window::webview_url("reader");
     let dir = window::dir(&self.app, format!("reader/{window_id}"))?;
@@ -64,8 +62,9 @@ impl Reader {
   where
     I: IntoIterator<Item = ActiveBook>,
   {
-    let books = books.into_iter().map(|book| self.open_book(book));
-    try_join_all(books).await?;
+    for book in books {
+      self.open_book(book).await?;
+    }
 
     Ok(())
   }

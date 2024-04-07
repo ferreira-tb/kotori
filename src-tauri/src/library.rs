@@ -6,12 +6,18 @@ use crate::utils::glob;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use walkdir::WalkDir;
 
-pub struct Library;
+pub struct Library {
+  app: AppHandle,
+}
 
 impl Library {
-  pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
+  pub fn new(app: &AppHandle) -> Self {
+    Self { app: app.clone() }
+  }
+
+  pub async fn add_from_dialog(&self) -> Result<()> {
     let (tx, rx) = oneshot::channel();
-    let dialog = app.dialog().clone();
+    let dialog = self.app.dialog().clone();
 
     FileDialogBuilder::new(dialog).pick_folders(move |response| {
       tx.send(response.unwrap_or_default()).ok();
@@ -34,21 +40,7 @@ impl Library {
       }
     }
 
-    Self::save_books(app, books).await
-  }
-
-  async fn save_books(app: &AppHandle, paths: Vec<PathBuf>) -> Result<()> {
-    let tasks = paths.into_iter().map(|path| {
-      let app = app.clone();
-      async_runtime::spawn(async move {
-        Self::save_book(&app, &path).await?;
-        Ok::<(), Error>(())
-      })
-    });
-
-    join_all(tasks).await;
-
-    Ok(())
+    Self::save_books(&self.app, books).await
   }
 
   async fn save_book(app: &AppHandle, path: &Path) -> Result<()> {
@@ -76,6 +68,20 @@ impl Library {
     let event = Event::BookAdded;
     let payload = LibraryBook(app, &book).into_value().await?;
     app.emit_to(Event::target(), event.as_ref(), payload)?;
+
+    Ok(())
+  }
+
+  async fn save_books(app: &AppHandle, paths: Vec<PathBuf>) -> Result<()> {
+    let tasks = paths.into_iter().map(|path| {
+      let app = app.clone();
+      async_runtime::spawn(async move {
+        Self::save_book(&app, &path).await?;
+        Ok::<(), Error>(())
+      })
+    });
+
+    join_all(tasks).await;
 
     Ok(())
   }
