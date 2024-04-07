@@ -31,6 +31,12 @@ pub async fn get_current_reader_window_id(app: AppHandle, window: WebviewWindow)
 }
 
 #[tauri::command]
+pub async fn open_book(app: AppHandle, id: i32) -> Result<()> {
+  let book = ActiveBook::from_id(&app, id).await?;
+  book.open(&app).await
+}
+
+#[tauri::command]
 pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
   ActiveBook::open_book_from_dialog(&app).await
 }

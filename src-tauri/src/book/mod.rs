@@ -48,6 +48,15 @@ impl ActiveBook {
     Ok(book)
   }
 
+  pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
+    let kotori = app.state::<Kotori>();
+    Book::find_by_id(id)
+      .one(&kotori.db)
+      .await?
+      .ok_or_else(|| err!(BookNotFound))
+      .and_then(|model| Self::with_model(&model))
+  }
+
   async fn handle(&self) -> Result<&Handle> {
     let handle = self.handle.get_or_try_init(|| async {
       let handle = Handle::new(&self.path).await?;
@@ -76,6 +85,24 @@ impl ActiveBook {
     id.await.ok().copied()
   }
 
+  pub async fn open(self, app: &AppHandle) -> Result<()> {
+    let kotori = app.state::<Kotori>();
+    let reader = kotori.reader.read().await;
+    reader.open_book(self).await
+  }
+
+  pub async fn open_book_from_dialog(app: &AppHandle) -> Result<()> {
+    let books = Self::show_dialog(app).await?;
+
+    if !books.is_empty() {
+      let kotori = app.state::<Kotori>();
+      let reader = kotori.reader.read().await;
+      return reader.open_many(books).await.map_err(Into::into);
+    }
+
+    Ok(())
+  }
+
   async fn show_dialog(app: &AppHandle) -> Result<Vec<Self>> {
     let (tx, rx) = oneshot::channel();
     let dialog = app.dialog().clone();
@@ -94,18 +121,6 @@ impl ActiveBook {
     }
 
     Ok(Vec::new())
-  }
-
-  pub async fn open_book_from_dialog(app: &AppHandle) -> Result<()> {
-    let books = Self::show_dialog(app).await?;
-
-    if !books.is_empty() {
-      let kotori = app.state::<Kotori>();
-      let reader = kotori.reader.read().await;
-      return reader.open_many(books).await.map_err(Into::into);
-    }
-
-    Ok(())
   }
 
   pub async fn get_cover(&self, app: &AppHandle) -> Result<PathBuf> {
@@ -127,7 +142,7 @@ impl ActiveBook {
   }
 
   #[allow(dead_code)]
-  async fn extract_cover(&self, path: impl AsRef<Path>) -> Result<()> {
+  pub async fn extract_cover(&self, path: impl AsRef<Path>) -> Result<()> {
     let first = self
       .pages()
       .await?

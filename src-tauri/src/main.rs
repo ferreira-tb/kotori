@@ -41,6 +41,7 @@ fn main() {
       command::library::get_library_books,
       command::reader::get_current_reader_book,
       command::reader::get_current_reader_window_id,
+      command::reader::open_book,
       command::reader::open_book_from_dialog,
       command::reader::switch_reader_focus,
     ])

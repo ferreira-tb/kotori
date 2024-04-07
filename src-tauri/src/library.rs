@@ -24,17 +24,15 @@ impl Library {
     let mut books = Vec::new();
 
     for folder in folders {
-      for entry in WalkDir::new(&folder) {
-        let path = entry?.into_path();
+      for entry in WalkDir::new(&folder).into_iter().flatten() {
+        let path = entry.into_path();
         if path.is_file() && globset.is_match(&path) {
           books.push(path);
         }
       }
     }
 
-    Self::save_books(app, books).await?;
-
-    Ok(())
+    Self::save_books(app, books).await
   }
 
   pub async fn save_books(app: &AppHandle, paths: Vec<PathBuf>) -> Result<()> {

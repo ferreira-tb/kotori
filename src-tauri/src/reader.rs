@@ -71,11 +71,18 @@ impl Reader {
   }
 
   pub async fn switch_focus(&self) -> Result<()> {
+    let main_window = self.app.get_webview_window("main");
+    if matches!(main_window, Some(it) if it.is_focused().unwrap_or(false)) {
+      let windows = self.windows.read().await;
+      if let Some((_, window)) = windows.first() {
+        return window.webview.set_focus().map_err(Into::into);
+      }
+    }
+
     let Some(focused) = self.get_focused_window_id().await else {
       return Ok(());
     };
 
-    // We must make sure the key still exists after acquiring the lock.
     let windows = self.windows.read().await;
     if windows.len() < 2 || !windows.contains_key(&focused) {
       return Ok(());
