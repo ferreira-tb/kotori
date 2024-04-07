@@ -1,6 +1,6 @@
 use crate::book::{ActiveBook, IntoValue, ReaderBook};
 use crate::prelude::*;
-use crate::utils::{webview, OrderedMap};
+use crate::utils::{window, OrderedMap};
 use futures::future::try_join_all;
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
@@ -39,9 +39,9 @@ impl Reader {
 
     let window_id = ID.fetch_add(1, atomic::Ordering::SeqCst);
 
-    let url = webview::reader_url();
-    let dir = webview::reader_dir(&self.app, window_id)?;
-    let label = webview::reader_label(window_id);
+    let url = window::webview_url("reader");
+    let dir = window::dir(&self.app, format!("reader/{window_id}"))?;
+    let label = format!("reader-{window_id}");
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
       .data_directory(dir)

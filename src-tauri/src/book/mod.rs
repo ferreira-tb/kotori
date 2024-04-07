@@ -119,26 +119,30 @@ impl ActiveBook {
       .app_cache_dir()?
       .join(format!("covers/{id}"));
 
-    if let Ok(true) = path.try_exists() {
+    if path.try_exists()? {
       return Ok(path);
     }
 
-    self.extract_cover().await
+    Err(err!(CoverNotExtracted))
   }
 
-  async fn extract_cover(&self) -> Result<PathBuf> {
-    let first = {
-      let pages = self.pages().await?;
-      pages
-        .first()
-        .map(|(_, name)| name)
-        .ok_or_else(|| err!(PageNotFound))?
-    };
+  #[allow(dead_code)]
+  async fn extract_cover(&self, path: impl AsRef<Path>) -> Result<()> {
+    let first = self
+      .pages()
+      .await?
+      .first()
+      .map(|(_, name)| name)
+      .ok_or_else(|| err!(PageNotFound))?;
 
     let handle = self.handle().await?;
-    let _ = handle.by_name(first).await?;
+    let page = handle.by_name(first).await?;
 
-    Ok(PathBuf::new())
+    if let Some(parent_dir) = path.as_ref().parent() {
+      fs::create_dir_all(parent_dir).await?;
+    }
+
+    fs::write(&path, page).await.map_err(Into::into)
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {

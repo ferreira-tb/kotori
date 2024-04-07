@@ -33,7 +33,6 @@ fn main() {
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_persisted_scope::init())
-    .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
@@ -52,13 +51,13 @@ fn main() {
 fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
   let kotori = Kotori {
-    db: database::connect(handle).unwrap(),
+    db: database::connect(handle)?,
     reader: RwLock::new(Reader::new(handle)),
   };
 
   app.manage(kotori);
 
-  let menu = menu::build(handle).unwrap();
+  let menu = menu::build(handle)?;
   let main_window = app.get_webview_window("main").unwrap();
   main_window.set_menu(menu)?;
 

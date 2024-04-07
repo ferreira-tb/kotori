@@ -11,14 +11,15 @@ import autoImportConfig from '@tb-dev/auto-import-config';
 const autoImportOptions = autoImportConfig({
   presets: {
     manatsu: true,
-    manatsuStyle: true,
     tauri: true,
     vueuseRouter: true
   }
 });
 
+const componentsOptions = componentsConfig({ primevue: true });
+
 export default defineConfig({
-  plugins: [vue(), dev(), autoImport(autoImportOptions), components(componentsConfig())],
+  plugins: [vue(), dev(), autoImport(autoImportOptions), components(componentsOptions)],
   clearScreen: false,
   resolve: {
     alias: {

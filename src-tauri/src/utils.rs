@@ -35,7 +35,7 @@ pub mod glob {
   }
 }
 
-pub mod webview {
+pub mod window {
   use crate::prelude::*;
   use tauri::WebviewUrl;
 
@@ -49,20 +49,8 @@ pub mod webview {
     Ok(path)
   }
 
-  pub fn url(name: impl AsRef<str>) -> WebviewUrl {
+  pub fn webview_url(name: impl AsRef<str>) -> WebviewUrl {
     let name = name.as_ref();
     WebviewUrl::App(format!("src/windows/{name}/index.html",).into())
-  }
-
-  pub fn reader_dir(app: &AppHandle, id: u16) -> Result<PathBuf> {
-    dir(app, format!("reader/{id}"))
-  }
-
-  pub fn reader_label(id: u16) -> String {
-    format!("reader-{id}")
-  }
-
-  pub fn reader_url() -> WebviewUrl {
-    url("reader")
   }
 }

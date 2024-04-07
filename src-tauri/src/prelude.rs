@@ -9,4 +9,5 @@ pub use std::sync::Arc;
 pub use std::thread;
 pub use tauri::async_runtime::{self, Mutex, RwLock};
 pub use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+pub use tokio::fs;
 pub use tokio::sync::oneshot;

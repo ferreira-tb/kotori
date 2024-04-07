@@ -17,6 +17,9 @@ pub enum Error {
   #[error("invalid book path: {0}")]
   InvalidBookPath(String),
 
+  #[error("")]
+  CoverNotExtracted,
+
   #[error("book not found")]
   BookNotFound,
   #[error("page not found")]

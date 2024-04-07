@@ -3,6 +3,7 @@ use crate::utils::{glob, OrderedMap};
 use natord::compare_ignore_case;
 use std::fs::File;
 use std::io::Read;
+use tauri::async_runtime::spawn_blocking;
 use zip::ZipArchive;
 
 pub(super) struct Handle {
@@ -12,7 +13,7 @@ pub(super) struct Handle {
 impl Handle {
   pub async fn new(path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref().to_owned();
-    let join: JoinResult<ZipArchive<File>> = async_runtime::spawn_blocking(move || {
+    let join: JoinResult<ZipArchive<File>> = spawn_blocking(move || {
       let file = File::open(path)?;
       ZipArchive::new(file).map_err(Into::into)
     });
@@ -23,14 +24,14 @@ impl Handle {
   }
 
   pub async fn pages(&self) -> OrderedMap<usize, String> {
-    let handle = self.handle.lock().await;
     let globset = glob::book_page();
+    let handle = self.handle.lock().await;
     handle
       .file_names()
       .filter(|name| globset.is_match(name))
       .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
       .enumerate()
-      .map(|(idx, name)| (idx, name.to_string()))
+      .map(|(idx, name)| (idx, name.to_owned()))
       .collect()
   }
 

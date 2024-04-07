@@ -19,6 +19,15 @@ impl TryFrom<&Path> for Title {
   }
 }
 
+impl TryFrom<&str> for Title {
+  type Error = crate::error::Error;
+
+  fn try_from(path: &str) -> Result<Self> {
+    let path = Path::new(path);
+    Title::try_from(path)
+  }
+}
+
 impl fmt::Display for Title {
   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
     write!(f, "{}", self.0)

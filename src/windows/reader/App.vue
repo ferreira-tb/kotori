@@ -26,11 +26,11 @@ onUnmounted(() => Page.revokeAll());
 </script>
 
 <template>
-  <m-scaffold>
+  <main class="fixed inset-0 overflow-hidden">
     <div class="flex size-full items-center justify-center">
       <div
         v-if="pages.length > 0 && current"
-        class="flex size-full flex-col items-center justify-center overflow-hidden"
+        class="flex size-full flex-col items-center justify-center"
       >
         <img
           v-if="current.status === 'done' && current.url"
@@ -39,5 +39,5 @@ onUnmounted(() => Page.revokeAll());
         />
       </div>
     </div>
-  </m-scaffold>
+  </main>
 </template>

@@ -10,5 +10,11 @@ watchEffect(() => {
 </script>
 
 <template>
-  <main></main>
+  <main>
+    <div class="grid grid-cols-8 gap-4">
+      <div v-for="book of books" :key="book.id">
+        <img v-if="book.cover" :src="book.cover" class="size-full object-cover" />
+      </div>
+    </div>
+  </main>
 </template>

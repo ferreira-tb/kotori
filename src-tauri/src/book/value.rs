@@ -1,3 +1,4 @@
+use super::title::Title;
 use super::ActiveBook;
 use crate::database::prelude::*;
 use crate::prelude::*;
@@ -41,11 +42,18 @@ pub struct LibraryBook<'a>(pub &'a AppHandle, pub &'a BookModel);
 impl IntoValue for LibraryBook<'_> {
   async fn into_value(self) -> Result<Value> {
     let active = ActiveBook::with_model(self.1)?;
-    let cover = active.get_cover(self.0).await?;
+    let title = Title::try_from(self.1.path.as_str())?;
+
+    let cover = match active.get_cover(self.0).await {
+      Ok(cover) => Some(cover),
+      Err(Error::CoverNotExtracted) => None,
+      Err(err) => return Err(err),
+    };
 
     let value = json!({
       "id": self.1.id,
       "path": self.1.path,
+      "title": title,
       "rating": self.1.rating,
       "cover": cover
     });
