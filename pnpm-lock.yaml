@@ -17,6 +17,12 @@ dependencies:
   '@vueuse/core':
     specifier: ^10.9.0
     version: 10.9.0(vue@3.4.21)
+  '@vueuse/math':
+    specifier: ^10.9.0
+    version: 10.9.0(vue@3.4.21)
+  '@vueuse/router':
+    specifier: ^10.9.0
+    version: 10.9.0(vue-router@4.3.0)(vue@3.4.21)
   manatsu:
     specifier: ^0.8.3
     version: 0.8.3(@tauri-apps/api@2.0.0-beta.7)(@vueuse/core@10.9.0)(vue-router@4.3.0)(vue@3.4.21)
@@ -35,8 +41,8 @@ dependencies:
 
 devDependencies:
   '@tb-dev/auto-import-config':
-    specifier: ^1.2.21
-    version: 1.2.21(@manatsu/style@0.8.0)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.5.0)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.8.3)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21)
+    specifier: ^1.3.0
+    version: 1.3.0(@manatsu/style@0.8.0)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.5.0)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.8.3)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21)
   '@tb-dev/eslint-config':
     specifier: ^3.4.0
     version: 3.4.0(eslint@8.57.0)(typescript@5.4.4)
@@ -76,9 +82,6 @@ devDependencies:
   prettier-plugin-tailwindcss:
     specifier: ^0.5.13
     version: 0.5.13(prettier-plugin-css-order@2.1.2)(prettier@3.2.5)
-  sass:
-    specifier: ^1.74.1
-    version: 1.74.1
   tailwindcss:
     specifier: ^3.4.3
     version: 3.4.3
@@ -1300,10 +1303,10 @@ packages:
       '@tauri-apps/api': 2.0.0-beta.4
     dev: false
 
-  /@tb-dev/auto-import-config@1.2.21(@manatsu/style@0.8.0)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.5.0)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.8.3)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21):
+  /@tb-dev/auto-import-config@1.3.0(@manatsu/style@0.8.0)(@tauri-apps/api@2.0.0-beta.7)(@tb-dev/utility-types@1.2.5)(@tb-dev/utils@1.5.0)(@vueuse/core@10.9.0)(@vueuse/math@10.9.0)(@vueuse/router@10.9.0)(manatsu@0.8.3)(pinia@2.1.7)(unplugin-auto-import@0.17.5)(vue-router@4.3.0)(vue@3.4.21):
     resolution:
       {
-        integrity: sha512-aQ29p8DNx344+lGtIlJHCJRziaFfJYQf02GaR7kC/RAgMt45Lzk38Bmmbkm7SmQ4PPaIOHYhTYExp0LDvCh8dQ==
+        integrity: sha512-8x6yA7bFO6yRdcx1fwRbdXORsP2RWijDNL1/HOofobEsB/Drf3TR/2oyU2O85lySz8tV47DWhPX9xllEtrBy+g==
       }
     engines: { node: '>=20' }
     peerDependencies:
@@ -2008,7 +2011,6 @@ packages:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
-    dev: true
 
   /@vueuse/metadata@10.9.0:
     resolution:
@@ -2030,7 +2032,6 @@ packages:
     transitivePeerDependencies:
       - '@vue/composition-api'
       - vue
-    dev: true
 
   /@vueuse/shared@10.9.0(vue@3.4.21):
     resolution:

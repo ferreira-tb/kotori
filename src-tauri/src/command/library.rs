@@ -1,4 +1,4 @@
-use crate::book::{IntoValue, LibraryBook};
+use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
 use crate::database::prelude::*;
 use crate::prelude::*;
 
@@ -16,8 +16,18 @@ pub async fn get_library_books(app: AppHandle) -> Result<Value> {
   let tasks = books.into_iter().map(|model| {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let book = LibraryBook(&app, &model).into_value().await;
-      book.ok()
+      let value = LibraryBook(&app, &model).into_value().await;
+      if matches!(value, Ok(ref it) if it.get("cover").is_some_and(Value::is_null)) {
+        let Ok(book) = ActiveBook::with_model(&model) else {
+          return value.ok();
+        };
+
+        if let Ok(cover) = Cover::path(&app, model.id) {
+          book.extract_cover(&app, cover);
+        }
+      }
+
+      value.ok()
     })
   });
 

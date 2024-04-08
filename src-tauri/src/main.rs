@@ -9,6 +9,7 @@ mod command;
 mod database;
 mod error;
 mod library;
+mod macros;
 mod menu;
 mod prelude;
 mod reader;

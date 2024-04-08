@@ -137,8 +137,6 @@ impl ActiveBook {
       return Ok(path.into());
     }
 
-    self.extract_cover(app, path);
-
     Ok(Cover::NotExtracted)
   }
 
@@ -169,6 +167,18 @@ impl ActiveBook {
 
       Ok::<(), Error>(())
     });
+  }
+
+  pub async fn get_cover_as_bytes(&self) -> Result<Vec<u8>> {
+    let name = self
+      .pages()
+      .await?
+      .first()
+      .map(|(_, name)| name)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    let handle = self.handle().await?;
+    handle.by_name(name).await
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {

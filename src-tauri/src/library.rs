@@ -1,4 +1,4 @@
-use crate::book::{IntoValue, LibraryBook};
+use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
 use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::utils::event::Event;
@@ -68,6 +68,10 @@ impl Library {
     let event = Event::BookAdded;
     let payload = LibraryBook(app, &book).into_value().await?;
     app.emit_to(Event::target(), event.as_ref(), payload)?;
+
+    let active_book = ActiveBook::with_model(&book)?;
+    let cover = Cover::path(app, book.id)?;
+    active_book.extract_cover(app, cover);
 
     Ok(())
   }

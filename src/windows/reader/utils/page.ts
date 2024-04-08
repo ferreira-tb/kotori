@@ -1,5 +1,4 @@
-import { api } from '@/utils/server';
-import { fetch } from '@tauri-apps/plugin-http';
+import { getBookPage } from '@/utils/server';
 import { useReaderStore } from '../stores';
 
 export class Page {
@@ -17,8 +16,8 @@ export class Page {
       this.status = 'pending';
 
       const { readerId } = useReaderStore();
-      const response = await fetch(api(`/reader/${readerId}/${this.id}`));
-      const blob = await response.blob();
+      if (!readerId) throw new Error('reader id is not available');
+      const blob = await getBookPage(readerId, this.id);
 
       this.url = URL.createObjectURL(blob);
       this.status = 'done';

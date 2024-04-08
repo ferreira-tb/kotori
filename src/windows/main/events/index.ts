@@ -15,7 +15,7 @@ export function setupEventListeners() {
 function onBookAdded() {
   return listen<LibraryBook>(Event.BookAdded, ({ payload }) => {
     const store = useLibraryStore();
-    store.books.push(payload);
+    store.addBook(payload);
   });
 }
 

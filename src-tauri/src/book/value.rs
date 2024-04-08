@@ -41,9 +41,9 @@ pub struct LibraryBook<'a>(pub &'a AppHandle, pub &'a BookModel);
 
 impl IntoValue for LibraryBook<'_> {
   async fn into_value(self) -> Result<Value> {
-    let active = ActiveBook::with_model(self.1)?;
+    let book = ActiveBook::with_model(self.1)?;
     let title = Title::try_from(self.1.path.as_str())?;
-    let cover = active.get_cover(self.0).await?;
+    let cover = book.get_cover(self.0).await?;
 
     let value = json!({
       "id": self.1.id,
