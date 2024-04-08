@@ -16,6 +16,8 @@ pub enum Error {
   InvalidBook(String),
   #[error("invalid path: {0}")]
   InvalidPath(String),
+  #[error("rating must be an integer between 0 and 5")]
+  InvalidRating,
 
   #[error("book not found")]
   BookNotFound,

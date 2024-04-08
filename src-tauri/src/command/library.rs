@@ -1,5 +1,6 @@
 use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
 use crate::database::prelude::*;
+use crate::event::Event;
 use crate::prelude::*;
 
 #[tauri::command]
@@ -38,4 +39,24 @@ pub async fn get_library_books(app: AppHandle) -> Result<Value> {
     .collect_vec();
 
   Ok(Value::Array(books))
+}
+
+#[tauri::command]
+pub async fn update_book_rating(app: AppHandle, id: i32, rating: u8) -> Result<()> {
+  if rating > 5 {
+    return Err(err!(InvalidRating));
+  }
+
+  let kotori = app.state::<Kotori>();
+  let book = Book::find_by_id(id)
+    .one(&kotori.db)
+    .await?
+    .ok_or_else(|| err!(BookNotFound))?;
+
+  let mut book: BookActiveModel = book.into();
+  book.rating = Set(i32::from(rating));
+  book.update(&kotori.db).await?;
+
+  let event = Event::RatingUpdated { id, rating };
+  event.emit(&app)
 }

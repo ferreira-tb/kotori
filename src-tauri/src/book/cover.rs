@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::utils::event::Event;
 use image::codecs::webp::WebPEncoder;
 use image::io::Reader as ImageReader;
 use image::ImageFormat;
@@ -37,22 +36,6 @@ impl Cover {
       .app_cache_dir()
       .map(|dir| dir.join(format!("covers/{book_id}")))
       .map_err(Into::into)
-  }
-
-  pub fn notify(self, app: &AppHandle, book_id: i32) -> Result<()> {
-    if let Self::Extracted(path) = self {
-      let event = Event::CoverExtracted;
-      let payload = json!({
-        "id": book_id,
-        "cover": path,
-      });
-
-      return app
-        .emit_to(Event::target(), event.as_ref(), payload)
-        .map_err(Into::into);
-    };
-
-    Ok(())
   }
 }
 

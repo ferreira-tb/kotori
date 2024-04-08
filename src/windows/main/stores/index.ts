@@ -15,10 +15,18 @@ export const useLibraryStore = defineStore('library', () => {
     return books.state.value.find((book) => book.id === id);
   }
 
-  function updateBookCover(id: number, cover: string) {
+  function updateBookCover(id: number, path: string) {
     const book = getBook(id);
     if (book) {
-      book.cover = convertFileSrc(cover);
+      book.cover = convertFileSrc(path);
+      triggerRef(books.state);
+    }
+  }
+
+  function updateBookRating(id: number, rating: number) {
+    const book = getBook(id);
+    if (book && isValidRating(book.rating, rating)) {
+      book.rating = rating;
       triggerRef(books.state);
     }
   }
@@ -26,7 +34,8 @@ export const useLibraryStore = defineStore('library', () => {
   return {
     books: books.state,
     addBook,
-    updateBookCover
+    updateBookCover,
+    updateBookRating
   };
 });
 
@@ -35,4 +44,9 @@ function transform(books: LibraryBook[]) {
     book.cover &&= convertFileSrc(book.cover);
     return book;
   });
+}
+
+function isValidRating(current: number, next: number) {
+  if (!Number.isInteger(next)) return false;
+  return current !== next && next >= 0 && next <= 5;
 }

@@ -2,7 +2,7 @@ interface LibraryBook {
   cover?: string;
   readonly id: number;
   readonly path: string;
-  readonly rating: number;
+  rating: number;
   readonly title: string;
 }
 

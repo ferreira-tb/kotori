@@ -8,6 +8,7 @@ pub use title::Title;
 pub use value::{IntoValue, LibraryBook, ReaderBook};
 
 use crate::database::prelude::*;
+use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::OrderedMap;
 use handle::Handle;
@@ -158,8 +159,8 @@ impl ActiveBook {
       Cover::resize(page, format, &path).await?;
 
       if let Some(id) = self.id(&app).await {
-        let cover = Cover::Extracted(path);
-        cover.notify(&app, id)?;
+        let event = Event::CoverExtracted { id, path };
+        event.emit(&app)?;
       }
 
       Ok::<(), Error>(())

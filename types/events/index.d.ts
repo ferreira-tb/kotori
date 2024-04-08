@@ -1,4 +1,9 @@
 interface CoverExtractedPayload {
-  readonly cover: string;
   readonly id: number;
+  readonly path: string;
+}
+
+interface RatingUpdatedPayload {
+  readonly id: number;
+  readonly rating: number;
 }

@@ -4,11 +4,12 @@ import { useLibraryStore } from '../stores';
 
 enum Event {
   BookAdded = 'book_added',
-  CoverExtracted = 'cover_extracted'
+  CoverExtracted = 'cover_extracted',
+  RatingUpdated = 'rating_updated'
 }
 
 export function setupEventListeners() {
-  const promises = Promise.all([onBookAdded(), onCoverExtracted()]);
+  const promises = Promise.all([onBookAdded(), onCoverExtracted(), onRatingUpdated()]);
   promises.catch(handleError);
 }
 
@@ -22,6 +23,13 @@ function onBookAdded() {
 function onCoverExtracted() {
   return listen<CoverExtractedPayload>(Event.CoverExtracted, ({ payload }) => {
     const store = useLibraryStore();
-    store.updateBookCover(payload.id, payload.cover);
+    store.updateBookCover(payload.id, payload.path);
+  });
+}
+
+function onRatingUpdated() {
+  return listen<RatingUpdatedPayload>(Event.RatingUpdated, ({ payload }) => {
+    const store = useLibraryStore();
+    store.updateBookRating(payload.id, payload.rating);
   });
 }

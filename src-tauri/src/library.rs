@@ -1,7 +1,7 @@
 use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
 use crate::database::prelude::*;
+use crate::event::Event;
 use crate::prelude::*;
-use crate::utils::event::Event;
 use crate::utils::glob;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use walkdir::WalkDir;
@@ -65,9 +65,8 @@ impl Library {
       .exec_with_returning(&kotori.db)
       .await?;
 
-    let event = Event::BookAdded;
     let payload = LibraryBook(app, &book).into_value().await?;
-    app.emit_to(Event::target(), event.as_ref(), payload)?;
+    Event::BookAdded(payload).emit(app)?;
 
     let active_book = ActiveBook::with_model(&book)?;
     let cover = Cover::path(app, book.id)?;

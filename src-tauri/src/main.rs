@@ -8,6 +8,7 @@ mod book;
 mod command;
 mod database;
 mod error;
+mod event;
 mod library;
 mod macros;
 mod menu;
@@ -44,6 +45,7 @@ fn main() {
       command::focus_main_window,
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
+      command::library::update_book_rating,
       command::reader::get_current_reader_book,
       command::reader::get_current_reader_window_id,
       command::reader::open_book,

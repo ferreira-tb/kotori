@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getBookCover } from '@/utils/server';
+import { updateBookRating } from '@/utils/commands';
 import type { ImagePassThroughOptions } from 'primevue/image';
 
 const props = defineProps<{
@@ -11,6 +12,10 @@ const previewUrl = useObjectUrl(preview);
 
 const previewVisible = ref(false);
 const loadingPreview = ref(false);
+
+const rating = ref(0);
+const ratingWatcher = watchPausable(rating, updateRating);
+watchImmediate(() => props.book, setRating);
 
 const pt = computed<ImagePassThroughOptions>(() => {
   const buttonClass = previewVisible.value && !loadingPreview.value ? '' : 'hidden';
@@ -36,16 +41,28 @@ async function fetchPreview() {
     loadingPreview.value = false;
   }
 }
+
+async function setRating() {
+  ratingWatcher.pause();
+  await nextTick();
+  rating.value = props.book.rating;
+
+  await nextTick();
+  ratingWatcher.resume();
+}
+
+function updateRating(value: number) {
+  updateBookRating(props.book.id, value);
+}
 </script>
 
 <template>
-  <div class="flex h-full w-60 flex-col overflow-hidden">
+  <div class="flex h-full w-60 flex-col items-center gap-4 overflow-hidden">
     <p-image
       :pt
       preview
       :zoom-in-disabled="loadingPreview"
       :zoom-out-disabled="loadingPreview"
-      class="self-center"
       @click="fetchPreview"
       @show="previewVisible = true"
       @hide="previewVisible = false"
@@ -69,5 +86,8 @@ async function fetchPreview() {
         </div>
       </template>
     </p-image>
+
+    <p-rating v-model="rating" :cancel="false" />
+    <div class="w-full text-center">{{ book.title }}</div>
   </div>
 </template>
