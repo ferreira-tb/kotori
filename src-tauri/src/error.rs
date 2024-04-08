@@ -14,8 +14,8 @@ pub enum Error {
   EmptyBook,
   #[error("{0}")]
   InvalidBook(String),
-  #[error("invalid book path: {0}")]
-  InvalidBookPath(String),
+  #[error("invalid path: {0}")]
+  InvalidPath(String),
 
   #[error("book not found")]
   BookNotFound,
@@ -28,6 +28,8 @@ pub enum Error {
   Database(#[from] sea_orm::error::DbErr),
   #[error(transparent)]
   Glob(#[from] globset::Error),
+  #[error(transparent)]
+  Image(#[from] image::ImageError),
   #[error(transparent)]
   Io(#[from] std::io::Error),
   #[error(transparent)]

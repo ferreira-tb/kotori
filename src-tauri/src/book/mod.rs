@@ -11,6 +11,7 @@ use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::utils::OrderedMap;
 use handle::Handle;
+use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -158,7 +159,8 @@ impl ActiveBook {
         fs::create_dir_all(parent_dir).await?;
       }
 
-      fs::write(&path, page).await?;
+      let format = ImageFormat::from_path(first)?;
+      Cover::resize(page, format, &path).await?;
 
       if let Some(id) = self.id(&app).await {
         let cover = Cover::Extracted(path);
@@ -185,7 +187,7 @@ impl ActiveBook {
     let path = self
       .path
       .to_str()
-      .ok_or_else(|| err!(InvalidBookPath, "{}", self.path.display()))?;
+      .ok_or_else(|| err!(InvalidPath, "{}", self.path.display()))?;
 
     Book::find()
       .filter(BookColumn::Path.eq(path))

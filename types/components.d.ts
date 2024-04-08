@@ -7,6 +7,9 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
+    PInputText: typeof import('primevue/inputtext')['default']
+    PMenubar: typeof import('primevue/menubar')['default']
+    PVirtualScroller: typeof import('primevue/virtualscroller')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

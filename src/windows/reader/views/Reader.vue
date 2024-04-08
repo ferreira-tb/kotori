@@ -29,7 +29,7 @@ onUnmounted(() => Page.revokeAll());
         <img
           v-if="current.status === 'done' && current.url"
           :src="current.url"
-          class="size-full object-contain"
+          class="size-full object-scale-down"
         />
       </div>
     </div>

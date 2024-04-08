@@ -11,7 +11,7 @@ impl TryFrom<&Path> for Title {
   fn try_from(path: &Path) -> Result<Self> {
     let title = path
       .file_stem()
-      .ok_or_else(|| err!(InvalidBookPath, "{}", path.display()))?
+      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))?
       .to_string_lossy()
       .replace('_', " ");
 
