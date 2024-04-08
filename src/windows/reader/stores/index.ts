@@ -5,6 +5,7 @@ import { Page } from '../utils/page';
 export const useReaderStore = defineStore('reader', () => {
   const book = useInvoke<ReaderBook | null>(Command.GetCurrentReaderBook, null);
   const readerId = useInvoke<number | null>(Command.GetCurrentReaderWindowId, null);
+  watchEffect(() => console.log('Reader ID:', readerId.state.value));
 
   // This MUST be a ref.
   // Computed will fail to update once the page is fetched.

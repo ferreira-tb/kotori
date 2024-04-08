@@ -16,9 +16,11 @@ export class Page {
       this.status = 'pending';
 
       const { readerId } = useReaderStore();
-      if (!readerId) throw new Error('reader id is not available');
-      const blob = await getBookPage(readerId, this.id);
+      if (typeof readerId !== 'number') {
+        throw new TypeError('reader id is not available');
+      }
 
+      const blob = await getBookPage(readerId, this.id);
       this.url = URL.createObjectURL(blob);
       this.status = 'done';
     } catch (err) {

@@ -18,27 +18,24 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::sync::OnceCell;
 
 pub struct ActiveBook {
+  id: OnceCell<i32>,
   pub path: PathBuf,
   pub title: Title,
 
   handle: OnceCell<Handle>,
   pages: OnceCell<OrderedMap<usize, String>>,
-
-  /// Book id in the database.
-  id: OnceCell<i32>,
 }
 
 impl ActiveBook {
   pub fn new(path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref();
     let book = Self {
+      id: OnceCell::new(),
       path: path.to_owned(),
       title: Title::try_from(path)?,
 
       handle: OnceCell::new(),
       pages: OnceCell::new(),
-
-      id: OnceCell::new(),
     };
 
     Ok(book)

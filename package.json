@@ -17,7 +17,7 @@
     "lint": "eslint . --config eslint.config.js --cache",
     "prepare": "husky",
     "type-check": "vue-tsc --noEmit",
-    "update": "miho update major -t",
+    "update": "miho update -t",
     "vite:dev": "vite",
     "vite:build": "pnpm run type-check && vite build"
   },
@@ -28,7 +28,7 @@
     "@vueuse/core": "^10.9.0",
     "@vueuse/math": "^10.9.0",
     "@vueuse/router": "^10.9.0",
-    "manatsu": "^0.8.3",
+    "manatsu": "^0.8.4",
     "pinia": "^2.1.7",
     "primevue": "^3.51.0",
     "vue": "~3.4.21",

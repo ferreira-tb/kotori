@@ -31,6 +31,11 @@ onUnmounted(() => Page.revokeAll());
           :src="current.url"
           class="size-full object-scale-down"
         />
+        <p-progress-spinner
+          v-else-if="current.status === 'pending'"
+          class="size-16"
+          stroke-width="4"
+        />
       </div>
     </div>
   </main>
