@@ -1,5 +1,6 @@
 pub mod entities;
 pub mod prelude;
+mod traits;
 
 use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};

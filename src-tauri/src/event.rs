@@ -6,6 +6,7 @@ use tauri::EventTarget;
 #[strum(serialize_all = "snake_case")]
 pub enum Event {
   BookAdded(Json),
+  BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
   RatingUpdated { id: i32, rating: u8 },
 }
@@ -24,6 +25,7 @@ impl From<Event> for Json {
   fn from(event: Event) -> Self {
     match event {
       Event::BookAdded(value) => value,
+      Event::BookRemoved(id) => json!({ "id": id }),
       Event::CoverExtracted { id, path } => json!({ "id": id, "path": path }),
       Event::RatingUpdated { id, rating } => json!({ "id": id, "rating": rating }),
     }

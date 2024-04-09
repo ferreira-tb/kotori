@@ -79,7 +79,7 @@ impl ActiveBook {
 
   pub async fn id(&self, app: &AppHandle) -> Option<i32> {
     let id = self.id.get_or_try_init(|| async {
-      let model = self.model(app).await?;
+      let model = Book::find_by_path(app, &self.path).await?;
       Ok::<i32, Error>(model.id)
     });
 
@@ -92,7 +92,7 @@ impl ActiveBook {
     reader.open_book(self).await
   }
 
-  pub async fn open_book_from_dialog(app: &AppHandle) -> Result<()> {
+  pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
     let books = Self::show_dialog(app).await?;
 
     if !books.is_empty() {
@@ -212,20 +212,6 @@ impl ActiveBook {
 
     let handle = self.handle().await?;
     handle.by_name(name).await
-  }
-
-  async fn model(&self, app: &AppHandle) -> Result<BookModel> {
-    let kotori = app.state::<Kotori>();
-    let path = self
-      .path
-      .to_str()
-      .ok_or_else(|| err!(InvalidPath, "{}", self.path.display()))?;
-
-    Book::find()
-      .filter(BookColumn::Path.eq(path))
-      .one(&kotori.db)
-      .await?
-      .ok_or_else(|| err!(BookNotFound))
   }
 }
 

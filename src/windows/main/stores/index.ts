@@ -16,6 +16,14 @@ export const useLibraryStore = defineStore('library', () => {
     return books.state.value.find((book) => book.id === id);
   }
 
+  function removeBook(id: number) {
+    const index = books.state.value.findIndex((book) => book.id === id);
+    if (index !== -1) {
+      books.state.value.splice(index, 1);
+      triggerRef(books.state);
+    }
+  }
+
   function updateBookCover(id: number, path: string) {
     const book = getBook(id);
     if (book) {
@@ -35,6 +43,7 @@ export const useLibraryStore = defineStore('library', () => {
   return {
     books: books.state,
     addBook,
+    removeBook,
     updateBookCover,
     updateBookRating
   };

@@ -64,6 +64,6 @@ fn add_to_library_from_dialog(app: &AppHandle) {
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    ActiveBook::open_book_from_dialog(&app).await.ok();
+    ActiveBook::open_from_dialog(&app).await.ok();
   });
 }
