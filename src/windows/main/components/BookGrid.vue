@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { openBook } from '@/utils/commands';
+import { openBook, showLibraryBookContextMenu } from '@/utils/commands';
 
 defineProps<{
   readonly books: LibraryBook[];
@@ -16,6 +16,7 @@ defineEmits<(e: 'select', book: LibraryBook) => void>();
         class="cursor-pointer overflow-hidden rounded-sm"
         @click="$emit('select', book)"
         @dblclick="openBook(book.id)"
+        @contextmenu="showLibraryBookContextMenu(book.id)"
       >
         <img :src="book.cover" class="size-full object-cover" />
       </div>

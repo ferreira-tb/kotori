@@ -19,6 +19,18 @@ macro_rules! bail {
 }
 
 #[macro_export]
+macro_rules! menu_item {
+  ($app:expr, $id:expr, $text:expr) => {{
+    tauri::menu::MenuItemBuilder::with_id($id, $text).build($app)
+  }};
+  ($app:expr, $id:expr, $text:expr, $accelerator:expr) => {{
+    tauri::menu::MenuItemBuilder::with_id($id, $text)
+      .accelerator($accelerator)
+      .build($app)
+  }};
+}
+
+#[macro_export]
 macro_rules! get_windows {
   ($app:expr) => {{
     let kotori = $app.state::<$crate::Kotori>();

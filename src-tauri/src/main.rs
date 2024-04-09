@@ -45,6 +45,7 @@ fn main() {
       command::focus_main_window,
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
+      command::library::show_library_book_context_menu,
       command::library::update_book_rating,
       command::reader::get_current_reader_book,
       command::reader::get_current_reader_window_id,
@@ -66,11 +67,11 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(kotori);
 
-  let menu = menu::build(handle)?;
+  let menu = menu::main::build(handle)?;
   let main_window = app.get_webview_window("main").unwrap();
   main_window.set_menu(menu)?;
 
-  main_window.on_menu_event(menu::on_menu_event(handle));
+  main_window.on_menu_event(menu::main::on_menu_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.

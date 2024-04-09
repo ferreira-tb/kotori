@@ -37,6 +37,7 @@ const preview = computed(() => selected.value ?? store.books[0]);
       </p-menubar>
     </div>
     <div class="libray-content">
+      <!-- We use `store.books` instead of `books` to show the preview even when the filter hides all books -->
       <div v-if="store.books.length > 0" class="relative overflow-hidden">
         <book-preview v-if="preview && preview.cover" :book="preview" />
         <div

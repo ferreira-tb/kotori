@@ -10,8 +10,13 @@ export enum Command {
   GetLibraryBooks = 'get_library_books',
   OpenBook = 'open_book',
   OpenBookFromDialog = 'open_book_from_dialog',
+  ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   SwitchReaderFocus = 'switch_reader_focus',
   UpdateBookRating = 'update_book_rating'
+}
+
+export function showLibraryBookContextMenu(id: number) {
+  invoke(Command.ShowLibraryBookContextMenu, { id }).catch(handleError);
 }
 
 export function openBook(id: number) {

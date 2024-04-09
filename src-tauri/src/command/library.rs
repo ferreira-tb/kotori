@@ -1,6 +1,7 @@
 use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
+use crate::menu::context;
 use crate::prelude::*;
 
 #[tauri::command]
@@ -39,6 +40,15 @@ pub async fn get_library_books(app: AppHandle) -> Result<Json> {
     .collect_vec();
 
   Ok(Json::Array(books))
+}
+
+#[tauri::command]
+pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
+  let menu = context::library::book::build(&app)?;
+  window.on_menu_event(context::library::book::on_menu_event(&app, id));
+  menu.popup(window)?;
+
+  Ok(())
 }
 
 #[tauri::command]
