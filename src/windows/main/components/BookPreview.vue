@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { getBookCover } from '@/utils/server';
-import { updateBookRating } from '@/utils/commands';
+import { openBook, updateBookRating } from '@/utils/commands';
 import type { ImagePassThroughOptions } from 'primevue/image';
 
 const props = defineProps<{
@@ -89,5 +89,8 @@ function updateRating(value: number) {
 
     <p-rating v-model="rating" :cancel="false" />
     <div class="w-full text-center">{{ book.title }}</div>
+    <div class="flex gap-2">
+      <p-button label="Open" outlined @click="openBook(book.id)" />
+    </div>
   </div>
 </template>

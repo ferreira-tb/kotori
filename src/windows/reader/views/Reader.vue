@@ -30,6 +30,7 @@ onUnmounted(() => Page.revokeAll());
           v-if="current.status === 'done' && current.url"
           :src="current.url"
           class="size-full object-scale-down"
+          @click="list.next()"
         />
         <p-progress-spinner
           v-else-if="current.status === 'pending'"

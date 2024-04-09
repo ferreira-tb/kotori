@@ -37,9 +37,12 @@ const preview = computed(() => selected.value ?? store.books[0]);
       </p-menubar>
     </div>
     <div class="libray-content">
-      <div v-if="books.length > 0" class="relative overflow-hidden">
+      <div v-if="store.books.length > 0" class="relative overflow-hidden">
         <book-preview v-if="preview" :book="preview" />
-        <div class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2">
+        <div
+          v-if="books.length > 0"
+          class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2"
+        >
           <book-grid :books @select="(book) => (selected = book)" />
         </div>
       </div>

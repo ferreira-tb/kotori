@@ -75,7 +75,10 @@ impl Library {
     Ok(())
   }
 
-  async fn save_books(app: &AppHandle, paths: Vec<PathBuf>) -> Result<()> {
+  async fn save_books<I>(app: &AppHandle, paths: I) -> Result<()>
+  where
+    I: IntoIterator<Item = PathBuf>,
+  {
     let tasks = paths.into_iter().map(|path| {
       let app = app.clone();
       async_runtime::spawn(async move {

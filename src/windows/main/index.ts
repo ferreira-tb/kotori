@@ -3,7 +3,7 @@ import '@/assets/style.css';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
-import { createManatsu } from 'manatsu';
+import { createManatsu, handleError } from 'manatsu';
 import App from './App.vue';
 import { RouteName, router } from './router';
 import { setupEventListeners } from './events';

@@ -5,6 +5,8 @@ invokeOnKeyDown('Tab', Command.SwitchReaderFocus);
 
 invokeOnKeyDown('o', Command.OpenBookFromDialog, null, { ctrlKey: true });
 invokeOnKeyDown('A', Command.AddToLibraryFromDialog, null, { ctrlKey: true, shiftKey: true });
+
+preventContextMenu();
 </script>
 
 <template>

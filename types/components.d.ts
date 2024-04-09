@@ -7,14 +7,12 @@ export {}
 
 declare module 'vue' {
   export interface GlobalComponents {
-    PCard: typeof import('primevue/card')['default']
+    PButton: typeof import('primevue/button')['default']
     PImage: typeof import('primevue/image')['default']
     PInputText: typeof import('primevue/inputtext')['default']
     PMenubar: typeof import('primevue/menubar')['default']
     PProgressSpinner: typeof import('primevue/progressspinner')['default']
     PRating: typeof import('primevue/rating')['default']
-    PSkeleton: typeof import('primevue/skeleton')['default']
-    PVirtualScroller: typeof import('primevue/virtualscroller')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }
