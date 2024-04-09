@@ -45,11 +45,11 @@ impl From<PathBuf> for Cover {
   }
 }
 
-impl From<Cover> for Value {
+impl From<Cover> for Json {
   fn from(cover: Cover) -> Self {
     match cover {
       Cover::Extracted(path) => json!(path),
-      Cover::NotExtracted => Value::Null,
+      Cover::NotExtracted => Json::Null,
     }
   }
 }

@@ -4,8 +4,8 @@ use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::reader::ReaderWindow;
 
-pub trait IntoValue {
-  async fn into_value(self) -> Result<Value>;
+pub trait IntoJson {
+  async fn into_json(self) -> Result<Json>;
 }
 
 pub struct ReaderBook<'a>(pub &'a ActiveBook);
@@ -16,8 +16,8 @@ impl<'a> ReaderBook<'a> {
   }
 }
 
-impl IntoValue for ReaderBook<'_> {
-  async fn into_value(self) -> Result<Value> {
+impl IntoJson for ReaderBook<'_> {
+  async fn into_json(self) -> Result<Json> {
     let pages = self
       .0
       .pages()
@@ -39,8 +39,8 @@ impl IntoValue for ReaderBook<'_> {
 
 pub struct LibraryBook<'a>(pub &'a AppHandle, pub &'a BookModel);
 
-impl IntoValue for LibraryBook<'_> {
-  async fn into_value(self) -> Result<Value> {
+impl IntoJson for LibraryBook<'_> {
+  async fn into_json(self) -> Result<Json> {
     let book = ActiveBook::with_model(self.1)?;
     let title = Title::try_from(self.1.path.as_str())?;
     let cover = book.get_cover(self.0).await?;
@@ -50,7 +50,7 @@ impl IntoValue for LibraryBook<'_> {
       "path": self.1.path,
       "title": title,
       "rating": self.1.rating,
-      "cover": Value::from(cover),
+      "cover": Json::from(cover),
     });
 
     Ok(value)

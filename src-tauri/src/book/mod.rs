@@ -1,11 +1,11 @@
 mod cover;
 mod handle;
+mod json;
 mod title;
-mod value;
 
 pub use cover::Cover;
+pub use json::{IntoJson, LibraryBook, ReaderBook};
 pub use title::Title;
-pub use value::{IntoValue, LibraryBook, ReaderBook};
 
 use crate::database::prelude::*;
 use crate::event::Event;

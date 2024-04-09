@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
+use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
@@ -10,15 +10,15 @@ pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn get_library_books(app: AppHandle) -> Result<Value> {
+pub async fn get_library_books(app: AppHandle) -> Result<Json> {
   let kotori = app.state::<Kotori>();
   let books = Book::find().all(&kotori.db).await?;
 
   let tasks = books.into_iter().map(|model| {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let value = LibraryBook(&app, &model).into_value().await;
-      if matches!(value, Ok(ref it) if it.get("cover").is_some_and(Value::is_null)) {
+      let value = LibraryBook(&app, &model).into_json().await;
+      if matches!(value, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
         let Ok(book) = ActiveBook::with_model(&model) else {
           return value.ok();
         };
@@ -38,7 +38,7 @@ pub async fn get_library_books(app: AppHandle) -> Result<Value> {
     .filter_map(std::result::Result::unwrap_or_default)
     .collect_vec();
 
-  Ok(Value::Array(books))
+  Ok(Json::Array(books))
 }
 
 #[tauri::command]

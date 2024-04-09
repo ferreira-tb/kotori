@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::prelude::*;
 
 #[tauri::command]
-pub async fn get_current_reader_book(app: AppHandle, window: WebviewWindow) -> Result<Value> {
+pub async fn get_current_reader_book(app: AppHandle, window: WebviewWindow) -> Result<Json> {
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.read().await;
 

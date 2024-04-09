@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, Cover, IntoValue, LibraryBook};
+use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
@@ -66,7 +66,7 @@ impl Library {
       .exec_with_returning(&kotori.db)
       .await?;
 
-    let payload = LibraryBook(app, &book).into_value().await?;
+    let payload = LibraryBook(app, &book).into_json().await?;
     Event::BookAdded(payload).emit(app)?;
 
     let active_book = ActiveBook::with_model(&book)?;

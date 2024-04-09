@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, IntoValue, ReaderBook};
+use crate::book::{ActiveBook, IntoJson, ReaderBook};
 use crate::prelude::*;
 use crate::utils::{window, OrderedMap};
 use std::sync::atomic::{self, AtomicU16};
@@ -116,14 +116,14 @@ impl Reader {
     None
   }
 
-  pub async fn get_book_as_value(&self, window_id: u16) -> Option<Value> {
+  pub async fn get_book_as_value(&self, window_id: u16) -> Option<Json> {
     self
       .windows
       .read()
       .await
       .get(&window_id)
       .map(ReaderBook::from_reader_window)?
-      .into_value()
+      .into_json()
       .await
       .ok()
   }
