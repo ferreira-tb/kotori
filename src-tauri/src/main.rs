@@ -38,6 +38,7 @@ fn main() {
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![

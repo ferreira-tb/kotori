@@ -1,10 +1,15 @@
 use super::prelude::*;
 use crate::book::ActiveBook;
 use crate::prelude::*;
+use crate::VERSION;
+use tauri::menu::AboutMetadataBuilder;
+use tauri_plugin_shell::ShellExt;
 
 #[derive(Display, EnumString)]
 enum Id {
+  About,
   AddToLibrary,
+  Repository,
   OpenBook,
 }
 
@@ -15,6 +20,7 @@ where
 {
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app)?)?;
+  menu.append(&help_menu(app)?)?;
 
   Ok(menu)
 }
@@ -25,7 +31,7 @@ where
   M: Manager<R>,
 {
   let mut menu = SubmenuBuilder::new(app, "File").items(&[
-    &menu_item!(app, Id::OpenBook, "Open file", "Ctrl+O")?,
+    &menu_item!(app, Id::OpenBook, "Open book", "Ctrl+O")?,
     &menu_item!(app, Id::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
   ]);
 
@@ -38,6 +44,29 @@ where
   menu.build().map_err(Into::into)
 }
 
+fn help_menu<M, R>(app: &M) -> Result<Submenu<R>>
+where
+  R: Runtime,
+  M: Manager<R>,
+{
+  let mut metadata = AboutMetadataBuilder::new()
+    .name(Some("Kotori"))
+    .version(Some(VERSION))
+    .copyright(Some("Copyright © 2024 Andrew Ferreira"));
+
+  if !cfg!(target_os = "macos") {
+    metadata = metadata.license(Some("MIT"));
+  }
+
+  let metadata = metadata.build();
+  let about = PredefinedMenuItem::about(app, Some("About"), Some(metadata))?;
+  SubmenuBuilder::new(app, "Help")
+    .items(&[&menu_item!(app, Id::Repository, "Repository")?])
+    .item(&about)
+    .build()
+    .map_err(Into::into)
+}
+
 pub fn on_menu_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
 where
   R: Runtime,
@@ -46,7 +75,9 @@ where
   move |_, event| {
     if let Ok(id) = Id::from_str(event.id.0.as_str()) {
       match id {
+        Id::About => {}
         Id::AddToLibrary => add_to_library_from_dialog(&app),
+        Id::Repository => open_repository(&app),
         Id::OpenBook => open_book_from_dialog(&app),
       }
     }
@@ -66,4 +97,11 @@ fn open_book_from_dialog(app: &AppHandle) {
   async_runtime::spawn(async move {
     ActiveBook::open_from_dialog(&app).await.ok();
   });
+}
+
+fn open_repository(app: &AppHandle) {
+  app
+    .shell()
+    .open("https://github.com/ferreira-tb/kotori", None)
+    .ok();
 }

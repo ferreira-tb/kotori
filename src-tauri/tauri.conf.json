@@ -40,5 +40,10 @@
       },
       "csp": "default-src 'self'; img-src 'self' blob: https://asset.localhost; connect-src http://ipc.localhost"
     }
+  },
+  "plugins": {
+    "shell": {
+      "open": "https://github.com/ferreira-tb/kotori"
+    }
   }
 }
