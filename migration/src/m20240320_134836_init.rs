@@ -30,6 +30,7 @@ impl MigrationTrait for Migration {
               .not_null()
               .default(0),
           )
+          .col(ColumnDef::new(Book::Cover).string())
           .to_owned(),
       )
       .await
@@ -48,4 +49,5 @@ enum Book {
   Id,
   Rating,
   Path,
+  Cover,
 }

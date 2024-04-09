@@ -53,6 +53,7 @@ impl Library {
       id: NotSet,
       path: Set(path),
       rating: NotSet,
+      cover: NotSet,
     };
 
     let on_conflict = OnConflict::column(BookColumn::Path)

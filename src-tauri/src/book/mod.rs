@@ -138,24 +138,48 @@ impl ActiveBook {
     Ok(Cover::NotExtracted)
   }
 
+  pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
+    let id = self
+      .id(app)
+      .await
+      .ok_or_else(|| err!(BookNotFound))?;
+
+    let kotori = app.state::<Kotori>();
+    let model = Book::find_by_id(id)
+      .one(&kotori.db)
+      .await?
+      .ok_or_else(|| err!(BookNotFound))?;
+
+    if let Some(cover) = model.cover {
+      return Ok(cover);
+    };
+
+    let name = self
+      .pages()
+      .await?
+      .first()
+      .map(|(_, name)| name.to_owned())
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    let mut model: BookActiveModel = model.into();
+    model.cover = Set(Some(name.clone()));
+    model.update(&kotori.db).await?;
+
+    Ok(name)
+  }
+
   pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let first = self
-        .pages()
-        .await?
-        .first()
-        .map(|(_, name)| name)
-        .ok_or_else(|| err!(PageNotFound))?;
-
+      let name = self.get_cover_name(&app).await?;
       let handle = self.handle().await?;
-      let page = handle.by_name(first).await?;
+      let page = handle.by_name(&name).await?;
 
-      if let Some(parent_dir) = path.parent() {
-        fs::create_dir_all(parent_dir).await?;
+      if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).await?;
       }
 
-      let format = ImageFormat::from_path(first)?;
+      let format = ImageFormat::from_path(name)?;
       Cover::resize(page, format, &path).await?;
 
       if let Some(id) = self.id(&app).await {

@@ -12,6 +12,7 @@ pub struct Model {
   #[sea_orm(unique)]
   pub path: String,
   pub rating: i32,
+  pub cover: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
