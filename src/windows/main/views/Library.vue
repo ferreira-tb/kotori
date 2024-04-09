@@ -38,7 +38,7 @@ const preview = computed(() => selected.value ?? store.books[0]);
     </div>
     <div class="libray-content">
       <div v-if="store.books.length > 0" class="relative overflow-hidden">
-        <book-preview v-if="preview" :book="preview" />
+        <book-preview v-if="preview && preview.cover" :book="preview" />
         <div
           v-if="books.length > 0"
           class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2"
