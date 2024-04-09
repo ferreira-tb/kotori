@@ -7,6 +7,7 @@ export const useLibraryStore = defineStore('library', () => {
   const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], { transform });
 
   function addBook(book: LibraryBook) {
+    book.cover &&= convertFileSrc(book.cover);
     books.state.value.push(book);
     triggerRef(books.state);
   }
