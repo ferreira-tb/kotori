@@ -8,6 +8,16 @@ const router = createRouter({
       path: '/',
       name: RouteName.Library,
       component: () => import('../views/Library.vue')
+    },
+    {
+      path: '/collection',
+      name: RouteName.Collection,
+      component: () => import('../views/Collection.vue')
+    },
+    {
+      path: '/book-tag',
+      name: RouteName.BookTag,
+      component: () => import('../views/BookTag.vue')
     }
   ]
 });

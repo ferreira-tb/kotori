@@ -5,6 +5,7 @@ import { convertFileSrc } from '@tauri-apps/api/core';
 
 export const useLibraryStore = defineStore('library', () => {
   const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], { transform });
+  const filter = ref('');
 
   function addBook(book: LibraryBook) {
     book.cover &&= convertFileSrc(book.cover);
@@ -42,6 +43,7 @@ export const useLibraryStore = defineStore('library', () => {
 
   return {
     books: books.state,
+    filter,
     addBook,
     removeBook,
     updateBookCover,

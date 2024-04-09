@@ -9,7 +9,7 @@ defineEmits<(e: 'select', book: LibraryBook) => void>();
 </script>
 
 <template>
-  <div class="book-grid">
+  <div id="book-grid">
     <template v-for="book of books" :key="book.id">
       <div
         v-if="book.cover"
@@ -25,7 +25,7 @@ defineEmits<(e: 'select', book: LibraryBook) => void>();
 </template>
 
 <style scoped>
-.book-grid {
+#book-grid {
   display: grid;
   grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 1rem;

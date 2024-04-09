@@ -9,26 +9,15 @@ const props = defineProps<{
 
 const preview = shallowRef<Blob | null>(null);
 const previewUrl = useObjectUrl(preview);
-
-const previewVisible = ref(false);
 const loadingPreview = ref(false);
 
 const rating = ref(0);
 const ratingWatcher = watchPausable(rating, updateRating);
 watchImmediate(() => props.book, setRating);
 
-const pt = computed<ImagePassThroughOptions>(() => {
-  const buttonClass = previewVisible.value && !loadingPreview.value ? '' : 'hidden';
-  const toolbarClass = previewVisible.value ? '' : 'hidden';
-
-  return {
-    rotateLeftButton: { class: buttonClass },
-    rotateRightButton: { class: buttonClass },
-    zoomInButton: { class: buttonClass },
-    zoomOutButton: { class: buttonClass },
-    toolbar: { class: toolbarClass }
-  };
-});
+const pt: ImagePassThroughOptions = {
+  toolbar: { class: 'hidden' }
+};
 
 async function fetchPreview() {
   if (loadingPreview.value) return;
@@ -58,15 +47,7 @@ function updateRating(value: number) {
 
 <template>
   <div class="flex h-full w-60 flex-col items-center gap-4 overflow-hidden">
-    <p-image
-      :pt
-      preview
-      :zoom-in-disabled="loadingPreview"
-      :zoom-out-disabled="loadingPreview"
-      @click="fetchPreview"
-      @show="previewVisible = true"
-      @hide="previewVisible = false"
-    >
+    <p-image :pt preview zoom-in-disabled zoom-out-disabled @click="fetchPreview">
       <template #image>
         <img :src="book.cover" :alt="book.title" class="w-56 object-scale-down" />
       </template>
