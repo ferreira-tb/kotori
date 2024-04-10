@@ -20,7 +20,7 @@ impl IntoJson for ReaderBook<'_> {
   async fn into_json(self) -> Result<Json> {
     let pages = self
       .0
-      .pages()
+      .pages_or_try_init()
       .await?
       .keys()
       .copied()
@@ -28,6 +28,7 @@ impl IntoJson for ReaderBook<'_> {
       .collect_vec();
 
     let value = json!({
+      "id": self.0.id.get(),
       "path": self.0.path,
       "title": self.0.title,
       "pages": pages

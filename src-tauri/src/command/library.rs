@@ -18,10 +18,10 @@ pub async fn get_library_books(app: AppHandle) -> Result<Json> {
   let tasks = books.into_iter().map(|model| {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let value = LibraryBook(&app, &model).into_json().await;
-      if matches!(value, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
+      let json = LibraryBook(&app, &model).into_json().await;
+      if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
         let Ok(book) = ActiveBook::with_model(&model) else {
-          return value.ok();
+          return json.ok();
         };
 
         if let Ok(cover) = Cover::path(&app, model.id) {
@@ -29,7 +29,7 @@ pub async fn get_library_books(app: AppHandle) -> Result<Json> {
         }
       }
 
-      value.ok()
+      json.ok()
     })
   });
 
@@ -45,7 +45,7 @@ pub async fn get_library_books(app: AppHandle) -> Result<Json> {
 #[tauri::command]
 pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
   let menu = context::library::book::build(&app)?;
-  window.on_menu_event(context::library::book::on_menu_event(&app, id));
+  window.on_menu_event(context::library::book::on_event(&app, id));
   menu.popup(window)?;
 
   Ok(())
@@ -54,7 +54,7 @@ pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: 
 #[tauri::command]
 pub async fn update_book_rating(app: AppHandle, id: i32, rating: u8) -> Result<()> {
   if rating > 5 {
-    return Err(err!(InvalidRating));
+    bail!(InvalidRating);
   }
 
   let kotori = app.state::<Kotori>();

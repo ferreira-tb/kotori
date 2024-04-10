@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { showReaderPageContextMenu } from '@/utils/commands';
 import { Page } from '../utils/page';
 import { useReaderStore } from '../stores';
 
@@ -31,6 +32,7 @@ onUnmounted(() => Page.revokeAll());
           :src="current.url"
           class="size-full object-scale-down"
           @click="list.next()"
+          @contextmenu="showReaderPageContextMenu(current?.id)"
         />
         <p-progress-spinner
           v-else-if="current.status === 'pending'"

@@ -29,12 +29,3 @@ macro_rules! menu_item {
       .build($app)
   }};
 }
-
-#[macro_export]
-macro_rules! get_windows {
-  ($app:expr) => {{
-    let kotori = $app.state::<$crate::Kotori>();
-    let reader = kotori.reader.read().await;
-    reader.windows()
-  }};
-}

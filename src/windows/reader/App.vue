@@ -12,7 +12,5 @@ invokeOnKeyDown('A', Command.AddToLibraryFromDialog, null, { ctrlKey: true, shif
 </script>
 
 <template>
-  <main>
-    <reader />
-  </main>
+  <reader />
 </template>

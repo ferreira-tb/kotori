@@ -2,7 +2,7 @@ use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook, Title};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
-use crate::utils::glob;
+use crate::utils::{self, glob};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use walkdir::WalkDir;
 
@@ -44,11 +44,7 @@ impl Library {
   }
 
   async fn save_book(app: &AppHandle, path: &Path) -> Result<()> {
-    let path = path
-      .to_str()
-      .map(ToOwned::to_owned)
-      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))?;
-
+    let path = utils::path::to_string(path)?;
     let model = BookActiveModel {
       id: NotSet,
       path: Set(path),

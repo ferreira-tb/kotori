@@ -19,10 +19,10 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::sync::OnceCell;
 
 pub struct ActiveBook {
-  id: OnceCell<i32>,
   pub path: PathBuf,
   pub title: Title,
 
+  id: OnceCell<i32>,
   handle: OnceCell<Handle>,
   pages: OnceCell<OrderedMap<usize, String>>,
 }
@@ -31,10 +31,10 @@ impl ActiveBook {
   pub fn new(path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref();
     let book = Self {
-      id: OnceCell::new(),
       path: path.to_owned(),
       title: Title::try_from(path)?,
 
+      id: OnceCell::new(),
       handle: OnceCell::new(),
       pages: OnceCell::new(),
     };
@@ -58,7 +58,20 @@ impl ActiveBook {
       .and_then(|model| Self::with_model(&model))
   }
 
-  async fn handle(&self) -> Result<&Handle> {
+  pub fn id(&self) -> Option<i32> {
+    self.id.get().copied()
+  }
+
+  pub async fn id_or_try_init(&self, app: &AppHandle) -> Option<i32> {
+    let id = self.id.get_or_try_init(|| async {
+      let model = Book::find_by_path(app, &self.path).await?;
+      Ok::<i32, Error>(model.id)
+    });
+
+    id.await.ok().copied()
+  }
+
+  async fn handle_or_try_init(&self) -> Result<&Handle> {
     let handle = self.handle.get_or_try_init(|| async {
       let handle = Handle::new(&self.path).await?;
       Ok::<Handle, Error>(handle)
@@ -67,9 +80,9 @@ impl ActiveBook {
     handle.await
   }
 
-  pub async fn pages(&self) -> Result<&OrderedMap<usize, String>> {
+  pub async fn pages_or_try_init(&self) -> Result<&OrderedMap<usize, String>> {
     let pages = self.pages.get_or_try_init(|| async {
-      let handle = self.handle().await?;
+      let handle = self.handle_or_try_init().await?;
       let pages = handle.pages().await;
       Ok::<OrderedMap<usize, String>, Error>(pages)
     });
@@ -77,13 +90,18 @@ impl ActiveBook {
     pages.await
   }
 
-  pub async fn id(&self, app: &AppHandle) -> Option<i32> {
-    let id = self.id.get_or_try_init(|| async {
-      let model = Book::find_by_path(app, &self.path).await?;
-      Ok::<i32, Error>(model.id)
-    });
+  async fn model(&self, app: &AppHandle) -> Result<BookModel> {
+    if let Some(id) = self.id() {
+      let kotori = app.state::<Kotori>();
+      return Book::find_by_id(id)
+        .one(&kotori.db)
+        .await?
+        .ok_or_else(|| err!(BookNotFound));
+    }
 
-    id.await.ok().copied()
+    let model = Book::find_by_path(app, &self.path).await?;
+    self.id.set(model.id).ok();
+    Ok(model)
   }
 
   pub async fn open(self, app: &AppHandle) -> Result<()> {
@@ -124,9 +142,36 @@ impl ActiveBook {
     Ok(Vec::new())
   }
 
-  pub async fn get_cover(self, app: &AppHandle) -> Result<Cover> {
+  async fn get_page_name(&self, page: usize) -> Result<&str> {
+    let name = self
+      .pages_or_try_init()
+      .await?
+      .get(&page)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    Ok(name)
+  }
+
+  async fn get_first_page_name(&self) -> Result<&str> {
+    let name = self
+      .pages_or_try_init()
+      .await?
+      .first()
+      .map(|(_, name)| name)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    Ok(name)
+  }
+
+  pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
+    let name = self.get_page_name(page).await?;
+    let handle = self.handle_or_try_init().await?;
+    handle.by_name(name).await
+  }
+
+  pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
     let id = self
-      .id(app)
+      .id_or_try_init(app)
       .await
       .ok_or_else(|| err!(BookNotFound))?;
 
@@ -138,41 +183,33 @@ impl ActiveBook {
     Ok(Cover::NotExtracted)
   }
 
-  pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
-    let id = self
-      .id(app)
-      .await
-      .ok_or_else(|| err!(BookNotFound))?;
-
-    let kotori = app.state::<Kotori>();
-    let model = Book::find_by_id(id)
-      .one(&kotori.db)
-      .await?
-      .ok_or_else(|| err!(BookNotFound))?;
-
+  async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
+    let model = self.model(app).await?;
     if let Some(cover) = model.cover {
       return Ok(cover);
     };
 
-    let name = self
-      .pages()
-      .await?
-      .first()
-      .map(|(_, name)| name.to_owned())
-      .ok_or_else(|| err!(PageNotFound))?;
-
+    let name = self.get_first_page_name().await?;
     let mut model: BookActiveModel = model.into();
-    model.cover = Set(Some(name.clone()));
+    model.cover = Set(Some(name.to_owned()));
+
+    let kotori = app.state::<Kotori>();
     model.update(&kotori.db).await?;
 
-    Ok(name)
+    Ok(name.to_owned())
+  }
+
+  pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
+    let name = self.get_cover_name(app).await?;
+    let handle = self.handle_or_try_init().await?;
+    handle.by_name(&name).await
   }
 
   pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
     let app = app.clone();
     async_runtime::spawn(async move {
       let name = self.get_cover_name(&app).await?;
-      let handle = self.handle().await?;
+      let handle = self.handle_or_try_init().await?;
       let page = handle.by_name(&name).await?;
 
       if let Some(parent) = path.parent() {
@@ -182,7 +219,7 @@ impl ActiveBook {
       let format = ImageFormat::from_path(name)?;
       Cover::resize(page, format, &path).await?;
 
-      if let Some(id) = self.id(&app).await {
+      if let Some(id) = self.id_or_try_init(&app).await {
         let event = Event::CoverExtracted { id, path };
         event.emit(&app)?;
       }
@@ -191,27 +228,21 @@ impl ActiveBook {
     });
   }
 
-  pub async fn get_cover_as_bytes(&self) -> Result<Vec<u8>> {
-    let name = self
-      .pages()
-      .await?
-      .first()
-      .map(|(_, name)| name)
-      .ok_or_else(|| err!(PageNotFound))?;
+  pub async fn update_cover(self, app: &AppHandle, page: usize) -> Result<()> {
+    let name = self.get_page_name(page).await?;
+    let model = self.model(app).await?;
 
-    let handle = self.handle().await?;
-    handle.by_name(name).await
-  }
+    let mut model: BookActiveModel = model.into();
+    model.cover = Set(Some(name.to_owned()));
 
-  pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
-    let name = self
-      .pages()
-      .await?
-      .get(&page)
-      .ok_or_else(|| err!(PageNotFound))?;
+    let kotori = app.state::<Kotori>();
+    let model = model.update(&kotori.db).await?;
 
-    let handle = self.handle().await?;
-    handle.by_name(name).await
+    if let Ok(cover) = Cover::path(app, model.id) {
+      self.extract_cover(app, cover);
+    }
+
+    Ok(())
   }
 }
 

@@ -52,6 +52,7 @@ fn main() {
       command::reader::get_current_reader_window_id,
       command::reader::open_book,
       command::reader::open_book_from_dialog,
+      command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
     ])
     .run(tauri::generate_context!())
@@ -72,7 +73,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let main_window = app.get_webview_window("main").unwrap();
   main_window.set_menu(menu)?;
 
-  main_window.on_menu_event(menu::main::on_menu_event(handle));
+  main_window.on_menu_event(menu::main::on_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.

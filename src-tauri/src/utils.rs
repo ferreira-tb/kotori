@@ -35,6 +35,20 @@ pub mod glob {
   }
 }
 
+pub mod path {
+  use crate::prelude::*;
+
+  pub fn to_str(path: &Path) -> Result<&str> {
+    path
+      .to_str()
+      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))
+  }
+
+  pub fn to_string(path: impl AsRef<Path>) -> Result<String> {
+    to_str(path.as_ref()).map(ToOwned::to_owned)
+  }
+}
+
 pub mod window {
   use crate::prelude::*;
   use tauri::WebviewUrl;

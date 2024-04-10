@@ -26,6 +26,12 @@ impl Reader {
     Arc::clone(&self.windows)
   }
 
+  pub async fn get_windows(app: &AppHandle) -> WindowMap {
+    let kotori = app.state::<Kotori>();
+    let reader = kotori.reader.read().await;
+    reader.windows()
+  }
+
   pub async fn open_book(&self, book: ActiveBook) -> Result<()> {
     let windows = self.windows.read().await;
     if let Some(window) = windows.values().find(|w| w.book == book) {
@@ -116,7 +122,7 @@ impl Reader {
     None
   }
 
-  pub async fn get_book_as_value(&self, window_id: u16) -> Option<Json> {
+  pub async fn get_book_as_json(&self, window_id: u16) -> Option<Json> {
     self
       .windows
       .read()
@@ -128,7 +134,18 @@ impl Reader {
       .ok()
   }
 
-  pub async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
+  pub async fn get_window_id(app: &AppHandle, window: &WebviewWindow) -> Result<u16> {
+    let kotori = app.state::<Kotori>();
+    let reader = kotori.reader.read().await;
+
+    let label = window.label();
+    reader
+      .get_window_id_by_label(label)
+      .await
+      .ok_or_else(|| err!(WindowNotFound, "{label}"))
+  }
+
+  async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
     let windows = self.windows.read().await;
     windows
       .iter()

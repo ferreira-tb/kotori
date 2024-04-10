@@ -67,7 +67,7 @@ where
     .map_err(Into::into)
 }
 
-pub fn on_menu_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
+pub fn on_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
 where
   R: Runtime,
 {

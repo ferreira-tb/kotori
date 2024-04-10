@@ -1,4 +1,4 @@
-pub use crate::err;
+pub use crate::{bail, err};
 pub use crate::error::{Error, JoinResult, Result};
 pub use crate::Kotori;
 pub use futures::future::{join_all, FutureExt, TryFutureExt};
