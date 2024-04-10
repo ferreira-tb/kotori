@@ -25,10 +25,20 @@ export const useLibraryStore = defineStore('library', () => {
     }
   }
 
+  let nextBookCoverVersion = 1;
   function updateBookCover(id: number, path: string) {
     const book = getBook(id);
     if (book) {
-      book.cover = convertFileSrc(path);
+      try {
+        // Adds a version search parameter to the url to force the image to reload.
+        // Without this, it would be cached, not updating when the user changes the cover.
+        const url = new URL(convertFileSrc(path));
+        url.searchParams.set('v', (++nextBookCoverVersion).toString(10));
+        book.cover = url.toString();
+      } catch {
+        book.cover = convertFileSrc(path);
+      }
+
       triggerRef(books.state);
     }
   }

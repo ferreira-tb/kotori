@@ -1,5 +1,4 @@
 use crate::book::ActiveBook;
-use crate::menu::context;
 use crate::prelude::*;
 use crate::reader::Reader;
 
@@ -27,16 +26,18 @@ pub async fn show_reader_page_context_menu(
   webview: WebviewWindow,
   page: usize,
 ) -> Result<()> {
+  use crate::menu::context::reader::page;
+
   let window_id = Reader::get_window_id(&app, &webview).await?;
   let windows = Reader::get_windows(&app).await;
   let windows = windows.read().await;
 
   if let Some(reader_window) = windows.get(&window_id) {
     let book_id = reader_window.book.id_or_try_init(&app).await;
-    let menu = context::reader::page::build(&app, book_id)?;
+    let menu = page::build(&app, book_id)?;
 
     if let Some(id) = book_id {
-      window.on_menu_event(context::reader::page::on_event(&app, id, page));
+      window.on_menu_event(page::on_event(&app, id, page));
     }
 
     menu.popup(window)?;
