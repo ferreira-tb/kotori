@@ -72,7 +72,13 @@ pub async fn get_all(app: &AppHandle) -> Result<Json> {
 async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   let kotori = app.state::<Kotori>();
   Book::delete_by_id(id).exec(&kotori.db).await?;
-  Event::BookRemoved(id).emit(app)
+  Event::BookRemoved(id).emit(app)?;
+
+  if let Ok(cover) = Cover::path(app, id) {
+    fs::remove_file(cover).await?;
+  }
+
+  Ok(())
 }
 
 async fn remove_if_not_exists(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> Result<()> {
