@@ -8,7 +8,7 @@ pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
 
 #[tauri::command]
 pub async fn get_library_books(app: AppHandle) -> Result<Json> {
-  library::get_books(&app).await
+  library::get_all(&app).await
 }
 
 #[tauri::command]

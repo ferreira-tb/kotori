@@ -31,16 +31,20 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
     }
   }
 
-  save_books(app, books).await
+  save_many(app, books).await
 }
 
-pub async fn get_books(app: &AppHandle) -> Result<Json> {
+pub async fn get_all(app: &AppHandle) -> Result<Json> {
   let kotori = app.state::<Kotori>();
   let books = Book::find().all(&kotori.db).await?;
 
   let tasks = books.into_iter().map(|model| {
     let app = app.clone();
     async_runtime::spawn(async move {
+      remove_if_not_exists(&app, model.id, &model.path)
+        .await
+        .ok()?;
+
       let json = LibraryBook(&app, &model).into_json().await;
       if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
         let Ok(book) = ActiveBook::with_model(&model) else {
@@ -65,39 +69,21 @@ pub async fn get_books(app: &AppHandle) -> Result<Json> {
   Ok(Json::Array(books))
 }
 
-pub async fn remove_book(app: &AppHandle, id: i32) -> Result<()> {
+async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   let kotori = app.state::<Kotori>();
-  let book = Book::find_by_id(id)
-    .one(&kotori.db)
-    .await?
-    .ok_or_else(|| err!(BookNotFound))?;
+  Book::delete_by_id(id).exec(&kotori.db).await?;
+  Event::BookRemoved(id).emit(app)
+}
 
-  let title = "Are you sure?";
-  let message = format!(
-    "{} will be removed from the library.",
-    Title::try_from(book.path.as_str())?
-  );
-
-  let dialog = app.dialog().clone();
-  let dialog = MessageDialogBuilder::new(dialog, title, message)
-    .kind(MessageDialogKind::Warning)
-    .ok_button_label("Remove")
-    .cancel_button_label("Cancel");
-
-  let (tx, rx) = oneshot::channel();
-  dialog.show(move |response| {
-    tx.send(response).ok();
-  });
-
-  if rx.await? {
-    Book::delete_by_id(id).exec(&kotori.db).await?;
-    return Event::BookRemoved(id).emit(app);
-  };
+async fn remove_if_not_exists(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> Result<()> {
+  if let Ok(false) = fs::try_exists(path).await {
+    remove(app, id).await?;
+  }
 
   Ok(())
 }
 
-async fn save_book(app: &AppHandle, path: &Path) -> Result<()> {
+async fn save(app: &AppHandle, path: &Path) -> Result<()> {
   let path = utils::path::to_string(path)?;
   let model = BookActiveModel {
     id: NotSet,
@@ -126,19 +112,50 @@ async fn save_book(app: &AppHandle, path: &Path) -> Result<()> {
   Ok(())
 }
 
-async fn save_books<I>(app: &AppHandle, paths: I) -> Result<()>
+async fn save_many<I>(app: &AppHandle, paths: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
 {
   let tasks = paths.into_iter().map(|path| {
     let app = app.clone();
     async_runtime::spawn(async move {
-      save_book(&app, &path).await?;
+      save(&app, &path).await?;
       Ok::<(), Error>(())
     })
   });
 
   join_all(tasks).await;
+
+  Ok(())
+}
+
+pub async fn show_remove_dialog(app: &AppHandle, id: i32) -> Result<()> {
+  let kotori = app.state::<Kotori>();
+  let book = Book::find_by_id(id)
+    .one(&kotori.db)
+    .await?
+    .ok_or_else(|| err!(BookNotFound))?;
+
+  let title = "Are you sure?";
+  let message = format!(
+    "{} will be removed from the library.",
+    Title::try_from(book.path.as_str())?
+  );
+
+  let dialog = app.dialog().clone();
+  let dialog = MessageDialogBuilder::new(dialog, title, message)
+    .kind(MessageDialogKind::Warning)
+    .ok_button_label("Remove")
+    .cancel_button_label("Cancel");
+
+  let (tx, rx) = oneshot::channel();
+  dialog.show(move |response| {
+    tx.send(response).ok();
+  });
+
+  if rx.await? {
+    remove(app, id).await?;
+  };
 
   Ok(())
 }

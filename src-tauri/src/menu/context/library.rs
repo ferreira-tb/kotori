@@ -52,7 +52,7 @@ pub mod book {
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      library::remove_book(&app, id).await.ok();
+      library::show_remove_dialog(&app, id).await.ok();
     });
   }
 }

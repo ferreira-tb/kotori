@@ -5,7 +5,9 @@ use tauri::EventTarget;
 #[derive(Display, EnumString)]
 #[strum(serialize_all = "snake_case")]
 pub enum Event {
+  /// Book added to the library.
   BookAdded(Json),
+  /// Book removed from the library.
   BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
   RatingUpdated { id: i32, rating: u8 },
