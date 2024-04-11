@@ -25,7 +25,8 @@ const preview = computed(() => selected.value ?? store.books[0]);
   <div class="size-full">
     <!-- We use `store.books` instead of `books` to show the preview even when the filter hides all books -->
     <div v-if="store.books.length > 0" class="relative size-full overflow-hidden">
-      <book-preview v-if="preview && preview.cover" :book="preview" />
+      <!-- Using `key` ensures the preview is updated when the cover changes -->
+      <book-preview v-if="preview && preview.cover" :key="preview.cover" :book="preview" />
       <div
         v-if="books.length > 0"
         class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2"
