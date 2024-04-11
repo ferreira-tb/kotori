@@ -1,6 +1,6 @@
 pub mod book {
   use crate::book::ActiveBook;
-  use crate::library::Library;
+  use crate::library;
   use crate::menu::prelude::*;
   use crate::prelude::*;
 
@@ -52,7 +52,7 @@ pub mod book {
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      Library::remove_book(&app, id).await.ok();
+      library::remove_book(&app, id).await.ok();
     });
   }
 }

@@ -1,7 +1,6 @@
 use super::prelude::*;
-use crate::book::ActiveBook;
 use crate::prelude::*;
-use crate::VERSION;
+use crate::{book, library, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_shell::ShellExt;
 
@@ -87,15 +86,14 @@ where
 fn add_to_library_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let kotori = app.state::<Kotori>();
-    kotori.library.add_from_dialog().await.ok();
+    library::add_from_dialog(&app).await.ok();
   });
 }
 
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    ActiveBook::open_from_dialog(&app).await.ok();
+    book::open_from_dialog(&app).await.ok();
   });
 }
 

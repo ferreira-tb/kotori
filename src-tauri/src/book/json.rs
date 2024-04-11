@@ -1,5 +1,5 @@
+use super::active::ActiveBook;
 use super::title::Title;
-use super::ActiveBook;
 use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::reader::ReaderWindow;
@@ -28,7 +28,7 @@ impl IntoJson for ReaderBook<'_> {
       .collect_vec();
 
     let value = json!({
-      "id": self.0.id.get(),
+      "id": self.0.id(),
       "path": self.0.path,
       "title": self.0.title,
       "pages": pages

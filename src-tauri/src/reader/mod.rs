@@ -1,6 +1,10 @@
+mod window;
+
+pub use window::{get_window_id, get_windows, ReaderWindow};
+
 use crate::book::{ActiveBook, IntoJson, ReaderBook};
 use crate::prelude::*;
-use crate::utils::{window, OrderedMap};
+use crate::utils::{self, OrderedMap};
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -26,12 +30,6 @@ impl Reader {
     Arc::clone(&self.windows)
   }
 
-  pub async fn get_windows(app: &AppHandle) -> WindowMap {
-    let kotori = app.state::<Kotori>();
-    let reader = kotori.reader.read().await;
-    reader.windows()
-  }
-
   pub async fn open_book(&self, book: ActiveBook) -> Result<()> {
     let windows = self.windows.read().await;
     if let Some(window) = windows.values().find(|w| w.book == book) {
@@ -43,8 +41,8 @@ impl Reader {
 
     let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
 
-    let url = window::webview_url("reader");
-    let dir = window::dir(&self.app, format!("reader/{window_id}"))?;
+    let url = utils::window::webview_url("reader");
+    let dir = utils::window::dir(&self.app, format!("reader/{window_id}"))?;
     let label = format!("reader-{window_id}");
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
@@ -134,17 +132,6 @@ impl Reader {
       .ok()
   }
 
-  pub async fn get_window_id(app: &AppHandle, window: &WebviewWindow) -> Result<u16> {
-    let kotori = app.state::<Kotori>();
-    let reader = kotori.reader.read().await;
-
-    let label = window.label();
-    reader
-      .get_window_id_by_label(label)
-      .await
-      .ok_or_else(|| err!(WindowNotFound, "{label}"))
-  }
-
   async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
     let windows = self.windows.read().await;
     windows
@@ -165,9 +152,4 @@ impl Reader {
       }
     });
   }
-}
-
-pub struct ReaderWindow {
-  pub book: ActiveBook,
-  webview: WebviewWindow,
 }

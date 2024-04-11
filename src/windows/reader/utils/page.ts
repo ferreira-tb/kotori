@@ -15,12 +15,12 @@ export class Page {
       if (this.status !== 'not started') return;
       this.status = 'pending';
 
-      const { readerId } = useReaderStore();
-      if (typeof readerId !== 'number') {
-        throw new TypeError('reader id is not available');
+      const { windowId } = useReaderStore();
+      if (typeof windowId !== 'number') {
+        throw new TypeError('window id is not available');
       }
 
-      const blob = await getBookPage(readerId, this.id);
+      const blob = await getBookPage(windowId, this.id);
       this.url = URL.createObjectURL(blob);
       this.status = 'done';
     } catch (err) {

@@ -16,9 +16,9 @@ app.use(manatsu);
 app.use(PrimeVue);
 
 const store = useReaderStore();
-const { readerId } = storeToRefs(store);
+const { windowId } = storeToRefs(store);
 
-until(readerId)
+until(windowId)
   .toMatch((id) => typeof id === 'number', { timeout: 5000, throwOnTimeout: true })
   .then(() => app.mount('#app'))
   .catch(handleError);

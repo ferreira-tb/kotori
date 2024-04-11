@@ -1,10 +1,10 @@
-use crate::book::ActiveBook;
+use crate::book::{self, ActiveBook};
 use crate::prelude::*;
-use crate::reader::Reader;
+use crate::reader;
 
 #[tauri::command]
 pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<Json> {
-  let window_id = Reader::get_window_id(&app, &webview).await?;
+  let window_id = reader::get_window_id(&app, &webview).await?;
 
   let kotori = app.state::<Kotori>();
   let reader = kotori.reader.read().await;
@@ -16,20 +16,19 @@ pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> 
 
 #[tauri::command]
 pub async fn get_current_reader_window_id(app: AppHandle, webview: WebviewWindow) -> Result<u16> {
-  Reader::get_window_id(&app, &webview).await
+  reader::get_window_id(&app, &webview).await
 }
 
 #[tauri::command]
 pub async fn show_reader_page_context_menu(
   app: AppHandle,
   window: Window,
-  webview: WebviewWindow,
+  window_id: u16,
   page: usize,
 ) -> Result<()> {
   use crate::menu::context::reader::page;
 
-  let window_id = Reader::get_window_id(&app, &webview).await?;
-  let windows = Reader::get_windows(&app).await;
+  let windows = reader::get_windows(&app).await;
   let windows = windows.read().await;
 
   if let Some(reader_window) = windows.get(&window_id) {
@@ -61,5 +60,5 @@ pub async fn open_book(app: AppHandle, id: i32) -> Result<()> {
 
 #[tauri::command]
 pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
-  ActiveBook::open_from_dialog(&app).await
+  book::open_from_dialog(&app).await
 }

@@ -18,7 +18,6 @@ mod server;
 mod utils;
 
 use error::BoxResult;
-use library::Library;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::async_runtime::RwLock;
@@ -28,7 +27,6 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
   pub db: DatabaseConnection,
-  pub library: Library,
   pub reader: RwLock<Reader>,
 }
 
@@ -63,7 +61,6 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
   let kotori = Kotori {
     db: database::connect(handle)?,
-    library: Library::new(handle),
     reader: RwLock::new(Reader::new(handle)),
   };
 

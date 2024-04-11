@@ -32,7 +32,7 @@ onUnmounted(() => Page.revokeAll());
           :src="current.url"
           class="size-full object-scale-down"
           @click="list.next()"
-          @contextmenu="showReaderPageContextMenu(current?.id)"
+          @contextmenu="showReaderPageContextMenu(current?.id, store.windowId)"
         />
         <p-progress-spinner
           v-else-if="current.status === 'pending'"
