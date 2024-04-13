@@ -226,27 +226,28 @@ impl ActiveBook {
       .delete_page_by_name(&self.path, &name)
       .await?;
 
-    if pages.is_empty() {
-      if let Some(id) = self.id_or_try_init(app).await {
+    // Next steps are exclusive to books in the library.
+    if let Some(id) = self.id_or_try_init(app).await {
+      if pages.is_empty() {
         return library::remove(app, id).await;
       }
-    }
 
-    drop(pages);
+      drop(pages);
 
-    // Reset the cover if it was the deleted page.
-    let cover = self.get_cover_name(app).await?;
-    if cover == name {
-      let model = self.model(app).await?;
-      let mut model: BookActiveModel = model.into();
-      model.cover = Set(None);
+      // Reset the cover if it was the deleted page.
+      let cover = self.get_cover_name(app).await?;
+      if cover == name {
+        let model = self.model(app).await?;
+        let mut model: BookActiveModel = model.into();
+        model.cover = Set(None);
 
-      let kotori = app.kotori();
-      let model = model.update(&kotori.db).await?;
+        let kotori = app.kotori();
+        let model = model.update(&kotori.db).await?;
 
-      if let Ok(cover) = Cover::path(app, model.id) {
-        self.reload_pages().await?;
-        self.extract_cover(app, cover);
+        if let Ok(cover) = Cover::path(app, model.id) {
+          self.reload_pages().await?;
+          self.extract_cover(app, cover);
+        }
       }
     }
 
