@@ -3,12 +3,11 @@
   "description": "all windows",
   "windows": ["main", "reader-*"],
   "permissions": [
-    "dialog:allow-ask",
-    "dialog:allow-confirm",
-    "dialog:allow-message",
     "dialog:allow-open",
     "event:allow-emit",
+    "event:allow-emit-to",
     "event:allow-listen",
+    "event:allow-unlisten",
     "manatsu:default",
     {
       "identifier": "http:default",

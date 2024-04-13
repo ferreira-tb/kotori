@@ -23,7 +23,7 @@ const contentHeight = injectStrict(symbols.contentHeight);
 </script>
 
 <template>
-  <div class="size-full">
+  <div class="size-full select-none">
     <!-- We use `store.books` instead of `books` to show the preview even when the filter hides all books -->
     <div v-if="store.books.length > 0" class="relative size-full overflow-hidden">
       <!-- Using `key` ensures the preview is updated when the cover changes -->

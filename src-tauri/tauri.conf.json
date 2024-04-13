@@ -40,7 +40,12 @@
         "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"],
         "enable": true
       },
-      "csp": "default-src 'self'; img-src 'self' blob: https://asset.localhost; connect-src http://ipc.localhost"
+      "csp": {
+        "default-src": "'self'",
+        "connect-src": "http://ipc.localhost",
+        "img-src": "'self' blob: http://asset.localhost",
+        "style-src": "'self' 'unsafe-inline'"
+      }
     }
   },
   "plugins": {

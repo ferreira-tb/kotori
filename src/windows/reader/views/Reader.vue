@@ -8,15 +8,25 @@ const store = useReaderStore();
 const { windowId, pages, current } = storeToRefs(store);
 
 const dialogDeletePage = ref(false);
-const enableKeydown = computed(() => !dialogDeletePage.value);
+const enableListeners = computed(() => !dialogDeletePage.value);
 
-onKeyDown('ArrowUp', store.previousPage, { enabled: enableKeydown });
-onKeyDown('ArrowLeft', store.previousPage, { enabled: enableKeydown });
-onKeyDown('ArrowDown', store.nextPage, { enabled: enableKeydown });
-onKeyDown('ArrowRight', store.nextPage, { enabled: enableKeydown });
-onKeyDown('Home', store.firstPage, { enabled: enableKeydown });
-onKeyDown('End', store.lastPage, { enabled: enableKeydown });
-onKeyDown('Delete', deletePage, { enabled: enableKeydown });
+onKeyDown('ArrowUp', store.previousPage, { enabled: enableListeners });
+onKeyDown('ArrowLeft', store.previousPage, { enabled: enableListeners });
+onKeyDown('ArrowDown', store.nextPage, { enabled: enableListeners });
+onKeyDown('ArrowRight', store.nextPage, { enabled: enableListeners });
+onKeyDown('Home', store.firstPage, { enabled: enableListeners });
+onKeyDown('End', store.lastPage, { enabled: enableListeners });
+onKeyDown('Delete', deletePage, { enabled: enableListeners });
+
+// This will need to be updated to support scrolling.
+useEventListener(globalThis, 'wheel', (event: WheelEvent) => {
+  if (!enableListeners.value) return;
+  if (event.deltaY < 0) {
+    store.previousPage();
+  } else {
+    store.nextPage();
+  }
+});
 
 function deletePage() {
   requestDeletePage(windowId.value, current.value?.id);
@@ -26,7 +36,7 @@ onUnmounted(() => Page.revokeAll());
 </script>
 
 <template>
-  <main class="fixed inset-0 overflow-hidden">
+  <main class="fixed inset-0 select-none overflow-hidden">
     <div class="flex size-full items-center justify-center">
       <div
         v-if="pages.length > 0 && current"
