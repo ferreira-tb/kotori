@@ -40,6 +40,7 @@ pub mod glob {
     GlobSetBuilder::new()
       .add(glob("*.cbr"))
       .add(glob("*.cbz"))
+      .add(glob("*.zip"))
       .build()
       .unwrap()
   }

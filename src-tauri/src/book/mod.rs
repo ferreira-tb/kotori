@@ -19,7 +19,7 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
   let dialog = app.dialog().clone();
 
   FileDialogBuilder::new(dialog)
-    .add_filter("Book", &["cbr", "cbz"])
+    .add_filter("Book", &["cbr", "cbz", "zip"])
     .pick_files(move |response| {
       tx.send(response).ok();
     });
