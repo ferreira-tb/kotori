@@ -15,18 +15,6 @@ use crate::prelude::*;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
 pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
-  let books = show_dialog(app).await?;
-
-  if !books.is_empty() {
-    let kotori = app.state::<Kotori>();
-    let reader = kotori.reader.read().await;
-    return reader.open_many(books).await.map_err(Into::into);
-  }
-
-  Ok(())
-}
-
-async fn show_dialog(app: &AppHandle) -> Result<Vec<ActiveBook>> {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 
@@ -36,14 +24,20 @@ async fn show_dialog(app: &AppHandle) -> Result<Vec<ActiveBook>> {
       tx.send(response).ok();
     });
 
-  if let Some(response) = rx.await? {
-    return response
-      .into_iter()
-      .map(|it| ActiveBook::new(it.path))
-      .collect();
+  let books = rx
+    .await?
+    .unwrap_or_default()
+    .into_iter()
+    .filter_map(|it| ActiveBook::new(it.path).ok())
+    .collect_vec();
+
+  if !books.is_empty() {
+    let kotori = app.kotori();
+    let reader = kotori.reader.read().await;
+    return reader.open_many(books).await.map_err(Into::into);
   }
 
-  Ok(Vec::new())
+  Ok(())
 }
 
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
@@ -51,7 +45,7 @@ pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
     bail!(InvalidRating);
   }
 
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let book = Book::find_by_id(id)
     .one(&kotori.db)
     .await?

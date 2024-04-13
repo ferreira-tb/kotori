@@ -9,6 +9,10 @@ interface CoverExtractedPayload {
   readonly path: string;
 }
 
+interface PageDeletedPayload {
+  readonly page: number;
+}
+
 interface RatingUpdatedPayload {
   readonly id: number;
   readonly rating: number;

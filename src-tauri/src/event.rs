@@ -1,25 +1,29 @@
-use crate::prelude::*;
+use crate::{prelude::*, reader};
 use strum::{Display, EnumString};
 use tauri::EventTarget;
 
 #[derive(Display, EnumString)]
 #[strum(serialize_all = "snake_case")]
 pub enum Event {
-  /// Book added to the library.
   BookAdded(Json),
-  /// Book removed from the library.
   BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
+  PageDeleted { window_id: u16, page: usize },
   RatingUpdated { id: i32, rating: u8 },
 }
 
 impl Event {
   pub fn emit(self, app: &AppHandle) -> Result<()> {
     let event = self.to_string();
-    let payload = Json::from(self);
-    app
-      .emit_to(Target::MainWindow, &event, payload)
-      .map_err(Into::into)
+    match self {
+      Event::PageDeleted { window_id, .. } => {
+        let target = Target::ReaderWindow(window_id);
+        app.emit_to(target, &event, Json::from(self))?;
+      }
+      _ => app.emit_to(Target::MainWindow, &event, Json::from(self))?,
+    };
+
+    Ok(())
   }
 }
 
@@ -29,13 +33,16 @@ impl From<Event> for Json {
       Event::BookAdded(value) => value,
       Event::BookRemoved(id) => json!({ "id": id }),
       Event::CoverExtracted { id, path } => json!({ "id": id, "path": path }),
+      Event::PageDeleted { page, .. } => json!({ "page": page }),
       Event::RatingUpdated { id, rating } => json!({ "id": id, "rating": rating }),
     }
   }
 }
 
-enum Target {
+#[derive(Debug)]
+pub enum Target {
   MainWindow,
+  ReaderWindow(u16),
 }
 
 impl From<Target> for EventTarget {
@@ -43,6 +50,9 @@ impl From<Target> for EventTarget {
     match target {
       Target::MainWindow => EventTarget::WebviewWindow {
         label: "main".into(),
+      },
+      Target::ReaderWindow(window_id) => EventTarget::WebviewWindow {
+        label: reader::label(window_id),
       },
     }
   }

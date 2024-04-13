@@ -35,7 +35,7 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Json> {
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let books = Book::find().all(&kotori.db).await?;
 
   let tasks = books.into_iter().map(|model| {
@@ -69,8 +69,8 @@ pub async fn get_all(app: &AppHandle) -> Result<Json> {
   Ok(Json::Array(books))
 }
 
-async fn remove(app: &AppHandle, id: i32) -> Result<()> {
-  let kotori = app.state::<Kotori>();
+pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
+  let kotori = app.kotori();
   Book::delete_by_id(id).exec(&kotori.db).await?;
   Event::BookRemoved(id).emit(app)?;
 
@@ -102,7 +102,7 @@ async fn save(app: &AppHandle, path: &Path) -> Result<()> {
     .do_nothing()
     .to_owned();
 
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let book = Book::insert(model)
     .on_conflict(on_conflict)
     .exec_with_returning(&kotori.db)
@@ -136,7 +136,7 @@ where
 }
 
 pub async fn show_remove_dialog(app: &AppHandle, id: i32) -> Result<()> {
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let book = Book::find_by_id(id)
     .one(&kotori.db)
     .await?

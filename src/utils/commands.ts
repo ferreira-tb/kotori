@@ -21,9 +21,9 @@ export function showLibraryBookContextMenu(id: number) {
   invoke(Command.ShowLibraryBookContextMenu, { id }).catch(handleError);
 }
 
-export function showReaderPageContextMenu(page: Nullish<number>, windowId: Nullish<number>) {
-  if (typeof page === 'number' && typeof windowId === 'number') {
-    invoke(Command.ShowReaderPageContextMenu, { page, windowId }).catch(handleError);
+export function showReaderPageContextMenu(windowId: Nullish<number>, page: Nullish<number>) {
+  if (typeof windowId === 'number' && typeof page === 'number') {
+    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
   }
 }
 

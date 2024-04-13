@@ -1,21 +1,15 @@
 <script setup lang="ts">
 import { showReaderPageContextMenu } from '@/utils/commands';
-import { Page } from '../utils/page';
+import { Page } from '../lib/page';
 import { useReaderStore } from '../stores';
 
 const store = useReaderStore();
-const { pages } = storeToRefs(store);
+const { pages, current } = storeToRefs(store);
 
-// Pages and navigation.
-const list = useCycleList<Page | null>(pages, { initialValue: null });
-const current = list.state;
-
-onKeyDown('ArrowLeft', () => list.prev());
-onKeyDown('ArrowRight', () => list.next());
-onKeyDown('Home', () => list.go(0));
-onKeyDown('End', () => list.go(store.lastIndex()));
-
-watchImmediate(current, (value) => value?.eagerFetch());
+onKeyDown('ArrowLeft', store.previousPage);
+onKeyDown('ArrowRight', store.nextPage);
+onKeyDown('Home', store.firstPage);
+onKeyDown('End', store.lastPage);
 
 onUnmounted(() => Page.revokeAll());
 </script>
@@ -31,8 +25,8 @@ onUnmounted(() => Page.revokeAll());
           v-if="current.status === 'done' && current.url"
           :src="current.url"
           class="size-full object-scale-down"
-          @click="list.next()"
-          @contextmenu="showReaderPageContextMenu(current?.id, store.windowId)"
+          @click="store.nextPage"
+          @contextmenu="showReaderPageContextMenu(store.windowId, current?.id)"
         />
         <p-progress-spinner
           v-else-if="current.status === 'pending'"

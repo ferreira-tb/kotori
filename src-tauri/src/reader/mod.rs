@@ -1,10 +1,11 @@
 mod window;
 
-pub use window::{get_window_id, get_windows, ReaderWindow};
+pub use window::{get_window_id, get_windows, label, ReaderWindow};
 
 use crate::book::{ActiveBook, IntoJson, ReaderBook};
-use crate::prelude::*;
-use crate::utils::{self, OrderedMap};
+use crate::event::Event;
+use crate::utils::collections::OrderedMap;
+use crate::{prelude::*, utils};
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -33,8 +34,7 @@ impl Reader {
   pub async fn open_book(&self, book: ActiveBook) -> Result<()> {
     let windows = self.windows.read().await;
     if let Some(window) = windows.values().find(|w| w.book == book) {
-      window.webview.set_focus()?;
-      return Ok(());
+      return window.webview.set_focus().map_err(Into::into);
     }
 
     drop(windows);
@@ -43,7 +43,7 @@ impl Reader {
 
     let url = utils::window::webview_url("reader");
     let dir = utils::window::dir(&self.app, format!("reader/{window_id}"))?;
-    let label = format!("reader-{window_id}");
+    let label = window::label(window_id);
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
       .data_directory(dir)
@@ -53,7 +53,7 @@ impl Reader {
       .visible(false)
       .build()?;
 
-    self.set_window_events(&webview, window_id);
+    self.set_window_event(&webview, window_id);
 
     let mut windows = self.windows.write().await;
     let window = ReaderWindow { book, webview };
@@ -73,9 +73,75 @@ impl Reader {
     Ok(())
   }
 
+  pub async fn delete_book_page(&self, window_id: u16, page: usize) -> Result<()> {
+    let windows = self.windows();
+    let mut windows = windows.write().await;
+
+    if let Some(window) = windows.get_mut(&window_id) {
+      let book = window.book.clone();
+      book.delete_page(&self.app, page).await?;
+
+      let pages = window.book.reload_pages().await?;
+      if pages.is_empty() {
+        return window.webview.close().map_err(Into::into);
+      }
+
+      drop(windows);
+
+      let event = Event::PageDeleted { window_id, page };
+      event.emit(&self.app)?;
+    }
+
+    Ok(())
+  }
+
+  pub async fn get_book_as_json(&self, window_id: u16) -> Option<Json> {
+    self
+      .windows
+      .read()
+      .await
+      .get(&window_id)
+      .map(ReaderBook::from_reader_window)?
+      .into_json()
+      .await
+      .ok()
+  }
+
+  async fn get_focused_window_id(&self) -> Option<u16> {
+    let windows = self.windows.read().await;
+    for (id, window) in &*windows {
+      if window.webview.is_focused().unwrap_or(false) {
+        return Some(*id);
+      }
+    }
+
+    None
+  }
+
+  async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
+    let windows = self.windows.read().await;
+    windows
+      .iter()
+      .find(|(_, window)| window.webview.label() == label)
+      .map(|(id, _)| *id)
+  }
+
+  fn set_window_event(&self, webview: &WebviewWindow, window_id: u16) {
+    let windows = self.windows();
+    webview.on_window_event(move |event| {
+      if matches!(event, WindowEvent::CloseRequested { .. }) {
+        let windows = Arc::clone(&windows);
+        async_runtime::spawn(async move {
+          let mut windows = windows.write().await;
+          windows.shift_remove(&window_id);
+        });
+      }
+    });
+  }
+
   pub async fn switch_focus(&self) -> Result<()> {
-    let main_window = self.app.get_webview_window("main");
-    if matches!(main_window, Some(it) if it.is_focused().unwrap_or(false)) {
+    let main_window = self.app.get_main_window()?;
+    if main_window.is_focused().unwrap_or(false) {
       let windows = self.windows.read().await;
       if let Some((_, window)) = windows.first() {
         return window.webview.set_focus().map_err(Into::into);
@@ -107,49 +173,5 @@ impl Reader {
     }
 
     Ok(())
-  }
-
-  async fn get_focused_window_id(&self) -> Option<u16> {
-    let windows = self.windows.read().await;
-    for (id, window) in &*windows {
-      if window.webview.is_focused().unwrap_or(false) {
-        return Some(*id);
-      }
-    }
-
-    None
-  }
-
-  pub async fn get_book_as_json(&self, window_id: u16) -> Option<Json> {
-    self
-      .windows
-      .read()
-      .await
-      .get(&window_id)
-      .map(ReaderBook::from_reader_window)?
-      .into_json()
-      .await
-      .ok()
-  }
-
-  async fn get_window_id_by_label(&self, label: &str) -> Option<u16> {
-    let windows = self.windows.read().await;
-    windows
-      .iter()
-      .find(|(_, window)| window.webview.label() == label)
-      .map(|(id, _)| *id)
-  }
-
-  fn set_window_events(&self, webview: &WebviewWindow, window_id: u16) {
-    let windows = self.windows();
-    webview.on_window_event(move |event| {
-      if matches!(event, WindowEvent::CloseRequested { .. }) {
-        let windows = Arc::clone(&windows);
-        async_runtime::spawn(async move {
-          let mut windows = windows.write().await;
-          windows.shift_remove(&window_id);
-        });
-      }
-    });
   }
 }

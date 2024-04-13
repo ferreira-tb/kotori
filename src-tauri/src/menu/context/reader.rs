@@ -6,6 +6,7 @@ pub mod page {
 
   #[derive(Display, EnumString)]
   enum Id {
+    DeletePage,
     SetAsCover,
   }
 
@@ -20,30 +21,56 @@ pub mod page {
       .build(app)?;
 
     let menu = MenuBuilder::new(app)
-      .items(&[&set_as_cover])
+      .items(&[
+        &set_as_cover,
+        &PredefinedMenuItem::separator(app)?,
+        &menu_item!(app, Id::DeletePage, "Delete")?,
+      ])
       .build()?;
 
     Ok(menu)
   }
 
-  pub fn on_event<R>(app: &AppHandle, book_id: i32, page: usize) -> impl Fn(&Window<R>, MenuEvent)
-  where
-    R: Runtime,
-  {
+  pub fn on_event<R: Runtime>(
+    app: &AppHandle,
+    window_id: u16,
+    book_id: Option<i32>,
+    page: usize,
+  ) -> impl Fn(&Window<R>, MenuEvent) {
     let app = app.clone();
     move |_, event| {
-      if let Ok(id) = Id::from_str(event.id.0.as_str()) {
-        match id {
-          Id::SetAsCover => set_as_cover(&app, book_id, page),
+      let Ok(id) = Id::from_str(event.id.0.as_str()) else {
+        return;
+      };
+
+      match id {
+        Id::DeletePage => delete_page(&app, window_id, page),
+        Id::SetAsCover => {
+          if let Some(book_id) = book_id {
+            set_as_cover(&app, book_id, page);
+          }
         }
       }
     }
   }
 
+  fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
+    let app = app.clone();
+    async_runtime::spawn(async move {
+      let kotori = app.kotori();
+      let reader = kotori.reader.read().await;
+
+      reader
+        .delete_book_page(window_id, page)
+        .await
+        .ok();
+    });
+  }
+
   fn set_as_cover(app: &AppHandle, book_id: i32, page: usize) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let kotori = app.state::<Kotori>();
+      let kotori = app.kotori();
       let book = Book::find_by_id(book_id)
         .one(&kotori.db)
         .await

@@ -1,8 +1,30 @@
-use ahash::AHasher;
-use indexmap::IndexMap;
-use std::hash::BuildHasherDefault;
+pub mod app {
+  use crate::error::Result;
+  use crate::{err, Kotori};
+  use tauri::{Manager, Runtime, State, WebviewWindow};
 
-pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
+  pub trait AppHandleExt<R: Runtime>: Manager<R> {
+    fn kotori(&self) -> State<Kotori> {
+      self.state::<Kotori>()
+    }
+
+    fn get_main_window(&self) -> Result<WebviewWindow<R>> {
+      self
+        .get_webview_window("main")
+        .ok_or_else(|| err!(WindowNotFound, "main"))
+    }
+  }
+
+  impl<R: Runtime> AppHandleExt<R> for tauri::AppHandle<R> {}
+}
+
+pub mod collections {
+  use ahash::AHasher;
+  use indexmap::IndexMap;
+  use std::hash::BuildHasherDefault;
+
+  pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
+}
 
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
@@ -37,6 +59,12 @@ pub mod glob {
 
 pub mod path {
   use crate::prelude::*;
+
+  pub fn parent(path: &Path) -> Result<&Path> {
+    path
+      .parent()
+      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))
+  }
 
   pub fn to_str(path: &Path) -> Result<&str> {
     path

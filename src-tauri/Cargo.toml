@@ -1,9 +1,12 @@
 [package]
 name = "kotori"
 version = "0.1.0"
-edition = "2021"
-rust-version = "1.77"
+edition.workspace = true
+rust-version.workspace = true
 publish = false
+
+[lints]
+workspace = true
 
 [build-dependencies.tauri-build]
 version = "2.0.0-beta.11"
@@ -11,7 +14,7 @@ features = []
 
 [dependencies]
 ahash = "0.8.11"
-anyhow = "1.0.81"
+anyhow = "1.0.82"
 axum = "0.7.5"
 futures = "0.3.30"
 globset = "0.4.14"
@@ -27,6 +30,7 @@ tauri-plugin-manatsu = "0.9.5"
 tauri-plugin-persisted-scope = "2.0.0-beta.4"
 tauri-plugin-shell = "2.0.0-beta.3"
 tauri-plugin-window-state = "2.0.0-beta.4"
+tempfile = "3.10.1"
 thiserror = "1.0.58"
 walkdir = "2.5.0"
 zip = "0.6.6"

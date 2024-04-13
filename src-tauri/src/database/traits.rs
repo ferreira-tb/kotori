@@ -11,8 +11,8 @@ pub mod prelude {
 
 pub trait BookExt {
   async fn find_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
+    let kotori = app.kotori();
     let path = utils::path::to_str(path.as_ref())?;
-    let kotori = app.state::<Kotori>();
 
     Book::find()
       .filter(book::Column::Path.eq(path))
@@ -23,7 +23,7 @@ pub trait BookExt {
 
   async fn update_book_cover(app: &AppHandle, id: i32, cover: impl AsRef<Path>) -> Result<()> {
     let cover = utils::path::to_str(cover.as_ref())?;
-    let kotori = app.state::<Kotori>();
+    let kotori = app.kotori();
 
     let book = Book::find_by_id(id)
       .one(&kotori.db)

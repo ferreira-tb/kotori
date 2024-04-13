@@ -11,8 +11,7 @@ pub async fn close_current_window(webview: WebviewWindow) -> Result<()> {
 #[tauri::command]
 pub async fn focus_main_window(app: AppHandle) -> Result<()> {
   app
-    .get_webview_window("main")
-    .ok_or_else(|| err!(WindowNotFound, "main"))?
+    .get_main_window()?
     .set_focus()
     .map_err(Into::into)
 }

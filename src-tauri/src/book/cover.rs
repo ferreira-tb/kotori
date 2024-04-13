@@ -4,7 +4,6 @@ use image::io::Reader as ImageReader;
 use image::ImageFormat;
 use std::fs::File;
 use std::io::Cursor;
-use tauri::async_runtime::spawn_blocking;
 
 #[derive(Clone)]
 pub enum Cover {

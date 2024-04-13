@@ -4,11 +4,13 @@ use super::title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
-use crate::utils::OrderedMap;
+use crate::utils::collections::OrderedMap;
+use crate::{library, utils};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
 
+#[derive(Clone)]
 pub struct ActiveBook {
   pub path: PathBuf,
   pub title: Title,
@@ -34,7 +36,7 @@ impl ActiveBook {
   }
 
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
-    let kotori = app.state::<Kotori>();
+    let kotori = app.kotori();
     Book::find_by_id(id)
       .one(&kotori.db)
       .await?
@@ -81,9 +83,15 @@ impl ActiveBook {
     pages.await
   }
 
+  pub async fn reload_pages(&mut self) -> Result<&OrderedMap<usize, String>> {
+    self.handle.take();
+    self.pages.take();
+    self.pages_or_try_init().await
+  }
+
   async fn model(&self, app: &AppHandle) -> Result<BookModel> {
     if let Some(id) = self.id() {
-      let kotori = app.state::<Kotori>();
+      let kotori = app.kotori();
       return Book::find_by_id(id)
         .one(&kotori.db)
         .await?
@@ -96,7 +104,7 @@ impl ActiveBook {
   }
 
   pub async fn open(self, app: &AppHandle) -> Result<()> {
-    let kotori = app.state::<Kotori>();
+    let kotori = app.kotori();
     let reader = kotori.reader.read().await;
     reader.open_book(self).await
   }
@@ -125,7 +133,7 @@ impl ActiveBook {
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
     let name = self.get_page_name(page).await?;
     let handle = self.handle_or_try_init().await?;
-    handle.by_name(name).await
+    handle.get_page_by_name(name).await
   }
 
   pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
@@ -142,17 +150,20 @@ impl ActiveBook {
     Ok(Cover::NotExtracted)
   }
 
-  async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
-    let model = self.model(app).await?;
-    if let Some(cover) = model.cover {
-      return Ok(cover);
+  pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
+    let mut model = self.model(app).await?;
+    if let Some(cover) = model.cover.take() {
+      let handle = self.handle_or_try_init().await?;
+      if handle.has_page(&cover).await {
+        return Ok(cover);
+      }
     };
 
     let name = self.get_first_page_name().await?;
     let mut model: BookActiveModel = model.into();
     model.cover = Set(Some(name.to_owned()));
 
-    let kotori = app.state::<Kotori>();
+    let kotori = app.kotori();
     model.update(&kotori.db).await?;
 
     Ok(name.to_owned())
@@ -161,7 +172,7 @@ impl ActiveBook {
   pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
     let name = self.get_cover_name(app).await?;
     let handle = self.handle_or_try_init().await?;
-    handle.by_name(&name).await
+    handle.get_page_by_name(&name).await
   }
 
   pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
@@ -169,11 +180,10 @@ impl ActiveBook {
     async_runtime::spawn(async move {
       let name = self.get_cover_name(&app).await?;
       let handle = self.handle_or_try_init().await?;
-      let page = handle.by_name(&name).await?;
+      let page = handle.get_page_by_name(&name).await?;
 
-      if let Some(parent) = path.parent() {
-        fs::create_dir_all(parent).await?;
-      }
+      let parent = utils::path::parent(&path)?;
+      fs::create_dir_all(parent).await?;
 
       let format = ImageFormat::from_path(name)?;
       Cover::resize(page, format, &path).await?;
@@ -195,11 +205,49 @@ impl ActiveBook {
     let mut model: BookActiveModel = model.into();
     model.cover = Set(Some(name.to_owned()));
 
-    let kotori = app.state::<Kotori>();
+    let kotori = app.kotori();
     let model = model.update(&kotori.db).await?;
 
     if let Ok(cover) = Cover::path(app, model.id) {
       self.extract_cover(app, cover);
+    }
+
+    Ok(())
+  }
+
+  pub async fn delete_page(mut self, app: &AppHandle, page: usize) -> Result<()> {
+    let handle = self.handle_or_try_init().await?;
+    let mut pages = handle.pages().await;
+    let name = pages
+      .swap_remove(&page)
+      .ok_or_else(|| err!(PageNotFound))?;
+
+    handle
+      .delete_page_by_name(&self.path, &name)
+      .await?;
+
+    if pages.is_empty() {
+      if let Some(id) = self.id_or_try_init(app).await {
+        return library::remove(app, id).await;
+      }
+    }
+
+    drop(pages);
+
+    // Reset the cover if it was the deleted page.
+    let cover = self.get_cover_name(app).await?;
+    if cover == name {
+      let model = self.model(app).await?;
+      let mut model: BookActiveModel = model.into();
+      model.cover = Set(None);
+
+      let kotori = app.kotori();
+      let model = model.update(&kotori.db).await?;
+
+      if let Ok(cover) = Cover::path(app, model.id) {
+        self.reload_pages().await?;
+        self.extract_cover(app, cover);
+      }
     }
 
     Ok(())

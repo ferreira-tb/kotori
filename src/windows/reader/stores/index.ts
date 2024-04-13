@@ -1,20 +1,13 @@
 import { defineStore } from 'pinia';
 import { Command } from '@/utils/commands';
-import { Page } from '../utils/page';
+import { useBook } from '../lib';
 
 export const useReaderStore = defineStore('reader', () => {
-  const book = useInvoke<ReaderBook | null>(Command.GetCurrentReaderBook, null);
+  const { pages, ...book } = useBook();
   const windowId = useInvoke<number | null>(Command.GetCurrentReaderWindowId, null);
 
-  // This MUST be a ref.
-  // Computed will fail to update once the page is fetched.
-  const pages = ref<Page[]>([]);
-  watchImmediate(book.state, (value) => {
-    pages.value = value?.pages?.map((id) => new Page(id)) ?? [];
-  });
-
-  function findNext(current: number, step: number) {
-    const index = pages.value.findIndex((page) => page.id === current);
+  function findNextIndex(current: number, step: number) {
+    const index = pages.value.findIndex(({ id }) => id === current);
     return pages.value.at(index + step);
   }
 
@@ -25,9 +18,14 @@ export const useReaderStore = defineStore('reader', () => {
 
   return {
     windowId: windowId.state,
-    book: book.state,
     pages,
-    findNext,
-    lastIndex
+    current: book.current,
+    findNextIndex,
+    lastIndex,
+    nextPage: book.next,
+    previousPage: book.previous,
+    firstPage: book.first,
+    lastPage: book.last,
+    removePage: book.remove
   };
 });

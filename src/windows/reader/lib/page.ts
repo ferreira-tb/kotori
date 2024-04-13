@@ -30,7 +30,7 @@ export class Page {
   }
 
   public eagerFetch() {
-    const { pages, findNext, lastIndex } = useReaderStore();
+    const { pages, findNextIndex, lastIndex } = useReaderStore();
     if (pages.length === 0) return;
 
     const promises: Promise<void>[] = [];
@@ -40,7 +40,7 @@ export class Page {
 
     if (Page.lookahead > 0) {
       for (let step = 1; step <= Page.lookahead; step++) {
-        const next = findNext(this.id, step);
+        const next = findNextIndex(this.id, step);
         if (next && next.status === 'not started') {
           promises.push(next.fetch());
         }

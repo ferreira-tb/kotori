@@ -4,9 +4,9 @@ use crate::reader;
 
 #[tauri::command]
 pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<Json> {
-  let window_id = reader::get_window_id(&app, &webview).await?;
+  let window_id = reader::get_window_id(&app, webview.label()).await?;
 
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let reader = kotori.reader.read().await;
   reader
     .get_book_as_json(window_id)
@@ -16,7 +16,7 @@ pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> 
 
 #[tauri::command]
 pub async fn get_current_reader_window_id(app: AppHandle, webview: WebviewWindow) -> Result<u16> {
-  reader::get_window_id(&app, &webview).await
+  reader::get_window_id(&app, webview.label()).await
 }
 
 #[tauri::command]
@@ -34,10 +34,7 @@ pub async fn show_reader_page_context_menu(
   if let Some(reader_window) = windows.get(&window_id) {
     let book_id = reader_window.book.id_or_try_init(&app).await;
     let menu = page::build(&app, book_id)?;
-
-    if let Some(id) = book_id {
-      window.on_menu_event(page::on_event(&app, id, page));
-    }
+    window.on_menu_event(page::on_event(&app, window_id, book_id, page));
 
     menu.popup(window)?;
   }
@@ -47,7 +44,7 @@ pub async fn show_reader_page_context_menu(
 
 #[tauri::command]
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let reader = kotori.reader.read().await;
   reader.switch_focus().await
 }

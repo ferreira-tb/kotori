@@ -7,17 +7,20 @@ pub struct ReaderWindow {
   pub(super) webview: WebviewWindow,
 }
 
+pub fn label(window_id: u16) -> String {
+  format!("reader-{window_id}")
+}
+
 pub async fn get_windows(app: &AppHandle) -> WindowMap {
-  let kotori = app.state::<Kotori>();
+  let kotori = app.kotori();
   let reader = kotori.reader.read().await;
   reader.windows()
 }
 
-pub async fn get_window_id(app: &AppHandle, window: &WebviewWindow) -> Result<u16> {
-  let kotori = app.state::<Kotori>();
+pub async fn get_window_id(app: &AppHandle, label: &str) -> Result<u16> {
+  let kotori = app.kotori();
   let reader = kotori.reader.read().await;
 
-  let label = window.label();
   reader
     .get_window_id_by_label(label)
     .await

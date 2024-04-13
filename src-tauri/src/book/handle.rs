@@ -1,11 +1,13 @@
 use crate::prelude::*;
-use crate::utils::{glob, OrderedMap};
+use crate::utils::collections::OrderedMap;
+use crate::utils::glob;
 use natord::compare_ignore_case;
 use std::fs::File;
 use std::io::Read;
-use tauri::async_runtime::spawn_blocking;
-use zip::ZipArchive;
+use tempfile::NamedTempFile;
+use zip::{ZipArchive, ZipWriter};
 
+#[derive(Clone)]
 pub(super) struct Handle {
   handle: Arc<Mutex<ZipArchive<File>>>,
 }
@@ -35,7 +37,13 @@ impl Handle {
       .collect()
   }
 
-  pub async fn by_name(&self, name: &str) -> Result<Vec<u8>> {
+  pub async fn has_page(&self, name: &str) -> bool {
+    let handle = self.handle.lock().await;
+    let mut file_names = handle.file_names();
+    file_names.any(|it| it == name)
+  }
+
+  pub async fn get_page_by_name(&self, name: &str) -> Result<Vec<u8>> {
     let mut handle = self.handle.lock().await;
     let mut file = handle.by_name(name)?;
 
@@ -44,5 +52,44 @@ impl Handle {
     file.read_to_end(&mut buf)?;
 
     Ok(buf)
+  }
+
+  pub async fn delete_page_by_name(&self, path: impl AsRef<Path>, name: &str) -> Result<()> {
+    let name = name.to_owned();
+    let handle = Arc::clone(&self.handle);
+
+    let join = spawn_blocking(move || {
+      let mut temp = NamedTempFile::new()?;
+      let mut writer = ZipWriter::new(&mut temp);
+
+      // We shouldn't skip files that aren't pages here.
+      let mut handle = block_on(handle.lock());
+      let names = handle
+        .file_names()
+        .filter(|it| *it != name)
+        .map(ToOwned::to_owned)
+        .collect_vec();
+
+      for name in names {
+        let file = handle.by_name(&name)?;
+        writer.raw_copy_file(file)?;
+      }
+
+      if let Err(err) = writer.finish() {
+        drop(writer);
+        temp.into_temp_path().close()?;
+        return Err(err);
+      }
+
+      drop(writer);
+
+      Ok(temp)
+    });
+
+    let temp = join.await??;
+    fs::remove_file(&path).await?;
+    temp.into_temp_path().persist(path).ok();
+
+    Ok(())
   }
 }
