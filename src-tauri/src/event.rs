@@ -8,17 +8,24 @@ pub enum Event {
   BookAdded(Json),
   BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
-  DeletePageRequested { window_id: u16 },
+  DeletePageRequested { window_id: u16, page: usize },
   PageDeleted { window_id: u16, page: usize },
   RatingUpdated { id: i32, rating: u8 },
+  RemoveBookRequested { id: i32, title: String },
 }
 
 impl Event {
   pub fn emit(self, app: &AppHandle) -> Result<()> {
     let event = self.to_string();
+
+    #[allow(clippy::match_same_arms)]
     match self {
-      Event::DeletePageRequested { window_id } => self.emit_to_reader(app, &event, window_id)?,
-      Event::PageDeleted { window_id, .. } => self.emit_to_reader(app, &event, window_id)?,
+      Event::DeletePageRequested { window_id, .. } => {
+        self.emit_to_reader(app, &event, window_id)?;
+      }
+      Event::PageDeleted { window_id, .. } => {
+        self.emit_to_reader(app, &event, window_id)?;
+      }
       _ => self.emit_to_main(app, &event)?,
     };
 
@@ -33,7 +40,7 @@ impl Event {
   }
 
   fn emit_to_reader(self, app: &AppHandle, event: &str, window_id: u16) -> Result<()> {
-    info!(event, target = "reader", id = window_id);
+    info!(event, target = "reader", reader_id = window_id);
     app
       .emit_to(Target::ReaderWindow(window_id), event, Json::from(self))
       .map_err(Into::into)
@@ -42,13 +49,15 @@ impl Event {
 
 impl From<Event> for Json {
   fn from(event: Event) -> Self {
+    #[allow(clippy::match_same_arms)]
     match event {
       Event::BookAdded(value) => value,
       Event::BookRemoved(id) => json!({ "id": id }),
       Event::CoverExtracted { id, path } => json!({ "id": id, "path": path }),
-      Event::DeletePageRequested { .. } => Json::Null,
+      Event::DeletePageRequested { page, .. } => json!({ "page": page }),
       Event::PageDeleted { page, .. } => json!({ "page": page }),
       Event::RatingUpdated { id, rating } => json!({ "id": id, "rating": rating }),
+      Event::RemoveBookRequested { id, title } => json!({ "id": id, "title": title }),
     }
   }
 }

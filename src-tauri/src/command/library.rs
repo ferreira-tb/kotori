@@ -17,6 +17,14 @@ pub async fn get_library_books(app: AppHandle) -> Result<Json> {
 }
 
 #[tauri::command]
+pub async fn remove_book(app: AppHandle, id: i32) -> Result<()> {
+  info!(name = "remove_book", book_id = id);
+  library::remove(&app, id)
+    .await
+    .inspect_err(|err| error!("\"{err}\""))
+}
+
+#[tauri::command]
 pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
   use crate::menu::context::library::book;
 

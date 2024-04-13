@@ -1,21 +1,26 @@
 <script setup lang="ts">
 import { Command } from '@/utils/commands';
+import { Event } from '../events';
 
 const visible = defineModel<boolean>({ required: true, default: false });
 
-const props = defineProps<{
-  page: number;
-}>();
-
+const page = ref<number | null>(null);
 const loading = ref(false);
 
+useListen<DeletePageRequestedPayload>(Event.DeletePageRequested, ({ payload }) => {
+  page.value = payload.page;
+  visible.value = true;
+});
+
 async function deletePage() {
+  if (typeof page.value !== 'number') return;
   try {
     loading.value = true;
-    await invoke(Command.DeleteBookPage, { page: props.page });
+    await invoke(Command.DeleteBookPage, { page: page.value });
   } catch (err) {
     handleError(err);
   } finally {
+    page.value = null;
     visible.value = false;
     loading.value = false;
   }

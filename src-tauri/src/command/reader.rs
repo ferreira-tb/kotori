@@ -1,4 +1,5 @@
 use crate::book::{self, ActiveBook};
+use crate::event::Event;
 use crate::{prelude::*, reader};
 
 #[tauri::command]
@@ -31,6 +32,11 @@ pub async fn get_current_reader_window_id(app: AppHandle, webview: WebviewWindow
   reader::get_window_id(&app, webview.label())
     .await
     .inspect_err(|err| error!("\"{err}\""))
+}
+
+#[tauri::command]
+pub async fn request_delete_page(app: AppHandle, window_id: u16, page: usize) -> Result<()> {
+  Event::DeletePageRequested { window_id, page }.emit(&app)
 }
 
 #[tauri::command]

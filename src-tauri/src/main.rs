@@ -49,6 +49,7 @@ fn main() {
       command::focus_main_window,
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
+      command::library::remove_book,
       command::library::show_library_book_context_menu,
       command::library::update_book_rating,
       command::reader::delete_book_page,
@@ -56,6 +57,7 @@ fn main() {
       command::reader::get_current_reader_window_id,
       command::reader::open_book,
       command::reader::open_book_from_dialog,
+      command::reader::request_delete_page,
       command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
     ])
@@ -65,7 +67,7 @@ fn main() {
 
 fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
-  setup_tracing(&handle)?;
+  setup_tracing(handle)?;
 
   let kotori = Kotori {
     db: database::connect(handle)?,
@@ -93,7 +95,7 @@ fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
     .add_directive("kotori=trace".parse()?);
 
   let path = app.path().app_log_dir()?;
-  let appender = rolling::never(path, "kotori.log");
+  let appender = rolling::daily(path, "kotori.log");
   let (non_blocking, guard) = tracing_appender::non_blocking(appender);
   TRACING_GUARD.set(guard).unwrap();
 

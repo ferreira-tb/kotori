@@ -12,10 +12,18 @@ export enum Command {
   GetLibraryBooks = 'get_library_books',
   OpenBook = 'open_book',
   OpenBookFromDialog = 'open_book_from_dialog',
+  RemoveBook = 'remove_book',
+  RequestDeletePage = 'request_delete_page',
   ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   ShowReaderPageContextMenu = 'show_reader_page_context_menu',
   SwitchReaderFocus = 'switch_reader_focus',
   UpdateBookRating = 'update_book_rating'
+}
+
+export function requestDeletePage(windowId: Nullish<number>, page: Nullish<number>) {
+  if (typeof windowId === 'number' && typeof page === 'number') {
+    invoke(Command.RequestDeletePage, { windowId, page }).catch(handleError);
+  }
 }
 
 export function showLibraryBookContextMenu(id: number) {

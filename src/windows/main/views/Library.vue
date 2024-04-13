@@ -3,12 +3,11 @@ import { symbols } from '../utils/symbols';
 import { useLibraryStore } from '../stores';
 import BookGrid from '../components/BookGrid.vue';
 import BookPreview from '../components/BookPreview.vue';
+import DialogRemoveBook from '../components/dialog/RemoveBook.vue';
 
 const store = useLibraryStore();
-
-const contentHeight = injectStrict(symbols.contentHeight);
-
 const { filter } = storeToRefs(store);
+
 const books = computed(() => {
   const lowercase = filter.value.toLowerCase();
   return store.books.filter((book) => {
@@ -19,6 +18,8 @@ const books = computed(() => {
 
 const selected = ref<LibraryBook | null>(null);
 const preview = computed(() => selected.value ?? store.books[0]);
+
+const contentHeight = injectStrict(symbols.contentHeight);
 </script>
 
 <template>
@@ -34,6 +35,8 @@ const preview = computed(() => selected.value ?? store.books[0]);
         <book-grid :books @select="(book) => (selected = book)" />
       </div>
     </div>
+
+    <dialog-remove-book />
   </div>
 </template>
 

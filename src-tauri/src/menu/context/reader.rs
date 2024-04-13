@@ -55,8 +55,8 @@ pub mod page {
     }
   }
 
-  fn delete_page(app: &AppHandle, window_id: u16, _page: usize) {
-    Event::DeletePageRequested { window_id }
+  fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
+    Event::DeletePageRequested { window_id, page }
       .emit(app)
       .ok();
   }

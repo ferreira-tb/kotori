@@ -1,9 +1,9 @@
-use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook, Title};
+use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::{self, glob};
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use walkdir::WalkDir;
 
 pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
@@ -135,37 +135,6 @@ where
   });
 
   join_all(tasks).await;
-
-  Ok(())
-}
-
-pub async fn show_remove_dialog(app: &AppHandle, id: i32) -> Result<()> {
-  let kotori = app.kotori();
-  let book = Book::find_by_id(id)
-    .one(&kotori.db)
-    .await?
-    .ok_or_else(|| err!(BookNotFound))?;
-
-  let title = "Are you sure?";
-  let message = format!(
-    "{} will be removed from the library.",
-    Title::try_from(book.path.as_str())?
-  );
-
-  let dialog = app.dialog().clone();
-  let dialog = MessageDialogBuilder::new(dialog, title, message)
-    .kind(MessageDialogKind::Warning)
-    .ok_button_label("Remove")
-    .cancel_button_label("Cancel");
-
-  let (tx, rx) = oneshot::channel();
-  dialog.show(move |response| {
-    tx.send(response).ok();
-  });
-
-  if rx.await? {
-    remove(app, id).await?;
-  };
 
   Ok(())
 }

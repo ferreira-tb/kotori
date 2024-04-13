@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { showReaderPageContextMenu } from '@/utils/commands';
-import { Event } from '../events';
+import { requestDeletePage, showReaderPageContextMenu } from '@/utils/commands';
 import { Page } from '../lib/page';
 import { useReaderStore } from '../stores';
 import DialogDeletePage from '../components/DialogDeletePage.vue';
 
 const store = useReaderStore();
-const { pages, current } = storeToRefs(store);
+const { windowId, pages, current } = storeToRefs(store);
 
 const dialogDeletePage = ref(false);
 const enableKeydown = computed(() => !dialogDeletePage.value);
@@ -17,11 +16,11 @@ onKeyDown('ArrowDown', store.nextPage, { enabled: enableKeydown });
 onKeyDown('ArrowRight', store.nextPage, { enabled: enableKeydown });
 onKeyDown('Home', store.firstPage, { enabled: enableKeydown });
 onKeyDown('End', store.lastPage, { enabled: enableKeydown });
-onKeyDown('Delete', () => (dialogDeletePage.value = true), { enabled: enableKeydown });
+onKeyDown('Delete', deletePage, { enabled: enableKeydown });
 
-useListen(Event.DeletePageRequested, () => {
-  dialogDeletePage.value = true;
-});
+function deletePage() {
+  requestDeletePage(windowId.value, current.value?.id);
+}
 
 onUnmounted(() => Page.revokeAll());
 </script>
@@ -47,6 +46,6 @@ onUnmounted(() => Page.revokeAll());
       </div>
     </div>
 
-    <dialog-delete-page v-if="current" v-model="dialogDeletePage" :page="current.id" />
+    <dialog-delete-page v-model="dialogDeletePage" />
   </main>
 </template>
