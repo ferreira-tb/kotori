@@ -26,6 +26,6 @@ export const useReaderStore = defineStore('reader', () => {
     previousPage: book.previous,
     firstPage: book.first,
     lastPage: book.last,
-    removePage: book.remove
+    reload: book.reload
   };
 });

@@ -9,7 +9,7 @@ pub enum Event {
   BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
   DeletePageRequested { window_id: u16, page: usize },
-  PageDeleted { window_id: u16, page: usize },
+  PageDeleted { window_id: u16 },
   RatingUpdated { id: i32, rating: u8 },
   RemoveBookRequested { id: i32, title: String },
 }
@@ -33,14 +33,14 @@ impl Event {
   }
 
   fn emit_to_main(self, app: &AppHandle, event: &str) -> Result<()> {
-    info!(event, target = "main");
+    debug!(event, target = "main");
     app
       .emit_to(Target::MainWindow, event, Json::from(self))
       .map_err(Into::into)
   }
 
   fn emit_to_reader(self, app: &AppHandle, event: &str, window_id: u16) -> Result<()> {
-    info!(event, target = "reader", reader_id = window_id);
+    debug!(event, target = "reader", reader_id = window_id);
     app
       .emit_to(Target::ReaderWindow(window_id), event, Json::from(self))
       .map_err(Into::into)
@@ -55,7 +55,7 @@ impl From<Event> for Json {
       Event::BookRemoved(id) => json!({ "id": id }),
       Event::CoverExtracted { id, path } => json!({ "id": id, "path": path }),
       Event::DeletePageRequested { page, .. } => json!({ "page": page }),
-      Event::PageDeleted { page, .. } => json!({ "page": page }),
+      Event::PageDeleted { .. } => Json::Null,
       Event::RatingUpdated { id, rating } => json!({ "id": id, "rating": rating }),
       Event::RemoveBookRequested { id, title } => json!({ "id": id, "title": title }),
     }

@@ -34,13 +34,6 @@ export function useBook() {
     go(pages.value.length - 1);
   }
 
-  function remove(page: number) {
-    const index = pages.value.findIndex(({ id }) => id === page);
-    if (index !== -1) {
-      pages.value = pages.value.toSpliced(index, 1);
-    }
-  }
-
   return {
     pages,
     current,
@@ -48,6 +41,6 @@ export function useBook() {
     previous,
     first,
     last,
-    remove
+    reload: book.execute
   };
 }

@@ -90,9 +90,10 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
+  let level = if tauri::dev() { "trace" } else { "warn" };
   let filter = EnvFilter::builder()
     .from_env()?
-    .add_directive("kotori=trace".parse()?);
+    .add_directive(format!("kotori={level}").parse()?);
 
   let path = app.path().app_log_dir()?;
   let appender = rolling::daily(path, "kotori.log");

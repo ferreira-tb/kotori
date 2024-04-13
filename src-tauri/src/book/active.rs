@@ -57,6 +57,7 @@ impl ActiveBook {
 
   pub async fn id_or_try_init(&self, app: &AppHandle) -> Option<i32> {
     let id = self.id.get_or_try_init(|| async {
+      trace!("initializing id for \"{}\"", self.title);
       let model = Book::find_by_path(app, &self.path).await?;
       Ok::<i32, Error>(model.id)
     });
@@ -66,6 +67,7 @@ impl ActiveBook {
 
   async fn handle_or_try_init(&self) -> Result<&Handle> {
     let handle = self.handle.get_or_try_init(|| async {
+      trace!("initializing handle for \"{}\"", self.title);
       let handle = Handle::new(&self.path).await?;
       Ok::<Handle, Error>(handle)
     });
@@ -75,6 +77,7 @@ impl ActiveBook {
 
   pub async fn pages_or_try_init(&self) -> Result<&OrderedMap<usize, String>> {
     let pages = self.pages.get_or_try_init(|| async {
+      trace!("initializing pages for \"{}\"", self.title);
       let handle = self.handle_or_try_init().await?;
       let pages = handle.pages().await;
       Ok::<OrderedMap<usize, String>, Error>(pages)
@@ -228,7 +231,10 @@ impl ActiveBook {
 
     // Next steps are exclusive to books in the library.
     if let Some(id) = self.id_or_try_init(app).await {
+      info!("page {page} deleted from book {id}");
+      
       if pages.is_empty() {
+        info!("book {id} is empty, removing from library");
         return library::remove(app, id).await;
       }
 
@@ -237,6 +243,7 @@ impl ActiveBook {
       // Reset the cover if it was the deleted page.
       let cover = self.get_cover_name(app).await?;
       if cover == name {
+        info!("book {id} had its cover deleted, resetting");
         let model = self.model(app).await?;
         let mut model: BookActiveModel = model.into();
         model.cover = Set(None);

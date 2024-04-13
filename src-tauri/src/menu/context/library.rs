@@ -43,12 +43,14 @@ pub mod book {
 
   pub fn open_book(app: &AppHandle, id: i32) {
     let app = app.clone();
+    info!("opening book {id}");
+
     async_runtime::spawn(async move {
       if let Ok(book) = ActiveBook::from_id(&app, id).await {
         book
           .open(&app)
           .await
-          .inspect_err(|err| error!("\"{err}\""))
+          .inspect_err(|err| error!("{err}"))
           .ok();
       }
     });
@@ -56,6 +58,8 @@ pub mod book {
 
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
+    info!("removing book {id}");
+
     async_runtime::spawn(async move {
       let kotori = app.kotori();
       let book = Book::find_by_id(id)

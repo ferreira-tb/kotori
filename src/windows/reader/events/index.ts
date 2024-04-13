@@ -12,8 +12,13 @@ export function setupEventListeners() {
 }
 
 function onPageDeleted() {
-  return listen<PageDeletedPayload>(Event.PageDeleted, ({ payload }) => {
+  return listen(Event.PageDeleted, () => {
+    // When a page is deleted, the index of the other pages may change.
+    // Reloading the book is the safest way to ensure consistency.
+    //
+    // This is too aggressive though, as we lose the eagerly fetched pages.
+    // Future me, please find a better way to handle this.
     const store = useReaderStore();
-    store.removePage(payload.page);
+    store.reload().catch(handleError);
   });
 }

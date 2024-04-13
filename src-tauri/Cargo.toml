@@ -36,7 +36,6 @@ tauri-plugin-shell = "2.0.0-beta.3"
 tauri-plugin-window-state = "2.0.0-beta.4"
 tempfile = "3.10.1"
 thiserror = "1.0.58"
-tracing = "0.1"
 walkdir = "2.5.0"
 zip = "0.6.6"
 
@@ -67,6 +66,10 @@ features = ["rustls-tls"]
 [dependencies.tokio]
 version = "1.37.0"
 features = ["full"]
+
+[dependencies.tracing]
+version = "0.1"
+features = ["release_max_level_warn"]
 
 [dependencies.tracing-appender]
 version = "0.2"

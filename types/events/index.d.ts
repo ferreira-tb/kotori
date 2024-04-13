@@ -13,10 +13,6 @@ interface DeletePageRequestedPayload {
   readonly page: number;
 }
 
-interface PageDeletedPayload {
-  readonly page: number;
-}
-
 interface RatingUpdatedPayload {
   readonly id: number;
   readonly rating: number;

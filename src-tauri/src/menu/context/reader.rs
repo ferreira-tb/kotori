@@ -56,6 +56,7 @@ pub mod page {
   }
 
   fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
+    debug!("delete requested for page {page} at window {window_id}");
     Event::DeletePageRequested { window_id, page }
       .emit(app)
       .ok();
@@ -63,6 +64,8 @@ pub mod page {
 
   fn set_as_cover(app: &AppHandle, book_id: i32, page: usize) {
     let app = app.clone();
+    debug!("changing cover to page {page} for book {book_id}");
+
     async_runtime::spawn(async move {
       let kotori = app.kotori();
       let book = Book::find_by_id(book_id)
@@ -76,7 +79,7 @@ pub mod page {
         book
           .update_cover(&app, page)
           .await
-          .inspect_err(|err| error!("\"{err}\""))
+          .inspect_err(|err| error!("{err}"))
           .ok();
       }
     });
