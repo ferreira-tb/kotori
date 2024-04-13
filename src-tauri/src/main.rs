@@ -44,6 +44,7 @@ fn main() {
       command::library::get_library_books,
       command::library::show_library_book_context_menu,
       command::library::update_book_rating,
+      command::reader::delete_book_page,
       command::reader::get_current_reader_book,
       command::reader::get_current_reader_window_id,
       command::reader::open_book,

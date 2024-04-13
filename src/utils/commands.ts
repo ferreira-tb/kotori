@@ -5,6 +5,7 @@ import type { Nullish } from '@tb-dev/utility-types';
 export enum Command {
   AddToLibraryFromDialog = 'add_to_library_from_dialog',
   CloseCurrentWindow = 'close_current_window',
+  DeleteBookPage = 'delete_book_page',
   FocusMainWindow = 'focus_main_window',
   GetCurrentReaderBook = 'get_current_reader_book',
   GetCurrentReaderWindowId = 'get_current_reader_window_id',

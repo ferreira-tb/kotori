@@ -1,15 +1,26 @@
 <script setup lang="ts">
 import { showReaderPageContextMenu } from '@/utils/commands';
+import { Event } from '../events';
 import { Page } from '../lib/page';
 import { useReaderStore } from '../stores';
+import DialogDeletePage from '../components/DialogDeletePage.vue';
 
 const store = useReaderStore();
 const { pages, current } = storeToRefs(store);
 
-onKeyDown('ArrowLeft', store.previousPage);
-onKeyDown('ArrowRight', store.nextPage);
-onKeyDown('Home', store.firstPage);
-onKeyDown('End', store.lastPage);
+const dialogDeletePage = ref(false);
+const enableKeydown = computed(() => !dialogDeletePage.value);
+
+onKeyDown('ArrowUp', store.previousPage, { enabled: enableKeydown });
+onKeyDown('ArrowLeft', store.previousPage, { enabled: enableKeydown });
+onKeyDown('ArrowDown', store.nextPage, { enabled: enableKeydown });
+onKeyDown('ArrowRight', store.nextPage, { enabled: enableKeydown });
+onKeyDown('Home', store.firstPage, { enabled: enableKeydown });
+onKeyDown('End', store.lastPage, { enabled: enableKeydown });
+
+useListen(Event.DeletePageRequested, () => {
+  dialogDeletePage.value = true;
+});
 
 onUnmounted(() => Page.revokeAll());
 </script>
@@ -25,7 +36,6 @@ onUnmounted(() => Page.revokeAll());
           v-if="current.status === 'done' && current.url"
           :src="current.url"
           class="size-full object-scale-down"
-          @click="store.nextPage"
           @contextmenu="showReaderPageContextMenu(store.windowId, current?.id)"
         />
         <p-progress-spinner
@@ -35,5 +45,7 @@ onUnmounted(() => Page.revokeAll());
         />
       </div>
     </div>
+
+    <dialog-delete-page v-if="current" v-model="dialogDeletePage" :page="current.id" />
   </main>
 </template>

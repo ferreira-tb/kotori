@@ -3,6 +3,15 @@ use crate::prelude::*;
 use crate::reader;
 
 #[tauri::command]
+pub async fn delete_book_page(app: AppHandle, webview: WebviewWindow, page: usize) -> Result<()> {
+  let window_id = reader::get_window_id(&app, webview.label()).await?;
+
+  let kotori = app.kotori();
+  let reader = kotori.reader.read().await;
+  reader.delete_book_page(window_id, page).await
+}
+
+#[tauri::command]
 pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<Json> {
   let window_id = reader::get_window_id(&app, webview.label()).await?;
 

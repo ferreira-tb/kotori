@@ -4,7 +4,7 @@ import { openBook, updateBookRating } from '@/utils/commands';
 import type { ImagePassThroughOptions } from 'primevue/image';
 
 const props = defineProps<{
-  readonly book: LibraryBook;
+  book: LibraryBook;
 }>();
 
 const preview = shallowRef<Blob | null>(null);

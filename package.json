@@ -28,7 +28,7 @@
     "@vueuse/core": "^10.9.0",
     "@vueuse/math": "^10.9.0",
     "@vueuse/router": "^10.9.0",
-    "manatsu": "^0.9.6",
+    "manatsu": "^0.9.7",
     "pinia": "^2.1.7",
     "primevue": "^3.51.0",
     "vue": "~3.4.21",

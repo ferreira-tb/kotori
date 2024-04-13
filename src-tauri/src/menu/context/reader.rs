@@ -1,6 +1,7 @@
 pub mod page {
   use crate::book::ActiveBook;
   use crate::database::prelude::*;
+  use crate::event::Event;
   use crate::menu::prelude::*;
   use crate::prelude::*;
 
@@ -54,17 +55,10 @@ pub mod page {
     }
   }
 
-  fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
-    let app = app.clone();
-    async_runtime::spawn(async move {
-      let kotori = app.kotori();
-      let reader = kotori.reader.read().await;
-
-      reader
-        .delete_book_page(window_id, page)
-        .await
-        .ok();
-    });
+  fn delete_page(app: &AppHandle, window_id: u16, _page: usize) {
+    Event::DeletePageRequested { window_id }
+      .emit(app)
+      .ok();
   }
 
   fn set_as_cover(app: &AppHandle, book_id: i32, page: usize) {

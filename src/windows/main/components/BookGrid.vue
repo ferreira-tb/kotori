@@ -2,7 +2,7 @@
 import { openBook, showLibraryBookContextMenu } from '@/utils/commands';
 
 defineProps<{
-  readonly books: LibraryBook[];
+  books: LibraryBook[];
 }>();
 
 defineEmits<(e: 'select', book: LibraryBook) => void>();

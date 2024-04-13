@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { toPixel } from '@tb-dev/utils';
-import { Command } from '@/utils/commands';
 import type { MenuItem } from 'primevue/menuitem';
+import { disableDefaultSensors, setGlobalSensors } from '@/utils/sensors';
 import { RouteName } from './router';
 import { symbols } from './utils/symbols';
 import LibraryMenu from './components/LibraryMenu.vue';
@@ -22,11 +22,8 @@ const menuItems: MenuItem[] = [
   { label: 'Tags', command: () => void router.push({ name: RouteName.BookTag }) }
 ];
 
-preventContextMenu();
-preventKeyDown(['F3', 'F7']);
-invokeOnKeyDown('Tab', Command.SwitchReaderFocus);
-invokeOnKeyDown('o', Command.OpenBookFromDialog, null, { ctrlKey: true });
-invokeOnKeyDown('A', Command.AddToLibraryFromDialog, null, { ctrlKey: true, shiftKey: true });
+disableDefaultSensors();
+setGlobalSensors();
 </script>
 
 <template>
