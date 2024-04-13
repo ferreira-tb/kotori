@@ -81,7 +81,7 @@ pub mod window {
   use crate::prelude::*;
   use tauri::WebviewUrl;
 
-  pub fn dir(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
+  pub fn data_directory(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
     let name = name.as_ref();
     let path = app
       .path()

@@ -42,7 +42,7 @@ impl Reader {
     let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
 
     let url = utils::window::webview_url("reader");
-    let dir = utils::window::dir(&self.app, format!("reader/{window_id}"))?;
+    let dir = utils::window::data_directory(&self.app, format!("reader/{window_id}"))?;
     let label = window::label(window_id);
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
