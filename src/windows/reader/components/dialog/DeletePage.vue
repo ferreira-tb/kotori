@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Command } from '@/utils/commands';
-import { Event } from '../events';
+import { Event } from '../../events';
 
 const visible = defineModel<boolean>({ required: true, default: false });
 
@@ -35,6 +35,7 @@ async function deletePage() {
     :closable="false"
     dismissable-mask
     block-scroll
+    content-class="max-w-md"
   >
     <span class="p-text-secondary mb-6 block">Are you sure you want to delete this page?</span>
     <div class="flex justify-end gap-2">

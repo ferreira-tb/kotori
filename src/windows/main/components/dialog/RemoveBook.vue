@@ -40,6 +40,7 @@ async function removeBook() {
     :closable="false"
     dismissable-mask
     block-scroll
+    content-class="max-w-md"
   >
     <span class="p-text-secondary mb-6 block">{{ title }} will be removed from the library.</span>
     <div class="flex justify-end gap-2">

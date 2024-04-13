@@ -2,7 +2,7 @@
 import { requestDeletePage, showReaderPageContextMenu } from '@/utils/commands';
 import { Page } from '../lib/page';
 import { useReaderStore } from '../stores';
-import DialogDeletePage from '../components/DialogDeletePage.vue';
+import DialogDeletePage from '../components/dialog/DeletePage.vue';
 
 const store = useReaderStore();
 const { windowId, pages, current } = storeToRefs(store);
