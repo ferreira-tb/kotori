@@ -17,6 +17,7 @@ onKeyDown('ArrowDown', store.nextPage, { enabled: enableKeydown });
 onKeyDown('ArrowRight', store.nextPage, { enabled: enableKeydown });
 onKeyDown('Home', store.firstPage, { enabled: enableKeydown });
 onKeyDown('End', store.lastPage, { enabled: enableKeydown });
+onKeyDown('Delete', () => (dialogDeletePage.value = true), { enabled: enableKeydown });
 
 useListen(Event.DeletePageRequested, () => {
   dialogDeletePage.value = true;
