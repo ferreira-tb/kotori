@@ -12,3 +12,4 @@ pub use tauri::menu::ContextMenu;
 pub use tauri::{AppHandle, Manager, Runtime, WebviewWindow, Window};
 pub use tokio::fs;
 pub use tokio::sync::{oneshot, OnceCell};
+pub use tracing::{error, info};

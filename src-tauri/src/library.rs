@@ -31,6 +31,10 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
     }
   }
 
+  if books.is_empty() {
+    return Ok(());
+  }
+
   save_many(app, books).await
 }
 

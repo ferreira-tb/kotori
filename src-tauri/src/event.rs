@@ -26,12 +26,14 @@ impl Event {
   }
 
   fn emit_to_main(self, app: &AppHandle, event: &str) -> Result<()> {
+    info!(event, target = "main");
     app
       .emit_to(Target::MainWindow, event, Json::from(self))
       .map_err(Into::into)
   }
 
   fn emit_to_reader(self, app: &AppHandle, event: &str, window_id: u16) -> Result<()> {
+    info!(event, target = "reader", id = window_id);
     app
       .emit_to(Target::ReaderWindow(window_id), event, Json::from(self))
       .map_err(Into::into)
@@ -57,15 +59,19 @@ pub enum Target {
   ReaderWindow(u16),
 }
 
+impl Target {
+  pub fn label(&self) -> String {
+    match self {
+      Target::MainWindow => "main".into(),
+      Target::ReaderWindow(window_id) => reader::label(*window_id),
+    }
+  }
+}
+
 impl From<Target> for EventTarget {
   fn from(target: Target) -> Self {
-    match target {
-      Target::MainWindow => EventTarget::WebviewWindow {
-        label: "main".into(),
-      },
-      Target::ReaderWindow(window_id) => EventTarget::WebviewWindow {
-        label: reader::label(window_id),
-      },
+    EventTarget::WebviewWindow {
+      label: target.label(),
     }
   }
 }

@@ -17,11 +17,18 @@ mod utils;
 use error::BoxResult;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
+use std::sync::OnceLock;
 use tauri::async_runtime::RwLock;
 use tauri::{App, AppHandle, Manager, WindowEvent};
+use tracing_appender::non_blocking::WorkerGuard;
+use tracing_appender::rolling;
+use tracing_subscriber::fmt::time::ChronoLocal;
+use tracing_subscriber::EnvFilter;
 use utils::app::AppHandleExt;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
+
+static TRACING_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
 
 pub struct Kotori {
   pub db: DatabaseConnection,
@@ -58,6 +65,8 @@ fn main() {
 
 fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
+  setup_tracing(&handle)?;
+
   let kotori = Kotori {
     db: database::connect(handle)?,
     reader: RwLock::new(Reader::new(handle)),
@@ -74,6 +83,26 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
   server::serve(handle);
+
+  Ok(())
+}
+
+fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
+  let filter = EnvFilter::builder()
+    .from_env()?
+    .add_directive("kotori=trace".parse()?);
+
+  let path = app.path().app_log_dir()?;
+  let appender = rolling::never(path, "kotori.log");
+  let (non_blocking, guard) = tracing_appender::non_blocking(appender);
+  TRACING_GUARD.set(guard).unwrap();
+
+  tracing_subscriber::fmt()
+    .with_ansi(false)
+    .with_env_filter(filter)
+    .with_timer(ChronoLocal::new("%F %T%.3f %:z".into()))
+    .with_writer(non_blocking)
+    .init();
 
   Ok(())
 }

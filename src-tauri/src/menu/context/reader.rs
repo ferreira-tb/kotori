@@ -73,7 +73,11 @@ pub mod page {
         .and_then(|model| ActiveBook::with_model(&model).ok());
 
       if let Some(book) = book {
-        book.update_cover(&app, page).await.ok();
+        book
+          .update_cover(&app, page)
+          .await
+          .inspect_err(|err| error!("\"{err}\""))
+          .ok();
       }
     });
   }
