@@ -1,7 +1,5 @@
-import { triggerRef } from 'vue';
 import { defineStore } from 'pinia';
 import { Command } from '@/utils/commands';
-import { convertFileSrc } from '@tauri-apps/api/core';
 
 export const useLibraryStore = defineStore('library', () => {
   const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], { transform });
@@ -25,7 +23,7 @@ export const useLibraryStore = defineStore('library', () => {
     }
   }
 
-  let nextBookCoverVersion = 1;
+  let nextCoverVersion = 1;
   function updateBookCover(id: number, path: string) {
     const book = getBook(id);
     if (book) {
@@ -33,7 +31,7 @@ export const useLibraryStore = defineStore('library', () => {
         // Adds a version search parameter to the url to force the image to reload.
         // Without this, it would be cached, not updating when the user changes the cover.
         const url = new URL(convertFileSrc(path));
-        url.searchParams.set('v', (++nextBookCoverVersion).toString(10));
+        url.searchParams.set('v', (++nextCoverVersion).toString(10));
         book.cover = url.toString();
       } catch {
         book.cover = convertFileSrc(path);

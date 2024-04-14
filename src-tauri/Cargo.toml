@@ -68,15 +68,15 @@ version = "1.37.0"
 features = ["full"]
 
 [dependencies.tracing]
-version = "0.1"
+version = "0.1.40"
 features = ["release_max_level_warn"]
 
 [dependencies.tracing-appender]
-version = "0.2"
+version = "0.2.3"
 features = ["parking_lot"]
 
 [dependencies.tracing-subscriber]
-version = "0.3"
+version = "0.3.18"
 features = ["chrono", "env-filter", "fmt", "parking_lot", "registry"]
 
 [features]

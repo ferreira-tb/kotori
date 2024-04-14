@@ -13,8 +13,6 @@ rust-version = "1.77"
 publish = false
 
 [workspace.lints.clippy]
-pedantic = { level = "deny", priority = -1 }
-
 clone_on_ref_ptr = "deny"
 filetype_is_file = "deny"
 missing_errors_doc = "allow"
@@ -23,3 +21,7 @@ module_name_repetitions = "allow"
 rc_buffer = "deny"
 rc_mutex = "deny"
 rest_pat_in_fully_bound_structs = "deny"
+
+[workspace.lints.clippy.pedantic]
+level = "deny"
+priority = -1

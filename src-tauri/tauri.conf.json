@@ -43,7 +43,7 @@
       "csp": {
         "default-src": "'self'",
         "connect-src": "http://ipc.localhost",
-        "img-src": "'self' blob: http://asset.localhost",
+        "img-src": "'self' blob: asset: http://asset.localhost",
         "style-src": "'self' 'unsafe-inline'"
       }
     }
