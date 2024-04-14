@@ -34,8 +34,6 @@ where
     &menu_item!(app, Id::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
   ]);
 
-  // Not supported on Linux.
-  // https://docs.rs/tauri/2.0.0-beta/tauri/menu/struct.SubmenuBuilder.html#method.quit
   if !cfg!(target_os = "linux") {
     menu = menu.separator().quit();
   }

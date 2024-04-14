@@ -67,12 +67,9 @@ pub mod page {
     debug!("changing cover to page {page} for book {book_id}");
 
     async_runtime::spawn(async move {
-      let kotori = app.kotori();
-      let book = Book::find_by_id(book_id)
-        .one(&kotori.db)
+      let book = Book::get_by_id(&app, book_id)
         .await
         .ok()
-        .flatten()
         .and_then(|model| ActiveBook::with_model(&model).ok());
 
       if let Some(book) = book {

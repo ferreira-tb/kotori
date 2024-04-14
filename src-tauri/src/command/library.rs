@@ -1,3 +1,5 @@
+use crate::database::prelude::*;
+use crate::event::Event;
 use crate::{book, library, prelude::*};
 
 #[tauri::command]
@@ -22,6 +24,13 @@ pub async fn remove_book(app: AppHandle, id: i32) -> Result<()> {
   library::remove(&app, id)
     .await
     .inspect_err(|err| error!("{err}"))
+}
+
+#[tauri::command]
+pub async fn request_remove_book(app: AppHandle, id: i32) -> Result<()> {
+  debug!(name = "request_remove_book", book_id = id);
+  let title = Book::get_title(&app, id).await?.to_string();
+  Event::RemoveBookRequested { id, title }.emit(&app)
 }
 
 #[tauri::command]

@@ -10,6 +10,7 @@ export enum Command {
   OpenBookFromDialog = 'open_book_from_dialog',
   RemoveBook = 'remove_book',
   RequestDeletePage = 'request_delete_page',
+  RequestRemoveBook = 'request_remove_book',
   ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   ShowReaderPageContextMenu = 'show_reader_page_context_menu',
   SwitchReaderFocus = 'switch_reader_focus',
@@ -22,8 +23,14 @@ export function requestDeletePage(windowId: Nullish<number>, page: Nullish<numbe
   }
 }
 
-export function showLibraryBookContextMenu(id: number) {
-  invoke(Command.ShowLibraryBookContextMenu, { id }).catch(handleError);
+export function requestRemoveBook(bookId: Nullish<number>) {
+  if (typeof bookId === 'number') {
+    invoke(Command.RequestRemoveBook, { id: bookId }).catch(handleError);
+  }
+}
+
+export function showLibraryBookContextMenu(bookId: number) {
+  invoke(Command.ShowLibraryBookContextMenu, { id: bookId }).catch(handleError);
 }
 
 export function showReaderPageContextMenu(windowId: Nullish<number>, page: Nullish<number>) {
@@ -32,10 +39,10 @@ export function showReaderPageContextMenu(windowId: Nullish<number>, page: Nulli
   }
 }
 
-export function openBook(id: number) {
-  invoke(Command.OpenBook, { id }).catch(handleError);
+export function openBook(bookId: number) {
+  invoke(Command.OpenBook, { id: bookId }).catch(handleError);
 }
 
-export function updateBookRating(id: number, rating: number) {
-  invoke(Command.UpdateBookRating, { id, rating }).catch(handleError);
+export function updateBookRating(bookId: number, rating: number) {
+  invoke(Command.UpdateBookRating, { id: bookId, rating }).catch(handleError);
 }

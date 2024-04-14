@@ -1,5 +1,5 @@
 pub mod book {
-  use crate::book::{ActiveBook, Title};
+  use crate::book::ActiveBook;
   use crate::database::prelude::*;
   use crate::event::Event;
   use crate::menu::prelude::*;
@@ -43,10 +43,9 @@ pub mod book {
 
   pub fn open_book(app: &AppHandle, id: i32) {
     let app = app.clone();
-    info!("opening book {id}");
-
     async_runtime::spawn(async move {
       if let Ok(book) = ActiveBook::from_id(&app, id).await {
+        info!("opening book {id}");
         book
           .open(&app)
           .await
@@ -58,22 +57,10 @@ pub mod book {
 
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
-    info!("removing book {id}");
-
     async_runtime::spawn(async move {
-      let kotori = app.kotori();
-      let book = Book::find_by_id(id)
-        .one(&kotori.db)
-        .await
-        .ok()
-        .flatten()
-        .map(|it| (it.id, Title::try_from(it.path.as_str())));
-
-      if let Some((id, title)) = book {
-        let Ok(title) = title.map(|it| it.to_string()) else {
-          return;
-        };
-
+      if let Ok(title) = Book::get_title(&app, id).await {
+        info!("removing book {id}");
+        let title = title.to_string();
         Event::RemoveBookRequested { id, title }
           .emit(&app)
           .ok();

@@ -60,7 +60,7 @@ pub async fn show_reader_page_context_menu(
   let windows = windows.read().await;
 
   if let Some(reader_window) = windows.get(&window_id) {
-    let book_id = reader_window.book.id_or_try_init(&app).await;
+    let book_id = reader_window.book.id_or_try_init(&app).await.ok();
     let menu = page::build(&app, book_id)?;
     window.on_menu_event(page::on_event(&app, window_id, book_id, page));
 

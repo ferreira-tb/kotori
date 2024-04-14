@@ -45,9 +45,9 @@ pub async fn get_all(app: &AppHandle) -> Result<Json> {
   let tasks = books.into_iter().map(|model| {
     let app = app.clone();
     async_runtime::spawn(async move {
-      remove_if_not_exists(&app, model.id, &model.path)
-        .await
-        .ok()?;
+      if let Ok(false) = exists_or_remove(&app, model.id, &model.path).await {
+        return None;
+      }
 
       let json = LibraryBook(&app, &model).into_json().await;
       if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
@@ -85,12 +85,13 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
-async fn remove_if_not_exists(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> Result<()> {
+async fn exists_or_remove(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> Result<bool> {
   if let Ok(false) = fs::try_exists(path).await {
     remove(app, id).await?;
+    return Ok(false);
   }
 
-  Ok(())
+  Ok(true)
 }
 
 async fn save(app: &AppHandle, path: &Path) -> Result<()> {

@@ -36,11 +36,8 @@ impl ActiveBook {
   }
 
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
-    let kotori = app.kotori();
-    Book::find_by_id(id)
-      .one(&kotori.db)
-      .await?
-      .ok_or_else(|| err!(BookNotFound))
+    Book::get_by_id(app, id)
+      .await
       .and_then(|model| Self::with_model(&model))
   }
 
@@ -55,13 +52,13 @@ impl ActiveBook {
     self.id.get().copied()
   }
 
-  pub async fn id_or_try_init(&self, app: &AppHandle) -> Option<i32> {
+  pub async fn id_or_try_init(&self, app: &AppHandle) -> Result<i32> {
     let id = self.id.get_or_try_init(|| async {
-      let model = Book::find_by_path(app, &self.path).await?;
+      let model = Book::get_by_path(app, &self.path).await?;
       Ok::<i32, Error>(model.id)
     });
 
-    id.await.ok().copied()
+    id.await.copied()
   }
 
   async fn handle_or_try_init(&self) -> Result<&Handle> {
@@ -90,17 +87,8 @@ impl ActiveBook {
   }
 
   async fn model(&self, app: &AppHandle) -> Result<BookModel> {
-    if let Some(id) = self.id() {
-      let kotori = app.kotori();
-      return Book::find_by_id(id)
-        .one(&kotori.db)
-        .await?
-        .ok_or_else(|| err!(BookNotFound));
-    }
-
-    let model = Book::find_by_path(app, &self.path).await?;
-    self.id.set(model.id).ok();
-    Ok(model)
+    let id = self.id_or_try_init(app).await?;
+    Book::get_by_id(app, id).await
   }
 
   pub async fn open(self, app: &AppHandle) -> Result<()> {
@@ -137,11 +125,7 @@ impl ActiveBook {
   }
 
   pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
-    let id = self
-      .id_or_try_init(app)
-      .await
-      .ok_or_else(|| err!(BookNotFound))?;
-
+    let id = self.id_or_try_init(app).await?;
     let path = Cover::path(app, id)?;
     if fs::try_exists(&path).await? {
       return Ok(path.into());
@@ -159,12 +143,9 @@ impl ActiveBook {
       }
     };
 
+    let id = self.id_or_try_init(app).await?;
     let name = self.get_first_page_name().await?;
-    let mut model: BookActiveModel = model.into();
-    model.cover = Set(Some(name.to_owned()));
-
-    let kotori = app.kotori();
-    model.update(&kotori.db).await?;
+    Book::update_cover(app, id, Some(name)).await?;
 
     Ok(name.to_owned())
   }
@@ -188,10 +169,9 @@ impl ActiveBook {
       let format = ImageFormat::from_path(name)?;
       Cover::resize(page, format, &path).await?;
 
-      if let Some(id) = self.id_or_try_init(&app).await {
-        let event = Event::CoverExtracted { id, path };
-        event.emit(&app)?;
-      }
+      let id = self.id_or_try_init(&app).await?;
+      let event = Event::CoverExtracted { id, path };
+      event.emit(&app)?;
 
       Ok::<(), Error>(())
     });
@@ -199,16 +179,11 @@ impl ActiveBook {
 
   /// Set the specified page as the book cover.
   pub async fn update_cover(self, app: &AppHandle, page: usize) -> Result<()> {
+    let id = self.id_or_try_init(app).await?;
     let name = self.get_page_name(page).await?;
-    let model = self.model(app).await?;
+    Book::update_cover(app, id, Some(name)).await?;
 
-    let mut model: BookActiveModel = model.into();
-    model.cover = Set(Some(name.to_owned()));
-
-    let kotori = app.kotori();
-    let model = model.update(&kotori.db).await?;
-
-    if let Ok(cover) = Cover::path(app, model.id) {
+    if let Ok(cover) = Cover::path(app, id) {
       self.extract_cover(app, cover);
     }
 
@@ -227,9 +202,9 @@ impl ActiveBook {
       .await?;
 
     // Next steps are exclusive to books in the library.
-    if let Some(id) = self.id_or_try_init(app).await {
+    if let Ok(id) = self.id_or_try_init(app).await {
       info!("page {page} deleted from book {id}");
-      
+
       if pages.is_empty() {
         info!("book {id} is empty, removing from library");
         return library::remove(app, id).await;
@@ -241,14 +216,9 @@ impl ActiveBook {
       let cover = self.get_cover_name(app).await?;
       if cover == name {
         info!("book {id} had its cover deleted, resetting");
-        let model = self.model(app).await?;
-        let mut model: BookActiveModel = model.into();
-        model.cover = Set(None);
+        Book::update_cover(app, id, None::<&str>).await?;
 
-        let kotori = app.kotori();
-        let model = model.update(&kotori.db).await?;
-
-        if let Ok(cover) = Cover::path(app, model.id) {
+        if let Ok(cover) = Cover::path(app, id) {
           self.reload_pages().await?;
           self.extract_cover(app, cover);
         }

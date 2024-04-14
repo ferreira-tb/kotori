@@ -50,6 +50,7 @@ fn main() {
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
       command::library::remove_book,
+      command::library::request_remove_book,
       command::library::show_library_book_context_menu,
       command::library::update_book_rating,
       command::reader::delete_book_page,

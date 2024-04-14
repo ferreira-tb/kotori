@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { requestRemoveBook } from '@/utils/commands';
 import { symbols } from '../utils/symbols';
 import { useLibraryStore } from '../stores';
 import BookGrid from '../components/BookGrid.vue';
@@ -20,12 +21,16 @@ const preview = ref<Nullish<LibraryBook>>(null);
 watchEffect(() => {
   if (books.value.every((book) => !book.cover)) {
     preview.value = null;
+  } else if (preview.value && books.value.every(({ id }) => id !== preview.value?.id)) {
+    preview.value = books.value.find((book) => book.cover);
   } else {
     preview.value ??= books.value.find((book) => book.cover);
   }
 });
 
 const contentHeight = injectStrict(symbols.contentHeight);
+
+onKeyDown('Delete', () => requestRemoveBook(preview.value?.id));
 </script>
 
 <template>

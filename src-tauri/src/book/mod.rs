@@ -41,20 +41,8 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
-  if rating > 5 {
-    bail!(InvalidRating);
-  }
-
-  let kotori = app.kotori();
-  let book = Book::find_by_id(id)
-    .one(&kotori.db)
-    .await?
-    .ok_or_else(|| err!(BookNotFound))?;
-
-  let mut book: BookActiveModel = book.into();
-  book.rating = Set(i32::from(rating));
-  book.update(&kotori.db).await?;
-
+  Book::update_rating(app, id, rating).await?;
+  
   let event = Event::RatingUpdated { id, rating };
   event.emit(app)
 }
