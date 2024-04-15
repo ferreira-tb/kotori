@@ -13,7 +13,7 @@ workspace = true
 workspace = true
 
 [build-dependencies.tauri-build]
-version = "2.0.0-beta.11"
+version = "2.0.0-beta.12"
 features = []
 
 [dependencies]
@@ -56,7 +56,7 @@ version = "0.26.2"
 features = ["derive"]
 
 [dependencies.tauri]
-version = "2.0.0-beta.14"
+version = "2.0.0-beta.15"
 features = ["protocol-asset"]
 
 [dependencies.tauri-plugin-http]
