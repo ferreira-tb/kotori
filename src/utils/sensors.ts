@@ -10,6 +10,8 @@ export function disableDefaultSensors() {
 
 export function setGlobalSensors() {
   invokeOnKeyDown('Tab', Command.SwitchReaderFocus);
+  invokeOnKeyDown('F11', Command.ToggleFullscreen);
+
   invokeOnKeyDown('o', Command.OpenBookFromDialog, null, { ctrlKey: true });
   invokeOnKeyDown('A', Command.AddToLibraryFromDialog, null, { ctrlKey: true, shiftKey: true });
 }

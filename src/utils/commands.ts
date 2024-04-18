@@ -1,6 +1,6 @@
 export enum Command {
   AddToLibraryFromDialog = 'add_to_library_from_dialog',
-  CloseCurrentWindow = 'close_current_window',
+  CloseWindow = 'close_window',
   DeleteBookPage = 'delete_book_page',
   FocusMainWindow = 'focus_main_window',
   GetCurrentReaderBook = 'get_current_reader_book',
@@ -14,6 +14,7 @@ export enum Command {
   ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   ShowReaderPageContextMenu = 'show_reader_page_context_menu',
   SwitchReaderFocus = 'switch_reader_focus',
+  ToggleFullscreen = 'toggle_fullscreen',
   UpdateBookRating = 'update_book_rating'
 }
 

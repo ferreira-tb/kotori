@@ -1,4 +1,5 @@
 dist
 target
+pnpm-lock.yaml
 types/auto-imports.d.ts
 types/components.d.ts

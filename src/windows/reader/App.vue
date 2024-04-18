@@ -6,7 +6,7 @@ import Reader from './views/Reader.vue';
 disableDefaultSensors();
 setGlobalSensors();
 
-invokeOnKeyDown('Escape', Command.CloseCurrentWindow);
+invokeOnKeyDown('Escape', Command.CloseWindow);
 invokeOnKeyDown('F1', Command.FocusMainWindow);
 </script>
 
