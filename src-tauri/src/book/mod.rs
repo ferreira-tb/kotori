@@ -42,7 +42,5 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
 
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
   Book::update_rating(app, id, rating).await?;
-  
-  let event = Event::RatingUpdated { id, rating };
-  event.emit(app)
+  Event::RatingUpdated { id, rating }.emit(app)
 }

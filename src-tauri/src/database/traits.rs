@@ -37,14 +37,14 @@ pub trait BookExt {
 
   async fn update_cover<C>(app: &AppHandle, id: i32, cover: Option<C>) -> Result<book::Model>
   where
-    C: AsRef<Path>,
+    C: AsRef<str>,
   {
     let book = Self::get_by_id(app, id).await?;
     let mut book: book::ActiveModel = book.into();
 
     if let Some(cover) = cover {
-      let cover = utils::path::to_str(cover.as_ref())?;
-      book.cover = Set(Some(cover.into()));
+      let cover = cover.as_ref().to_owned();
+      book.cover = Set(Some(cover));
     } else {
       book.cover = Set(None);
     }

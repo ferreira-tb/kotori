@@ -84,14 +84,13 @@ impl Reader {
 
       let pages = window.book.reload_pages().await?;
       if pages.is_empty() {
-        info!("book \"{}\" is now empty, closing window",  window.book.title);
+        info!("book \"{}\" is empty, closing window", window.book.title);
         return window.webview.close().map_err(Into::into);
       }
 
       drop(windows);
 
-      let event = Event::PageDeleted { window_id };
-      event.emit(&self.app)?;
+      Event::PageDeleted { window_id }.emit(&self.app)?;
     }
 
     Ok(())

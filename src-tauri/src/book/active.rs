@@ -170,8 +170,7 @@ impl ActiveBook {
       Cover::resize(page, format, &path).await?;
 
       let id = self.id_or_try_init(&app).await?;
-      let event = Event::CoverExtracted { id, path };
-      event.emit(&app)?;
+      Event::CoverExtracted { id, path }.emit(&app)?;
 
       Ok::<(), Error>(())
     });
