@@ -1,6 +1,5 @@
 pub mod app {
-  use crate::error::Result;
-  use crate::{err, Kotori};
+  use crate::Kotori;
   use tauri::{Manager, Runtime, State, WebviewWindow};
 
   pub trait AppHandleExt<R: Runtime>: Manager<R> {
@@ -8,10 +7,8 @@ pub mod app {
       self.state::<Kotori>()
     }
 
-    fn get_main_window(&self) -> Result<WebviewWindow<R>> {
-      self
-        .get_webview_window("main")
-        .ok_or_else(|| err!(WindowNotFound, "main"))
+    fn get_main_window(&self) -> WebviewWindow<R> {
+      self.get_webview_window("main").unwrap()
     }
   }
 

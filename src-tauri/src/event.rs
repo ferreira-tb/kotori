@@ -18,18 +18,17 @@ impl Event {
   pub fn emit(self, app: &AppHandle) -> Result<()> {
     let event = self.to_string();
 
-    #[allow(clippy::match_same_arms)]
-    match self {
-      Event::DeletePageRequested { window_id, .. } => {
-        self.emit_to_reader(app, &event, window_id)?;
-      }
-      Event::PageDeleted { window_id, .. } => {
-        self.emit_to_reader(app, &event, window_id)?;
-      }
-      _ => self.emit_to_main(app, &event)?,
-    };
+    macro_rules! to_reader {
+      ($id:expr) => {{
+        self.emit_to_reader(app, &event, $id)
+      }};
+    }
 
-    Ok(())
+    match self {
+      Event::DeletePageRequested { window_id, .. } => to_reader!(window_id),
+      Event::PageDeleted { window_id, .. } => to_reader!(window_id),
+      _ => self.emit_to_main(app, &event),
+    }
   }
 
   fn emit_to_main(self, app: &AppHandle, event: &str) -> Result<()> {
@@ -49,7 +48,6 @@ impl Event {
 
 impl From<Event> for Json {
   fn from(event: Event) -> Self {
-    #[allow(clippy::match_same_arms)]
     match event {
       Event::BookAdded(value) => value,
       Event::BookRemoved(id) => json!({ "id": id }),

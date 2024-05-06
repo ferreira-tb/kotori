@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! menu_item {
   ($app:expr, $id:expr, $text:expr) => {{

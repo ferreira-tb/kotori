@@ -22,6 +22,6 @@ const store = useReaderStore();
 const { windowId } = storeToRefs(store);
 
 until(windowId)
-  .toMatch((id) => typeof id === 'number', { timeout: 5000, throwOnTimeout: true })
+  .toMatch((id) => typeof id === 'number')
   .then(() => app.mount('#app'))
   .catch(handleError);

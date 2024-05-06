@@ -13,6 +13,7 @@ export enum Command {
   RequestRemoveBook = 'request_remove_book',
   ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   ShowReaderPageContextMenu = 'show_reader_page_context_menu',
+  ShowWindow = 'show_window',
   SwitchReaderFocus = 'switch_reader_focus',
   ToggleFullscreen = 'toggle_fullscreen',
   UpdateBookRating = 'update_book_rating'
@@ -38,6 +39,10 @@ export function showReaderPageContextMenu(windowId: Nullish<number>, page: Nulli
   if (typeof windowId === 'number' && typeof page === 'number') {
     invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
   }
+}
+
+export async function showWindow() {
+  await invoke(Command.ShowWindow);
 }
 
 export function openBook(bookId: number) {

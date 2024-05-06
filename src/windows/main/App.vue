@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { toPixel } from '@tb-dev/utils';
+import { showWindow } from '@/utils/commands';
 import type { MenuItem } from 'primevue/menuitem';
 import { disableDefaultSensors, setGlobalSensors } from '@/utils/sensors';
 import { RouteName } from './router';
@@ -24,6 +25,8 @@ const menuItems: MenuItem[] = [
 
 disableDefaultSensors();
 setGlobalSensors();
+
+onMounted(() => showWindow().catch(handleError));
 </script>
 
 <template>

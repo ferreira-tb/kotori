@@ -67,7 +67,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Json> {
   let books = join_all(tasks)
     .await
     .into_iter()
-    .filter_map(std::result::Result::unwrap_or_default)
+    .filter_map(|it| it.unwrap_or(None))
     .collect_vec();
 
   Ok(Json::Array(books))
@@ -97,19 +97,17 @@ async fn exists_or_remove(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> R
 async fn save(app: &AppHandle, path: &Path) -> Result<()> {
   let path = utils::path::to_string(path)?;
   let model = BookActiveModel {
-    id: NotSet,
     path: Set(path),
-    rating: NotSet,
-    cover: NotSet,
+    ..Default::default()
   };
-
-  let on_conflict = OnConflict::column(BookColumn::Path)
-    .do_nothing()
-    .to_owned();
 
   let kotori = app.kotori();
   let book = Book::insert(model)
-    .on_conflict(on_conflict)
+    .on_conflict(
+      OnConflict::column(BookColumn::Path)
+        .do_nothing()
+        .to_owned(),
+    )
     .exec_with_returning(&kotori.db)
     .await?;
 

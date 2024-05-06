@@ -6,5 +6,5 @@ pub use super::entities::book::{
 };
 
 pub use sea_orm::sea_query::OnConflict;
-pub use sea_orm::ActiveValue::{NotSet, Set};
+pub use sea_orm::ActiveValue::Set;
 pub use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait};

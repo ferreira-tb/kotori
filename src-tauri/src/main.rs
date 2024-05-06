@@ -20,6 +20,7 @@ use sea_orm::DatabaseConnection;
 use std::sync::OnceLock;
 use tauri::async_runtime::RwLock;
 use tauri::{App, AppHandle, Manager, WindowEvent};
+use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling;
 use tracing_subscriber::fmt::time::ChronoLocal;
@@ -46,11 +47,11 @@ fn main() {
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_shell::init())
-    .plugin(tauri_plugin_window_state::Builder::default().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
       command::focus_main_window,
+      command::show_window,
       command::toggle_fullscreen,
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
@@ -82,7 +83,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(kotori);
 
-  let main_window = handle.get_main_window()?;
+  let main_window = handle.get_main_window();
   main_window.set_menu(menu::main::build(handle)?)?;
   main_window.on_menu_event(menu::main::on_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
@@ -99,7 +100,7 @@ fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
     .add_directive("kotori=trace".parse()?);
 
   let path = app.path().app_log_dir()?;
-  let appender = rolling::daily(path, "kotori.log");
+  let appender = rolling::never(path, "kotori.log");
   let (file_writer, guard) = tracing_appender::non_blocking(appender);
   TRACING_GUARD.set(guard).unwrap();
 
@@ -128,6 +129,7 @@ fn on_main_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
   let app = app.clone();
   move |event| {
     if matches!(event, WindowEvent::Destroyed) {
+      info!("main window destroyed, exiting");
       app.cleanup_before_exit();
       app.exit(0);
     }

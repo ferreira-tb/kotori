@@ -141,7 +141,7 @@ impl Reader {
   }
 
   pub async fn switch_focus(&self) -> Result<()> {
-    let main_window = self.app.get_main_window()?;
+    let main_window = self.app.get_main_window();
     if main_window.is_focused().unwrap_or(false) {
       let windows = self.windows.read().await;
       if let Some((_, window)) = windows.first() {
