@@ -23,8 +23,12 @@ use tauri::{App, AppHandle, Manager, WindowEvent};
 use tracing_appender::non_blocking::WorkerGuard;
 use tracing_appender::rolling;
 use tracing_subscriber::fmt::time::ChronoLocal;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::fmt::writer::MakeWriterExt;
+use tracing_subscriber::fmt::Layer;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::{EnvFilter, Registry};
 use utils::app::AppHandleExt;
+use utils::date::TIMESTAMP;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -90,22 +94,32 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
-  let level = if tauri::dev() { "trace" } else { "warn" };
   let filter = EnvFilter::builder()
     .from_env()?
-    .add_directive(format!("kotori={level}").parse()?);
+    .add_directive("kotori=trace".parse()?);
 
   let path = app.path().app_log_dir()?;
   let appender = rolling::daily(path, "kotori.log");
-  let (writer, guard) = tracing_appender::non_blocking(appender);
+  let (file_writer, guard) = tracing_appender::non_blocking(appender);
   TRACING_GUARD.set(guard).unwrap();
 
-  tracing_subscriber::fmt()
+  let file_layer = Layer::default()
     .with_ansi(false)
-    .with_env_filter(filter)
-    .with_timer(ChronoLocal::new("%F %T%.3f %:z".into()))
-    .with_writer(writer)
-    .init();
+    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+    .with_writer(file_writer.with_max_level(tracing::Level::WARN));
+
+  let stderr_layer = Layer::default()
+    .with_ansi(true)
+    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+    .with_writer(std::io::stderr)
+    .pretty();
+
+  let subscriber = Registry::default()
+    .with(file_layer)
+    .with(stderr_layer)
+    .with(filter);
+
+  tracing::subscriber::set_global_default(subscriber)?;
 
   Ok(())
 }

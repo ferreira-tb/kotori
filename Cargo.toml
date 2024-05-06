@@ -9,7 +9,7 @@ repository = "https://github.com/ferreira-tb/kotori"
 authors = ["Andrew Ferreira <andrew.shien2@gmail.com>"]
 license = "MIT"
 edition = "2021"
-rust-version = "1.77"
+rust-version = "1.78"
 publish = false
 
 [workspace.lints.clippy]
@@ -18,6 +18,7 @@ filetype_is_file = "deny"
 missing_errors_doc = "allow"
 missing_panics_doc = "allow"
 module_name_repetitions = "allow"
+must_use_candidate = "allow"
 rc_buffer = "deny"
 rc_mutex = "deny"
 rest_pat_in_fully_bound_structs = "deny"

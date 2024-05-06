@@ -14,6 +14,9 @@ importers:
       '@tauri-apps/plugin-http':
         specifier: ^2.0.0-beta.3
         version: 2.0.0-beta.3
+      '@tb-dev/utility-types':
+        specifier: ^1.2.7
+        version: 1.2.7
       '@tb-dev/utils':
         specifier: ^1.6.0
         version: 1.6.0
@@ -32,6 +35,9 @@ importers:
       pinia:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.4.5)(vue@3.4.26(typescript@5.4.5))
+      primeicons:
+        specifier: ^7.0.0
+        version: 7.0.0
       primevue:
         specifier: ^3.52.0
         version: 3.52.0(vue@3.4.26(typescript@5.4.5))
@@ -48,9 +54,6 @@ importers:
       '@tb-dev/eslint-config':
         specifier: ^3.4.3
         version: 3.4.3(eslint@8.57.0)(typescript@5.4.5)
-      '@tb-dev/utility-types':
-        specifier: ^1.2.7
-        version: 1.2.7
       '@tb-dev/vue-import-config':
         specifier: ^1.2.1
         version: 1.2.1(unplugin-vue-components@0.27.0(@babel/parser@7.24.4)(rollup@4.14.3)(vue@3.4.26(typescript@5.4.5)))
@@ -1959,6 +1962,9 @@ packages:
     resolution: {integrity: sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==}
     engines: {node: '>=14'}
     hasBin: true
+
+  primeicons@7.0.0:
+    resolution: {integrity: sha512-jK3Et9UzwzTsd6tzl2RmwrVY/b8raJ3QZLzoDACj+oTJ0oX7L9Hy+XnVwgo4QVKlKpnP/Ur13SXV/pVh4LzaDw==}
 
   primevue@3.52.0:
     resolution: {integrity: sha512-HLOVP5YI0ArFKUhIyfZsWmTNMaBYNCBWC/3DYvdd/Po4LY5/WXf7yIYvArE2q/3OuwSXJXvjlR8UNQeJYRSQog==}
@@ -4268,6 +4274,8 @@ snapshots:
       prettier-plugin-css-order: 2.1.2(postcss@8.4.38)(prettier@3.2.5)
 
   prettier@3.2.5: {}
+
+  primeicons@7.0.0: {}
 
   primevue@3.52.0(vue@3.4.26(typescript@5.4.5)):
     dependencies:

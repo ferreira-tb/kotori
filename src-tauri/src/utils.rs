@@ -26,6 +26,11 @@ pub mod collections {
   pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
 }
 
+pub mod date {
+  /// <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
+  pub const TIMESTAMP: &str = "%F %T%.3f %:z";
+}
+
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
 

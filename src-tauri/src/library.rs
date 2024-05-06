@@ -3,7 +3,7 @@ use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::{self, glob};
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
+use tauri_plugin_dialog::FileDialogBuilder;
 use walkdir::WalkDir;
 
 pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {

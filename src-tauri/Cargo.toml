@@ -20,6 +20,7 @@ features = []
 ahash = "0.8.11"
 anyhow = "1.0.82"
 axum = "0.7.5"
+chrono = "0.4.38"
 futures = "0.3.30"
 globset = "0.4.14"
 image = "0.25.1"

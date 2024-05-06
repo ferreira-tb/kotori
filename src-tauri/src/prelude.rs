@@ -10,6 +10,7 @@ pub use std::thread;
 pub use tauri::async_runtime::{self, block_on, spawn_blocking, Mutex, RwLock};
 pub use tauri::menu::ContextMenu;
 pub use tauri::{AppHandle, Manager, Runtime, WebviewWindow, Window};
+pub use tauri_plugin_dialog::DialogExt;
 pub use tokio::fs;
 pub use tokio::sync::{oneshot, OnceCell};
 pub use tracing::{debug, error, info};
