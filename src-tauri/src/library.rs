@@ -40,29 +40,31 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
 
 pub async fn get_all(app: &AppHandle) -> Result<Json> {
   let kotori = app.kotori();
-  let books = Book::find().all(&kotori.db).await?;
-
-  let tasks = books.into_iter().map(|model| {
-    let app = app.clone();
-    async_runtime::spawn(async move {
-      if let Ok(false) = exists_or_remove(&app, model.id, &model.path).await {
-        return None;
-      }
-
-      let json = LibraryBook(&app, &model).into_json().await;
-      if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
-        let Ok(book) = ActiveBook::with_model(&model) else {
-          return json.ok();
-        };
-
-        if let Ok(cover) = Cover::path(&app, model.id) {
-          book.extract_cover(&app, cover);
+  let tasks = Book::find()
+    .all(&kotori.db)
+    .await?
+    .into_iter()
+    .map(|model| {
+      let app = app.clone();
+      async_runtime::spawn(async move {
+        if let Ok(false) = exists_or_remove(&app, model.id, &model.path).await {
+          return None;
         }
-      }
 
-      json.ok()
-    })
-  });
+        let json = LibraryBook(&app, &model).into_json().await;
+        if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
+          let Ok(book) = ActiveBook::with_model(&model) else {
+            return json.ok();
+          };
+
+          if let Ok(cover) = Cover::path(&app, model.id) {
+            book.extract_cover(&app, cover);
+          }
+        }
+
+        json.ok()
+      })
+    });
 
   let books = join_all(tasks)
     .await

@@ -41,16 +41,22 @@ impl Reader {
 
     let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
 
+    let label = window::label(window_id);
     let url = utils::window::webview_url("reader");
     let dir = utils::window::data_directory(&self.app, format!("reader/{window_id}"))?;
-    let label = window::label(window_id);
+
+    let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
+    trace!(%script);
 
     let webview = WebviewWindowBuilder::new(&self.app, label, url)
+      .initialization_script(&script)
       .data_directory(dir)
       .title(book.title.to_string())
-      .min_inner_size(600.0, 400.0)
-      .maximized(true)
+      .min_inner_size(800.0, 600.0)
       .resizable(true)
+      .maximizable(true)
+      .minimizable(true)
+      .maximized(true)
       .visible(false)
       .build()?;
 

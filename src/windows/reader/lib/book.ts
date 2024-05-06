@@ -1,12 +1,12 @@
 import { Command } from '@/utils/commands';
-import { Page } from '../lib/page';
+import { Page } from './page';
 
 export function useBook() {
   const book = useInvoke<ReaderBook | null>(Command.GetCurrentReaderBook, null);
 
   const pages = ref<Page[]>([]);
   watch(book.state, (value) => {
-    pages.value = value?.pages?.map((id) => new Page(id)) ?? [];
+    pages.value = value?.pages.map((id) => new Page(id)) ?? [];
   });
 
   const currentIndex = ref(0);

@@ -7,7 +7,6 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
-use indoc::formatdoc;
 use tokio::net::TcpListener;
 
 pub fn serve(app: &AppHandle) {

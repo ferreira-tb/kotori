@@ -5,13 +5,13 @@ use crate::prelude::*;
 
 #[tauri::command]
 pub async fn close_window(window: WebviewWindow) -> Result<()> {
-  debug!(name = "close_window");
+  debug!(command = "close_window");
   window.close().map_err(Into::into)
 }
 
 #[tauri::command]
 pub async fn focus_main_window(app: AppHandle) -> Result<()> {
-  debug!(name = "focus_main_window");
+  debug!(command = "focus_main_window");
   app
     .get_main_window()
     .set_focus()
@@ -26,7 +26,7 @@ pub async fn show_window(window: WebviewWindow) -> Result<()> {
 
 #[tauri::command]
 pub async fn toggle_fullscreen(window: WebviewWindow) -> Result<()> {
-  debug!(name = "toggle_fullscreen");
+  debug!(command = "toggle_fullscreen");
   let is_fullscreen = window.is_fullscreen()?;
   window
     .set_fullscreen(!is_fullscreen)

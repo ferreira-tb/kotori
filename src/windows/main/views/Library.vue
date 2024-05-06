@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { requestRemoveBook } from '@/utils/commands';
+import { RouteName } from '../router';
 import { symbols } from '../utils/symbols';
 import { useLibraryStore } from '../stores';
 import BookGrid from '../components/BookGrid.vue';
@@ -9,15 +10,10 @@ import DialogRemoveBook from '../components/dialog/RemoveBook.vue';
 const store = useLibraryStore();
 const { books, filter } = storeToRefs(store);
 
-const filtered = computed(() => {
-  const lowercase = filter.value.toLowerCase();
-  return store.books.filter((book) => {
-    if (!book.cover) return false;
-    return book.title.toLowerCase().includes(lowercase);
-  });
-});
-
+const route = useRoute();
 const preview = ref<Nullish<LibraryBook>>(null);
+const contentHeight = injectStrict(symbols.contentHeight);
+
 watchEffect(() => {
   if (books.value.every((book) => !book.cover)) {
     preview.value = null;
@@ -28,22 +24,25 @@ watchEffect(() => {
   }
 });
 
-const contentHeight = injectStrict(symbols.contentHeight);
-
 onKeyDown('Delete', () => requestRemoveBook(preview.value?.id));
 </script>
 
 <template>
+  <teleport v-if="route.name === RouteName.Library" to="#kt-menubar-end">
+    <div>
+      <p-icon-field icon-position="left">
+        <p-input-icon class="pi pi-search" />
+        <p-input-text v-model="filter" size="small" placeholder="Search" spellcheck="false" />
+      </p-icon-field>
+    </div>
+  </teleport>
+
   <div class="size-full select-none">
-    <!-- We use `books` instead of `filtered` to show the preview even when the filter hides all books -->
     <div v-if="books.length > 0" class="relative size-full overflow-hidden">
       <!-- Using `key` ensures the preview is updated when the cover changes -->
       <book-preview v-if="preview && preview.cover" :key="preview.cover" :book="preview" />
-      <div
-        v-if="filtered.length > 0"
-        class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2"
-      >
-        <book-grid :books="filtered" @select="(book) => (preview = book)" />
+      <div class="absolute bottom-0 left-60 top-0 overflow-y-auto overflow-x-hidden px-2 pb-2">
+        <book-grid @select="(book) => (preview = book)" />
       </div>
     </div>
 
@@ -52,7 +51,7 @@ onKeyDown('Delete', () => requestRemoveBook(preview.value?.id));
 </template>
 
 <style scoped>
-div:has(> .book-grid) {
+div:has(> #kt-book-grid) {
   height: v-bind('contentHeight');
 }
 </style>

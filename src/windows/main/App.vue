@@ -5,10 +5,6 @@ import type { MenuItem } from 'primevue/menuitem';
 import { disableDefaultSensors, setGlobalSensors } from '@/utils/sensors';
 import { RouteName } from './router';
 import { symbols } from './utils/symbols';
-import LibraryMenu from './components/LibraryMenu.vue';
-
-const route = useRoute();
-const router = useRouter();
 
 const menubar = shallowRef<HTMLElement | null>(null);
 const { height: menubarHeight } = useElementSize(menubar);
@@ -17,6 +13,7 @@ const { height: windowHeight } = useWindowSize();
 const contentHeight = computed(() => toPixel(windowHeight.value - menubarHeight.value));
 provide(symbols.contentHeight, contentHeight);
 
+const router = useRouter();
 const menuItems: MenuItem[] = [
   { label: 'Library', command: () => void router.push({ name: RouteName.Library }) },
   { label: 'Collection', command: () => void router.push({ name: RouteName.Collection }) },
@@ -34,12 +31,12 @@ onMounted(() => showWindow().catch(handleError));
     <div ref="menubar" class="absolute inset-x-0 top-0">
       <p-menubar :model="menuItems" class="rounded-none border-none">
         <template #end>
-          <library-menu v-if="route.name === RouteName.Library" />
+          <div id="kt-menubar-end"></div>
         </template>
       </p-menubar>
     </div>
 
-    <div id="app-content">
+    <div v-if="menubar" id="kt-content">
       <router-view #default="{ Component }">
         <template v-if="Component">
           <component :is="Component" />
@@ -50,7 +47,7 @@ onMounted(() => showWindow().catch(handleError));
 </template>
 
 <style scoped>
-#app-content {
+#kt-content {
   position: relative;
   top: v-bind('toPixel(menubarHeight)');
   padding: 0 0.5rem 0.5rem;

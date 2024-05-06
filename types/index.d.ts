@@ -8,7 +8,7 @@ interface LibraryBook {
 
 interface ReaderBook {
   readonly id?: number;
-  readonly pages?: number[];
+  readonly pages: number[];
   readonly path: string;
   readonly title: string;
 }

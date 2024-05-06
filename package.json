@@ -40,7 +40,7 @@
     "@tb-dev/auto-import-config": "^1.6.3",
     "@tb-dev/eslint-config": "^3.4.3",
     "@tb-dev/vue-import-config": "^1.2.1",
-    "@types/node": "^20.12.8",
+    "@types/node": "^20.12.9",
     "@vitejs/plugin-vue": "^5.0.4",
     "autoprefixer": "^10.4.19",
     "eslint": "^8.57.0",

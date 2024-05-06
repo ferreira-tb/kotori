@@ -61,7 +61,6 @@ fn main() {
       command::library::update_book_rating,
       command::reader::delete_book_page,
       command::reader::get_current_reader_book,
-      command::reader::get_current_reader_window_id,
       command::reader::open_book,
       command::reader::open_book_from_dialog,
       command::reader::request_delete_page,

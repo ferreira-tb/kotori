@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { requestDeletePage, showReaderPageContextMenu, showWindow } from '@/utils/commands';
-import { Page } from '../lib/page';
 import { useReaderStore } from '../stores';
+import { Page, READER_WINDOW_ID } from '../lib';
 import DialogDeletePage from '../components/dialog/DeletePage.vue';
 
 const store = useReaderStore();
-const { windowId, pages, current } = storeToRefs(store);
+const { pages, current } = storeToRefs(store);
 
 const dialogDeletePage = ref(false);
 const enableListeners = computed(() => !dialogDeletePage.value);
@@ -29,10 +29,13 @@ useEventListener(globalThis, 'wheel', (event: WheelEvent) => {
 });
 
 function deletePage() {
-  requestDeletePage(windowId.value, current.value?.id);
+  requestDeletePage(READER_WINDOW_ID, current.value?.id);
 }
 
-onMounted(() => showWindow().catch(handleError));
+onMounted(() => {
+  until(current).toBeTruthy().then(showWindow).catch(handleError);
+});
+
 onUnmounted(() => Page.revokeAll());
 </script>
 
@@ -47,7 +50,7 @@ onUnmounted(() => Page.revokeAll());
           v-if="current.status === 'done' && current.url"
           :src="current.url"
           class="size-full object-scale-down"
-          @contextmenu="showReaderPageContextMenu(store.windowId, current?.id)"
+          @contextmenu="showReaderPageContextMenu(READER_WINDOW_ID, current?.id)"
         />
         <p-progress-spinner
           v-else-if="current.status === 'pending'"

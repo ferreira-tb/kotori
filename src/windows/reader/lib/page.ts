@@ -1,5 +1,6 @@
 import { getBookPage } from '@/utils/server';
 import { useReaderStore } from '../stores';
+import { READER_WINDOW_ID } from './global';
 
 export class Page {
   public status: ReaderBookStatus = 'not started';
@@ -14,13 +15,7 @@ export class Page {
     try {
       if (this.status !== 'not started') return;
       this.status = 'pending';
-
-      const { windowId } = useReaderStore();
-      if (typeof windowId !== 'number') {
-        throw new TypeError('window id is not available');
-      }
-
-      const blob = await getBookPage(windowId, this.id);
+      const blob = await getBookPage(READER_WINDOW_ID, this.id);
       this.url = URL.createObjectURL(blob);
       this.status = 'done';
     } catch (err) {

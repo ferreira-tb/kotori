@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia';
-import { Command } from '@/utils/commands';
 import { useBook } from '../lib';
 
 export const useReaderStore = defineStore('reader', () => {
   const { pages, ...book } = useBook();
-  const windowId = useInvoke<number | null>(Command.GetCurrentReaderWindowId, null);
 
   function findNextIndex(current: number, step: number) {
     const index = pages.value.findIndex(({ id }) => id === current);
@@ -17,7 +15,6 @@ export const useReaderStore = defineStore('reader', () => {
   }
 
   return {
-    windowId: windowId.state,
     pages,
     current: book.current,
     findNextIndex,

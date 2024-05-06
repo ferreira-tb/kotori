@@ -1,4 +1,5 @@
 import 'primevue/resources/themes/aura-dark-noir/theme.css';
+import 'primeicons/primeicons.css';
 import '@/assets/style.css';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';

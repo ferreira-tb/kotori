@@ -4,7 +4,6 @@ export enum Command {
   DeleteBookPage = 'delete_book_page',
   FocusMainWindow = 'focus_main_window',
   GetCurrentReaderBook = 'get_current_reader_book',
-  GetCurrentReaderWindowId = 'get_current_reader_window_id',
   GetLibraryBooks = 'get_library_books',
   OpenBook = 'open_book',
   OpenBookFromDialog = 'open_book_from_dialog',
@@ -19,8 +18,8 @@ export enum Command {
   UpdateBookRating = 'update_book_rating'
 }
 
-export function requestDeletePage(windowId: Nullish<number>, page: Nullish<number>) {
-  if (typeof windowId === 'number' && typeof page === 'number') {
+export function requestDeletePage(windowId: number, page: Nullish<number>) {
+  if (typeof page === 'number') {
     invoke(Command.RequestDeletePage, { windowId, page }).catch(handleError);
   }
 }
@@ -35,8 +34,8 @@ export function showLibraryBookContextMenu(bookId: number) {
   invoke(Command.ShowLibraryBookContextMenu, { id: bookId }).catch(handleError);
 }
 
-export function showReaderPageContextMenu(windowId: Nullish<number>, page: Nullish<number>) {
-  if (typeof windowId === 'number' && typeof page === 'number') {
+export function showReaderPageContextMenu(windowId: number, page: Nullish<number>) {
+  if (typeof page === 'number') {
     invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
   }
 }
