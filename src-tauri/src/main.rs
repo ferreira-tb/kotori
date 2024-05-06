@@ -78,10 +78,8 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(kotori);
 
-  let menu = menu::main::build(handle)?;
   let main_window = handle.get_main_window()?;
-  main_window.set_menu(menu)?;
-
+  main_window.set_menu(menu::main::build(handle)?)?;
   main_window.on_menu_event(menu::main::on_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
 
@@ -99,14 +97,14 @@ fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
 
   let path = app.path().app_log_dir()?;
   let appender = rolling::daily(path, "kotori.log");
-  let (non_blocking, guard) = tracing_appender::non_blocking(appender);
+  let (writer, guard) = tracing_appender::non_blocking(appender);
   TRACING_GUARD.set(guard).unwrap();
 
   tracing_subscriber::fmt()
     .with_ansi(false)
     .with_env_filter(filter)
     .with_timer(ChronoLocal::new("%F %T%.3f %:z".into()))
-    .with_writer(non_blocking)
+    .with_writer(writer)
     .init();
 
   Ok(())

@@ -6,11 +6,13 @@
     "donjayamanne.githistory",
     "github.vscode-github-actions",
     "github.vscode-pull-request-github",
+    "ms-vscode.vscode-typescript-next",
     "esbenp.prettier-vscode",
     "rust-lang.rust-analyzer",
+    "bradlc.vscode-tailwindcss",
     "tauri-apps.tauri-vscode",
     "vscode-icons-team.vscode-icons",
-    "redhat.vscode-yaml",
-    "bradlc.vscode-tailwindcss"
+    "vue.volar",
+    "redhat.vscode-yaml"
   ]
 }
