@@ -59,14 +59,4 @@ export class Page {
 
     Promise.all(promises).catch(handleError);
   }
-
-  public static revokeAll() {
-    const { pages } = useReaderStore();
-    for (const page of pages) {
-      if (page.url) {
-        URL.revokeObjectURL(page.url);
-        page.url = null;
-      }
-    }
-  }
 }

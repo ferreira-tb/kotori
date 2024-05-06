@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { requestDeletePage, showReaderPageContextMenu, showWindow } from '@/utils/commands';
+import { READER_WINDOW_ID } from '../lib';
 import { useReaderStore } from '../stores';
-import { Page, READER_WINDOW_ID } from '../lib';
 import DialogDeletePage from '../components/dialog/DeletePage.vue';
 
 const store = useReaderStore();
@@ -35,8 +35,6 @@ function deletePage() {
 onMounted(() => {
   until(current).toBeTruthy().then(showWindow).catch(handleError);
 });
-
-onUnmounted(() => Page.revokeAll());
 </script>
 
 <template>
