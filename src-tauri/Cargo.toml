@@ -13,12 +13,12 @@ workspace = true
 workspace = true
 
 [build-dependencies.tauri-build]
-version = "2.0.0-beta.13"
+version = "2.0.0-beta.14"
 features = []
 
 [dependencies]
 ahash = "0.8.11"
-anyhow = "1.0.82"
+anyhow = "1.0.83"
 axum = "0.7.5"
 chrono = "0.4.38"
 futures = "0.3.30"
@@ -29,13 +29,13 @@ indoc = "2.0.5"
 itertools = "0.12.1"
 natord = "1.0.9"
 rayon = "1.10.0"
-serde_json = "1.0.116"
+serde_json = "1.0.117"
 tauri-plugin-dialog = "2.0.0-beta.7"
 tauri-plugin-manatsu = "0.9.9"
 tauri-plugin-persisted-scope = "2.0.0-beta.7"
 tauri-plugin-shell = "2.0.0-beta.4"
 tempfile = "3.10.1"
-thiserror = "1.0.59"
+thiserror = "1.0.60"
 walkdir = "2.5.0"
 zip = "0.6.6"
 
@@ -48,7 +48,7 @@ version = "0.12.15"
 features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
 [dependencies.serde]
-version = "1.0.200"
+version = "1.0.201"
 features = ["derive"]
 
 [dependencies.strum]
@@ -56,7 +56,7 @@ version = "0.26.2"
 features = ["derive"]
 
 [dependencies.tauri]
-version = "2.0.0-beta.17"
+version = "2.0.0-beta.18"
 features = ["protocol-asset"]
 
 [dependencies.tauri-plugin-http]
