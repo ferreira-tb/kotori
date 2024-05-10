@@ -1,19 +1,21 @@
 use crate::book::{self, ActiveBook};
-use crate::event::Event;
 use crate::{prelude::*, reader};
 
 #[tauri::command]
-pub async fn delete_book_page(app: AppHandle, webview: WebviewWindow, page: usize) -> Result<()> {
+pub async fn delete_page_with_dialog(
+  app: AppHandle,
+  webview: WebviewWindow,
+  page: usize,
+) -> Result<()> {
   let label = webview.label();
-  debug!(command = "delete_book_page", window = label, page);
+  debug!(command = "delete_page", window = label, page);
   let window_id = reader::get_window_id(&app, label).await?;
 
   let kotori = app.kotori();
-  let reader = kotori.reader.read().await;
-  reader
-    .delete_book_page(window_id, page)
+  kotori
+    .reader
+    .delete_page_with_dialog(window_id, page)
     .await
-    .inspect_err(|err| error!("{err}"))
 }
 
 #[tauri::command]
@@ -23,18 +25,11 @@ pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> 
   let window_id = reader::get_window_id(&app, label).await?;
 
   let kotori = app.kotori();
-  let reader = kotori.reader.read().await;
-  reader
+  kotori
+    .reader
     .get_book_as_json(window_id)
     .await
     .ok_or_else(|| err!(BookNotFound))
-    .inspect_err(|err| error!("{err}"))
-}
-
-#[tauri::command]
-pub async fn request_delete_page(app: AppHandle, window_id: u16, page: usize) -> Result<()> {
-  debug!(command = "request_delete_page", window_id, page);
-  Event::DeletePageRequested { window_id, page }.emit(&app)
 }
 
 #[tauri::command]
@@ -45,6 +40,7 @@ pub async fn show_reader_page_context_menu(
   page: usize,
 ) -> Result<()> {
   use crate::menu::context::reader::page;
+  use tauri::menu::ContextMenu;
 
   debug!(command = "show_reader_page_context_menu", window_id, page);
   let windows = reader::get_windows(&app).await;
@@ -65,27 +61,18 @@ pub async fn show_reader_page_context_menu(
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
   debug!(command = "switch_reader_focus");
   let kotori = app.kotori();
-  let reader = kotori.reader.read().await;
-  reader
-    .switch_focus()
-    .await
-    .inspect_err(|err| error!("{err}"))
+  kotori.reader.switch_focus().await
 }
 
 #[tauri::command]
 pub async fn open_book(app: AppHandle, id: i32) -> Result<()> {
   debug!(command = "open_book", book_id = id);
   let book = ActiveBook::from_id(&app, id).await?;
-  book
-    .open(&app)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  book.open(&app).await
 }
 
 #[tauri::command]
 pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
   debug!(command = "open_book_from_dialog");
-  book::open_from_dialog(&app)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  book::open_from_dialog(&app).await
 }

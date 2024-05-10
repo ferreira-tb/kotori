@@ -1,18 +1,4 @@
 {
-  "vsicons.associations.folders": [
-    {
-      "icon": "theme",
-      "extensions": ["composables"],
-      "format": "svg"
-    },
-    {
-      "icon": "story",
-      "extensions": ["store", "stores"],
-      "format": "svg"
-    }
-  ],
-  "prettier.requireConfig": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
@@ -22,10 +8,31 @@
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "files.exclude": {
-    ".eslintcache": true,
-    ".stylelintcache": true
-  },
   "conventionalCommits.promptScopes": false,
-  "rust-analyzer.showUnlinkedFileNotification": false
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "eslint.codeActionsOnSave.mode": "problems",
+  "eslint.useFlatConfig": true,
+  "files.exclude": {
+    ".eslintcache": true
+  },
+  "logViewer.logLevel": "trace",
+  "logViewer.watch": [".temp/*.log"],
+  "prettier.requireConfig": true,
+  "rust-analyzer.showUnlinkedFileNotification": false,
+  "vsicons.associations.folders": [
+    {
+      "extensions": ["composables"],
+      "format": "svg",
+      "icon": "theme"
+    },
+    {
+      "extensions": ["store", "stores"],
+      "format": "svg",
+      "icon": "story"
+    }
+  ]
 }

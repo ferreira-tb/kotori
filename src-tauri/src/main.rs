@@ -17,36 +17,87 @@ mod utils;
 use error::BoxResult;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use std::sync::OnceLock;
-use tauri::async_runtime::RwLock;
 use tauri::{App, AppHandle, Manager, WindowEvent};
 use tracing::info;
-use tracing_appender::non_blocking::WorkerGuard;
-use tracing_appender::rolling;
-use tracing_subscriber::fmt::time::ChronoLocal;
-use tracing_subscriber::fmt::writer::MakeWriterExt;
-use tracing_subscriber::fmt::Layer;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::{EnvFilter, Registry};
 use utils::app::AppHandleExt;
-use utils::date::TIMESTAMP;
+
+#[cfg(debug_assertions)]
+use std::sync::OnceLock;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
-static TRACING_GUARD: OnceLock<WorkerGuard> = OnceLock::new();
-
 pub struct Kotori {
   pub db: DatabaseConnection,
-  pub reader: RwLock<Reader>,
+  pub reader: Reader,
 }
 
 fn main() {
+  #[cfg(debug_assertions)]
+  let worker = OnceLock::new();
+
+  #[cfg(debug_assertions)]
+  {
+    use tracing_appender::rolling;
+    use tracing_subscriber::fmt::time::ChronoLocal;
+    use tracing_subscriber::fmt::writer::MakeWriterExt;
+    use tracing_subscriber::fmt::Layer;
+    use tracing_subscriber::layer::SubscriberExt;
+    use tracing_subscriber::{EnvFilter, Registry};
+    use utils::date::TIMESTAMP;
+
+    let mut filter = EnvFilter::builder()
+      .from_env()
+      .unwrap()
+      .add_directive("kotori=trace".parse().unwrap())
+      .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
+
+    if cfg!(feature = "tokio-console") {
+      filter = filter
+        .add_directive("tokio=trace".parse().unwrap())
+        .add_directive("runtime=trace".parse().unwrap());
+    }
+
+    let appender = rolling::never("../.temp", "kotori.log");
+    let (writer, guard) = tracing_appender::non_blocking(appender);
+    worker.set(guard).unwrap();
+
+    let file = Layer::default()
+      .with_ansi(false)
+      .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+      .with_writer(writer.with_max_level(tracing::Level::TRACE));
+
+    let stderr = Layer::default()
+      .with_ansi(true)
+      .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+      .with_writer(std::io::stderr)
+      .pretty();
+
+    macro_rules! set_global_default {
+    ($($layer:expr),*) => {
+      let subscriber = Registry::default()$(.with($layer))*.with(filter);
+      tracing::subscriber::set_global_default(subscriber).unwrap();
+    };
+  }
+
+    #[cfg(feature = "tokio-console")]
+    {
+      let console = console_subscriber::spawn();
+      set_global_default!(console, file, stderr);
+    }
+
+    #[cfg(not(feature = "tokio-console"))]
+    {
+      set_global_default!(file, stderr);
+    }
+  }
+
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
     .plugin(tauri_plugin_shell::init())
+    .plugin(tauri_plugin_store::Builder::new().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
@@ -56,14 +107,13 @@ fn main() {
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
       command::library::remove_book,
-      command::library::request_remove_book,
+      command::library::remove_book_with_dialog,
       command::library::show_library_book_context_menu,
       command::library::update_book_rating,
-      command::reader::delete_book_page,
+      command::reader::delete_page_with_dialog,
       command::reader::get_current_reader_book,
       command::reader::open_book,
       command::reader::open_book_from_dialog,
-      command::reader::request_delete_page,
       command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
     ])
@@ -73,11 +123,9 @@ fn main() {
 
 fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
-  setup_tracing(handle)?;
-
   let kotori = Kotori {
     db: database::connect(handle)?,
-    reader: RwLock::new(Reader::new(handle)),
+    reader: Reader::new(handle),
   };
 
   app.manage(kotori);
@@ -89,37 +137,6 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
   server::serve(handle);
-
-  Ok(())
-}
-
-fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
-  let filter = EnvFilter::builder()
-    .from_env()?
-    .add_directive("kotori=trace".parse()?);
-
-  let path = app.path().app_log_dir()?;
-  let appender = rolling::never(path, "kotori.log");
-  let (file_writer, guard) = tracing_appender::non_blocking(appender);
-  TRACING_GUARD.set(guard).unwrap();
-
-  let file_layer = Layer::default()
-    .with_ansi(false)
-    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-    .with_writer(file_writer.with_max_level(tracing::Level::WARN));
-
-  let stderr_layer = Layer::default()
-    .with_ansi(true)
-    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-    .with_writer(std::io::stderr)
-    .pretty();
-
-  let subscriber = Registry::default()
-    .with(file_layer)
-    .with(stderr_layer)
-    .with(filter);
-
-  tracing::subscriber::set_global_default(subscriber)?;
 
   Ok(())
 }

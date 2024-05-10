@@ -13,15 +13,13 @@ pub fn label(window_id: u16) -> String {
 
 pub async fn get_windows(app: &AppHandle) -> WindowMap {
   let kotori = app.kotori();
-  let reader = kotori.reader.read().await;
-  reader.windows()
+  kotori.reader.windows()
 }
 
 pub async fn get_window_id(app: &AppHandle, label: &str) -> Result<u16> {
   let kotori = app.kotori();
-  let reader = kotori.reader.read().await;
-
-  reader
+  kotori
+    .reader
     .get_window_id_by_label(label)
     .await
     .ok_or_else(|| err!(WindowNotFound, "{label}"))

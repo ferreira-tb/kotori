@@ -1,8 +1,8 @@
 import { resolve } from 'node:path';
-import { URL, fileURLToPath } from 'node:url';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import dev from 'vite-plugin-vue-devtools';
+import { URL, fileURLToPath } from 'node:url';
 import autoImport from 'unplugin-auto-import/vite';
 import components from 'unplugin-vue-components/vite';
 import componentsConfig from '@tb-dev/vue-import-config';
@@ -27,7 +27,7 @@ export default defineConfig({
     }
   },
   server: {
-    port: 1422,
+    port: 1420,
     strictPort: true,
     watch: {
       ignored: ['**/src-tauri/**']
@@ -35,7 +35,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    minify: false,
+    minify: true,
     rollupOptions: {
       input: {
         main: entry('main'),

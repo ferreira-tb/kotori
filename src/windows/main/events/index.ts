@@ -1,13 +1,12 @@
 import { handleError } from 'manatsu';
-import { listen } from '@tauri-apps/api/event';
 import { useLibraryStore } from '../stores';
+import { listen } from '@tauri-apps/api/event';
 
 export enum Event {
   BookAdded = 'book_added',
   BookRemoved = 'book_removed',
   CoverExtracted = 'cover_extracted',
-  RatingUpdated = 'rating_updated',
-  RemoveBookRequested = 'remove_book_requested'
+  RatingUpdated = 'rating_updated'
 }
 
 export function setupEventListeners() {

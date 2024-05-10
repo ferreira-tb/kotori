@@ -33,8 +33,11 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
 
   if !books.is_empty() {
     let kotori = app.kotori();
-    let reader = kotori.reader.read().await;
-    return reader.open_many(books).await.map_err(Into::into);
+    return kotori
+      .reader
+      .open_many(books)
+      .await
+      .map_err(Into::into);
   }
 
   Ok(())

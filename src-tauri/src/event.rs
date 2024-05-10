@@ -8,10 +8,8 @@ pub enum Event {
   BookAdded(Json),
   BookRemoved(i32),
   CoverExtracted { id: i32, path: PathBuf },
-  DeletePageRequested { window_id: u16, page: usize },
   PageDeleted { window_id: u16 },
   RatingUpdated { id: i32, rating: u8 },
-  RemoveBookRequested { id: i32, title: String },
 }
 
 impl Event {
@@ -25,7 +23,6 @@ impl Event {
     }
 
     match self {
-      Event::DeletePageRequested { window_id, .. } => to_reader!(window_id),
       Event::PageDeleted { window_id, .. } => to_reader!(window_id),
       _ => self.emit_to_main(app, &event),
     }
@@ -52,10 +49,8 @@ impl From<Event> for Json {
       Event::BookAdded(value) => value,
       Event::BookRemoved(id) => json!({ "id": id }),
       Event::CoverExtracted { id, path } => json!({ "id": id, "path": path }),
-      Event::DeletePageRequested { page, .. } => json!({ "page": page }),
       Event::PageDeleted { .. } => Json::Null,
       Event::RatingUpdated { id, rating } => json!({ "id": id, "rating": rating }),
-      Event::RemoveBookRequested { id, title } => json!({ "id": id, "title": title }),
     }
   }
 }

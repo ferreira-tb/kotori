@@ -1,41 +1,33 @@
-use crate::database::prelude::*;
-use crate::event::Event;
 use crate::{book, library, prelude::*};
 
 #[tauri::command]
 pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
   debug!(command = "add_to_library_from_dialog");
-  library::add_from_dialog(&app)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  library::add_from_dialog(&app).await
 }
 
 #[tauri::command]
 pub async fn get_library_books(app: AppHandle) -> Result<Json> {
   debug!(command = "get_library_books");
-  library::get_all(&app)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  library::get_all(&app).await
 }
 
 #[tauri::command]
 pub async fn remove_book(app: AppHandle, id: i32) -> Result<()> {
-  debug!(command = "remove_book", book_id = id);
-  library::remove(&app, id)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  debug!(command = "remove_book", id);
+  library::remove(&app, id).await
 }
 
 #[tauri::command]
-pub async fn request_remove_book(app: AppHandle, id: i32) -> Result<()> {
-  debug!(command = "request_remove_book", book_id = id);
-  let title = Book::get_title(&app, id).await?.to_string();
-  Event::RemoveBookRequested { id, title }.emit(&app)
+pub async fn remove_book_with_dialog(app: AppHandle, id: i32) -> Result<()> {
+  debug!(command = "remove_book_with_dialog", id);
+  library::remove_with_dialog(&app, id).await
 }
 
 #[tauri::command]
 pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
   use crate::menu::context::library::book;
+  use tauri::menu::ContextMenu;
 
   debug!(command = "show_library_book_context_menu", book_id = id);
   let menu = book::build(&app)?;
@@ -46,7 +38,5 @@ pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: 
 #[tauri::command]
 pub async fn update_book_rating(app: AppHandle, id: i32, rating: u8) -> Result<()> {
   debug!(command = "update_book_rating", book_id = id, rating);
-  book::update_rating(&app, id, rating)
-    .await
-    .inspect_err(|err| error!("{err}"))
+  book::update_rating(&app, id, rating).await
 }

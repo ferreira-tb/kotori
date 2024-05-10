@@ -1,26 +1,21 @@
 <script setup lang="ts">
-import { requestDeletePage, showReaderPageContextMenu, showWindow } from '@/utils/commands';
-import { READER_WINDOW_ID } from '../lib';
 import { useReaderStore } from '../stores';
-import DialogDeletePage from '../components/dialog/DeletePage.vue';
+import { READER_WINDOW_ID } from '../lib/global';
+import { showReaderPageContextMenu, showWindow } from '@/lib/commands';
 
 const store = useReaderStore();
-const { pages, current } = storeToRefs(store);
+const { pages, current, ready } = storeToRefs(store);
 
-const dialogDeletePage = ref(false);
-const enableListeners = computed(() => !dialogDeletePage.value);
-
-onKeyDown('ArrowUp', store.previousPage, { enabled: enableListeners });
-onKeyDown('ArrowLeft', store.previousPage, { enabled: enableListeners });
-onKeyDown('ArrowDown', store.nextPage, { enabled: enableListeners });
-onKeyDown('ArrowRight', store.nextPage, { enabled: enableListeners });
-onKeyDown('Home', store.firstPage, { enabled: enableListeners });
-onKeyDown('End', store.lastPage, { enabled: enableListeners });
-onKeyDown('Delete', deletePage, { enabled: enableListeners });
+onKeyDown('ArrowUp', store.previousPage);
+onKeyDown('ArrowLeft', store.previousPage);
+onKeyDown('ArrowDown', store.nextPage);
+onKeyDown('ArrowRight', store.nextPage);
+onKeyDown('Home', store.firstPage);
+onKeyDown('End', store.lastPage);
+onKeyDown('Delete', () => current.value?.delete());
 
 // This will need to be updated to support scrolling.
-useEventListener(globalThis, 'wheel', (event: WheelEvent) => {
-  if (!enableListeners.value) return;
+useEventListener(window, 'wheel', (event: WheelEvent) => {
   if (event.deltaY < 0) {
     store.previousPage();
   } else {
@@ -28,12 +23,8 @@ useEventListener(globalThis, 'wheel', (event: WheelEvent) => {
   }
 });
 
-function deletePage() {
-  requestDeletePage(READER_WINDOW_ID, current.value?.id);
-}
-
 onMounted(() => {
-  until(current).toBeTruthy().then(showWindow).catch(handleError);
+  until(ready).toBeTruthy().then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 
@@ -57,7 +48,5 @@ onMounted(() => {
         />
       </div>
     </div>
-
-    <dialog-delete-page v-model="dialogDeletePage" />
   </main>
 </template>

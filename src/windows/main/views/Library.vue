@@ -1,30 +1,19 @@
 <script setup lang="ts">
-import { requestRemoveBook } from '@/utils/commands';
 import { RouteName } from '../router';
-import { symbols } from '../utils/symbols';
+import { symbols } from '../lib/symbols';
 import { useLibraryStore } from '../stores';
 import BookGrid from '../components/BookGrid.vue';
+import { removeBook, usePreview } from '../lib/book';
 import BookPreview from '../components/BookPreview.vue';
-import DialogRemoveBook from '../components/dialog/RemoveBook.vue';
 
 const store = useLibraryStore();
 const { books, filter } = storeToRefs(store);
 
 const route = useRoute();
-const preview = ref<Nullish<LibraryBook>>(null);
-const contentHeight = injectStrict(symbols.contentHeight);
+const preview = usePreview();
+const contentHeight = inject(symbols.contentHeight);
 
-watchEffect(() => {
-  if (books.value.every((book) => !book.cover)) {
-    preview.value = null;
-  } else if (preview.value && books.value.every(({ id }) => id !== preview.value?.id)) {
-    preview.value = books.value.find((book) => book.cover);
-  } else {
-    preview.value ??= books.value.find((book) => book.cover);
-  }
-});
-
-onKeyDown('Delete', () => requestRemoveBook(preview.value?.id));
+onKeyDown('Delete', () => removeBook(preview.value?.id));
 </script>
 
 <template>
@@ -45,8 +34,6 @@ onKeyDown('Delete', () => requestRemoveBook(preview.value?.id));
         <book-grid @select="(book) => (preview = book)" />
       </div>
     </div>
-
-    <dialog-remove-book />
   </div>
 </template>
 

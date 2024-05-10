@@ -1,6 +1,7 @@
-import { getBookPage } from '@/utils/server';
 import { useReaderStore } from '../stores';
+import { getBookPage } from '@/lib/server';
 import { READER_WINDOW_ID } from './global';
+import { deletePageWithDialog } from '@/lib/commands';
 
 export class Page {
   public status: ReaderBookStatus = 'not started';
@@ -14,6 +15,7 @@ export class Page {
   public async fetch() {
     try {
       if (this.status !== 'not started') return;
+      console.log('Fetching page', this.id);
       this.status = 'pending';
       const blob = await getBookPage(READER_WINDOW_ID, this.id);
       this.url = URL.createObjectURL(blob);
@@ -34,8 +36,8 @@ export class Page {
     }
 
     if (Page.lookahead > 0) {
-      for (let step = 1; step <= Page.lookahead; step++) {
-        const next = findNextIndex(this.id, step);
+      for (let offset = 1; offset <= Page.lookahead; offset++) {
+        const next = findNextIndex(this.id, offset);
         if (next && next.status === 'not started') {
           promises.push(next.fetch());
         }
@@ -58,5 +60,13 @@ export class Page {
     }
 
     Promise.all(promises).catch(handleError);
+  }
+
+  public async delete() {
+    try {
+      await deletePageWithDialog(this.id);
+    } catch (err) {
+      handleError(err, { dialog: true });
+    }
   }
 }

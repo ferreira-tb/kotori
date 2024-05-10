@@ -10,6 +10,8 @@ pub type JoinResult<T> = JoinHandle<Result<T>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+  #[error("book not found")]
+  BookNotFound,
   #[error("book is empty")]
   EmptyBook,
   #[error("{0}")]
@@ -18,9 +20,6 @@ pub enum Error {
   InvalidPath(String),
   #[error("rating must be an integer between 0 and 5")]
   InvalidRating,
-
-  #[error("book not found")]
-  BookNotFound,
   #[error("page not found")]
   PageNotFound,
   #[error("window not found: {0}")]

@@ -7,6 +7,7 @@ pnpm-debug.log*
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/launch.json
 !.vscode/settings.json
 !.vscode/tasks.json
 
@@ -28,9 +29,10 @@ target/
 **/gen
 
 # Others
-**/*vite*timestamp*
+.temp/
 coverage/
+
+**/*vite*timestamp*
 .eslintcache
-.stylelintcache
 config.json
 .env

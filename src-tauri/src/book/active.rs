@@ -93,8 +93,7 @@ impl ActiveBook {
 
   pub async fn open(self, app: &AppHandle) -> Result<()> {
     let kotori = app.kotori();
-    let reader = kotori.reader.read().await;
-    reader.open_book(self).await
+    kotori.reader.open_book(self).await
   }
 
   async fn get_page_name(&self, page: usize) -> Result<&str> {

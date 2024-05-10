@@ -8,6 +8,7 @@ use crate::utils::collections::OrderedMap;
 use crate::{prelude::*, utils};
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
+use tauri_plugin_dialog::{MessageDialogBuilder, MessageDialogKind};
 
 static NEXT_WINDOW_ID: AtomicU16 = AtomicU16::new(0);
 
@@ -43,7 +44,7 @@ impl Reader {
 
     let label = window::label(window_id);
     let url = utils::window::webview_url("reader");
-    let dir = utils::window::data_directory(&self.app, format!("reader/{window_id}"))?;
+    let dir = utils::window::data_directory(&self.app, &label)?;
 
     let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
     trace!(%script);
@@ -80,7 +81,7 @@ impl Reader {
     Ok(())
   }
 
-  pub async fn delete_book_page(&self, window_id: u16, page: usize) -> Result<()> {
+  pub async fn delete_page(&self, window_id: u16, page: usize) -> Result<()> {
     let windows = self.windows();
     let mut windows = windows.write().await;
 
@@ -97,6 +98,26 @@ impl Reader {
       drop(windows);
 
       Event::PageDeleted { window_id }.emit(&self.app)?;
+    }
+
+    Ok(())
+  }
+
+  pub async fn delete_page_with_dialog(&self, window_id: u16, page: usize) -> Result<()> {
+    let (tx, rx) = oneshot::channel();
+    let dialog = self.app.dialog().clone();
+
+    let message = "Are you sure you want to delete this page?";
+    MessageDialogBuilder::new(dialog, "Delete page", message)
+      .kind(MessageDialogKind::Warning)
+      .ok_button_label("Delete")
+      .cancel_button_label("Cancel")
+      .show(move |response| {
+        tx.send(response).ok();
+      });
+
+    if let Ok(true) = rx.await {
+      self.delete_page(window_id, page).await?;
     }
 
     Ok(())

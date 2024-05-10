@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { Command } from '@/utils/commands';
-import { disableDefaultSensors, setGlobalSensors } from '@/utils/sensors';
 import Reader from './views/Reader.vue';
+import { setGlobalSensors } from '@/lib/sensors';
+import { closeWindow, focusMainWindow } from '@/lib/commands';
 
-disableDefaultSensors();
 setGlobalSensors();
 
-invokeOnKeyDown('Escape', Command.CloseWindow);
-invokeOnKeyDown('F1', Command.FocusMainWindow);
+onKeyDown('Escape', closeWindow);
+onKeyDown('F1', focusMainWindow);
 </script>
 
 <template>

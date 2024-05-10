@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { toPixel } from '@tb-dev/utils';
-import { showWindow } from '@/utils/commands';
-import type { MenuItem } from 'primevue/menuitem';
-import { disableDefaultSensors, setGlobalSensors } from '@/utils/sensors';
 import { RouteName } from './router';
-import { symbols } from './utils/symbols';
+import { toPixel } from '@tb-dev/utils';
+import { symbols } from './lib/symbols';
+import { useLibraryStore } from './stores';
+import { showWindow } from '@/lib/commands';
+import { setGlobalSensors } from '@/lib/sensors';
+import type { MenuItem } from 'primevue/menuitem';
 
-const menubar = shallowRef<HTMLElement | null>(null);
+const menubar = ref<HTMLElement | null>(null);
 const { height: menubarHeight } = useElementSize(menubar);
 const { height: windowHeight } = useWindowSize();
 
@@ -20,10 +21,12 @@ const menuItems: MenuItem[] = [
   { label: 'Tags', command: () => void router.push({ name: RouteName.BookTag }) }
 ];
 
-disableDefaultSensors();
 setGlobalSensors();
 
-onMounted(() => showWindow().catch(handleError));
+onMounted(() => {
+  const library = useLibraryStore();
+  library.load().then(flushPromises).then(showWindow).catch(handleError);
+});
 </script>
 
 <template>

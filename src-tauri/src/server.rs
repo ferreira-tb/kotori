@@ -1,7 +1,5 @@
 use crate::book::ActiveBook;
-use crate::prelude::*;
-use crate::reader;
-use crate::VERSION;
+use crate::{prelude::*, reader, VERSION};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};

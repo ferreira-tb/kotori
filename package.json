@@ -11,25 +11,30 @@
   "scripts": {
     "build": "cargo tauri build",
     "clippy": "cargo clippy",
+    "console": "cargo tauri dev --features tokio-console",
     "dev": "cargo tauri dev",
-    "format": "prettier . --write && cargo fmt",
+    "format": "prettier . --write && cargo fmt --all",
     "format-check": "prettier . --check",
     "lint": "eslint . --config eslint.config.js --cache",
+    "lint-fix": "eslint . --config eslint.config.js --cache --fix",
     "prepare": "husky",
+    "tokio-console": "tokio-console --retain-for 10s",
     "type-check": "vue-tsc --noEmit",
     "update": "miho update -t",
-    "vite:dev": "vite",
-    "vite:build": "pnpm run type-check && vite build"
+    "vite-dev": "vite",
+    "vite-build": "pnpm run type-check && vite build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0-beta.11",
+    "@tauri-apps/plugin-dialog": "2.0.0-beta.3",
     "@tauri-apps/plugin-http": "^2.0.0-beta.3",
-    "@tb-dev/utility-types": "^1.2.7",
-    "@tb-dev/utils": "^1.6.0",
+    "@tauri-apps/plugin-store": "2.0.0-beta.3",
+    "@tb-dev/utility-types": "^1.3.0",
+    "@tb-dev/utils": "^1.7.4",
     "@vueuse/core": "^10.9.0",
     "@vueuse/math": "^10.9.0",
     "@vueuse/router": "^10.9.0",
-    "manatsu": "^0.10.1",
+    "manatsu": "^0.10.5",
     "pinia": "^2.1.7",
     "primeicons": "^7.0.0",
     "primevue": "^3.52.0",
@@ -37,8 +42,8 @@
     "vue-router": "^4.3.2"
   },
   "devDependencies": {
-    "@tb-dev/auto-import-config": "^1.6.6",
-    "@tb-dev/eslint-config": "^3.5.1",
+    "@tb-dev/auto-import-config": "^1.6.9",
+    "@tb-dev/eslint-config": "^3.6.0",
     "@tb-dev/vue-import-config": "^1.2.1",
     "@types/node": "^20.12.11",
     "@vitejs/plugin-vue": "^5.0.4",
@@ -53,10 +58,10 @@
     "tailwindcss": "^3.4.3",
     "tslib": "^2.6.2",
     "typescript": "^5.4.5",
-    "unplugin-auto-import": "^0.17.5",
+    "unplugin-auto-import": "^0.17.6",
     "unplugin-vue-components": "^0.27.0",
     "vite": "^5.2.11",
     "vite-plugin-vue-devtools": "^7.1.3",
-    "vue-tsc": "^2.0.16"
+    "vue-tsc": "^2.0.17"
   }
 }

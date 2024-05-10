@@ -1,9 +1,7 @@
 pub mod book {
   use crate::book::ActiveBook;
-  use crate::database::prelude::*;
-  use crate::event::Event;
   use crate::menu::prelude::*;
-  use crate::prelude::*;
+  use crate::{library, prelude::*};
 
   #[derive(Display, EnumString)]
   enum Id {
@@ -45,11 +43,10 @@ pub mod book {
     let app = app.clone();
     async_runtime::spawn(async move {
       if let Ok(book) = ActiveBook::from_id(&app, id).await {
-        info!("opening book {id}");
         book
           .open(&app)
           .await
-          .inspect_err(|err| error!("{err}"))
+          .inspect_err(|error| error!(%error))
           .ok();
       }
     });
@@ -58,13 +55,10 @@ pub mod book {
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      if let Ok(title) = Book::get_title(&app, id).await {
-        info!("removing book {id}");
-        let title = title.to_string();
-        Event::RemoveBookRequested { id, title }
-          .emit(&app)
-          .ok();
-      }
+      library::remove_with_dialog(&app, id)
+        .await
+        .inspect_err(|error| error!(%error))
+        .ok();
     });
   }
 }
