@@ -20,7 +20,7 @@
     ".eslintcache": true
   },
   "logViewer.logLevel": "trace",
-  "logViewer.watch": [".temp/*.log"],
+  "logViewer.watch": [".temp/kotori.log.*"],
   "prettier.requireConfig": true,
   "rust-analyzer.showUnlinkedFileNotification": false,
   "vsicons.associations.folders": [

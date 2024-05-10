@@ -43,7 +43,8 @@ fn main() {
     use tracing_subscriber::fmt::Layer;
     use tracing_subscriber::layer::SubscriberExt;
     use tracing_subscriber::{EnvFilter, Registry};
-    use utils::date::TIMESTAMP;
+
+    const TIMESTAMP: &str = "%F %T%.3f %:z";
 
     let mut filter = EnvFilter::builder()
       .from_env()
@@ -57,7 +58,7 @@ fn main() {
         .add_directive("runtime=trace".parse().unwrap());
     }
 
-    let appender = rolling::never("../.temp", "kotori.log");
+    let appender = rolling::daily("../.temp", "kotori.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
     worker.set(guard).unwrap();
 
