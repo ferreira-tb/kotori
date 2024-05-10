@@ -72,7 +72,7 @@ features = ["rustls-tls"]
 
 [dependencies.tokio]
 version = "1.37.0"
-features = ["full", "rt-multi-thread"]
+features = ["full"]
 
 [dependencies.tracing]
 version = "0.1.40"

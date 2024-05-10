@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![feature(let_chains, try_blocks)]
 
 mod book;
 mod command;
@@ -65,7 +66,8 @@ fn main() {
     let file = Layer::default()
       .with_ansi(false)
       .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-      .with_writer(writer.with_max_level(tracing::Level::TRACE));
+      .with_writer(writer.with_max_level(tracing::Level::TRACE))
+      .pretty();
 
     let stderr = Layer::default()
       .with_ansi(true)
@@ -132,8 +134,8 @@ fn setup(app: &mut App) -> BoxResult<()> {
   app.manage(kotori);
 
   let main_window = handle.get_main_window();
-  main_window.set_menu(menu::main::build(handle)?)?;
-  main_window.on_menu_event(menu::main::on_event(handle));
+  main_window.set_menu(menu::app::build(handle)?)?;
+  main_window.on_menu_event(menu::app::on_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.

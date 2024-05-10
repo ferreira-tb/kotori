@@ -84,12 +84,11 @@ pub mod window {
 
   pub fn data_directory(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
     let name = name.as_ref();
-    let path = app
+    app
       .path()
-      .app_local_data_dir()?
-      .join(format!("windows/{name}"));
-
-    Ok(path)
+      .app_local_data_dir()
+      .map(|it| it.join(format!("windows/{name}")))
+      .map_err(Into::into)
   }
 
   pub fn webview_url(name: impl AsRef<str>) -> WebviewUrl {
