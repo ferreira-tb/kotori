@@ -76,12 +76,9 @@ impl Handle {
       }
 
       if let Err(err) = writer.finish() {
-        drop(writer);
         temp.into_temp_path().close()?;
         return Err(err);
       }
-
-      drop(writer);
 
       Ok(temp)
     });
