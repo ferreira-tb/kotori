@@ -18,7 +18,7 @@
     "lint": "eslint . --config eslint.config.js --cache",
     "lint-fix": "eslint . --config eslint.config.js --cache --fix",
     "prepare": "husky",
-    "tokio-console": "tokio-console --retain-for 10s",
+    "tokio-console": "tokio-console --retain-for 5s",
     "type-check": "vue-tsc --noEmit",
     "update": "miho update -t",
     "vite-dev": "vite",
