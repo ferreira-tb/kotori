@@ -9,12 +9,9 @@ pub async fn delete_page_with_dialog(
 ) -> Result<()> {
   let label = webview.label();
   debug!(command = "delete_page", window = label, page);
-  let window_id = reader::get_window_id(&app, label).await?;
 
-  let kotori = app.kotori();
-  kotori
-    .reader
-    .delete_page_with_dialog(window_id, page)
+  reader::get_window_id(&app, label)
+    .and_then(|window_id| reader::delete_page_with_dialog(&app, window_id, page))
     .await
 }
 
@@ -23,11 +20,8 @@ pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> 
   let label = webview.label();
   debug!(command = "get_current_reader_book", window = label);
   let window_id = reader::get_window_id(&app, label).await?;
-
-  let kotori = app.kotori();
-  kotori
-    .reader
-    .get_book_as_json(window_id)
+  
+  reader::get_book_as_json(&app, window_id)
     .await
     .ok_or_else(|| err!(BookNotFound))
 }
@@ -43,7 +37,7 @@ pub async fn show_reader_page_context_menu(
   use tauri::menu::ContextMenu;
 
   debug!(command = "show_reader_page_context_menu", window_id, page);
-  let windows = reader::get_windows(&app).await;
+  let windows = reader::get_windows(&app);
   let windows = windows.read().await;
 
   if let Some(reader_window) = windows.get(&window_id) {
@@ -60,8 +54,7 @@ pub async fn show_reader_page_context_menu(
 #[tauri::command]
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
   debug!(command = "switch_reader_focus");
-  let kotori = app.kotori();
-  kotori.reader.switch_focus().await
+  reader::switch_focus(&app).await
 }
 
 #[tauri::command]

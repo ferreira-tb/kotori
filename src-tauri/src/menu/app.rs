@@ -84,20 +84,19 @@ where
 fn add_to_library_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    library::add_from_dialog(&app).await.ok();
+    let _ = library::add_from_dialog(&app).await;
   });
 }
 
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    book::open_from_dialog(&app).await.ok();
+    let _ = book::open_from_dialog(&app).await;
   });
 }
 
 fn open_repository(app: &AppHandle) {
-  app
+  let _ = app
     .shell()
-    .open("https://github.com/ferreira-tb/kotori", None)
-    .ok();
+    .open("https://github.com/ferreira-tb/kotori", None);
 }

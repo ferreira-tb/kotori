@@ -11,7 +11,7 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
   let dialog = app.dialog().clone();
 
   FileDialogBuilder::new(dialog).pick_folders(move |response| {
-    tx.send(response.unwrap_or_default()).ok();
+    let _ = tx.send(response.unwrap_or_default());
   });
 
   let folders = rx.await?;
@@ -31,11 +31,11 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
     }
   }
 
-  if books.is_empty() {
-    return Ok(());
+  if !books.is_empty() {
+    save_many(app, books).await?;
   }
 
-  save_many(app, books).await
+  Ok(())
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Json> {
@@ -99,7 +99,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
     .ok_button_label("Remove")
     .cancel_button_label("Cancel")
     .show(move |response| {
-      tx.send(response).ok();
+      let _ = tx.send(response);
     });
 
   if let Ok(true) = rx.await {

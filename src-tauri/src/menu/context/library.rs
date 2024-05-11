@@ -14,14 +14,13 @@ pub mod book {
     R: Runtime,
     M: Manager<R>,
   {
-    let menu = MenuBuilder::new(app)
+    MenuBuilder::new(app)
       .items(&[
         &menu_item!(app, Id::OpenBook, "Open")?,
         &menu_item!(app, Id::RemoveBook, "Remove")?,
       ])
-      .build()?;
-
-    Ok(menu)
+      .build()
+      .map_err(Into::into)
   }
 
   pub fn on_event<R>(app: &AppHandle, book_id: i32) -> impl Fn(&Window<R>, MenuEvent)
@@ -43,11 +42,10 @@ pub mod book {
     let app = app.clone();
     async_runtime::spawn(async move {
       if let Ok(book) = ActiveBook::from_id(&app, id).await {
-        book
+        let _ = book
           .open(&app)
           .await
-          .inspect_err(|error| error!(%error))
-          .ok();
+          .inspect_err(|error| error!(%error));
       }
     });
   }
@@ -55,10 +53,9 @@ pub mod book {
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      library::remove_with_dialog(&app, id)
+      let _ = library::remove_with_dialog(&app, id)
         .await
-        .inspect_err(|error| error!(%error))
-        .ok();
+        .inspect_err(|error| error!(%error));
     });
   }
 }

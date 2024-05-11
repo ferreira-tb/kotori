@@ -128,7 +128,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let handle = app.handle();
   let kotori = Kotori {
     db: database::connect(handle)?,
-    reader: Reader::new(handle),
+    reader: Reader::new(),
   };
 
   app.manage(kotori);
