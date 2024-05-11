@@ -1,5 +1,4 @@
 pub use super::entities::prelude::*;
-pub use super::traits::prelude::*;
 
 pub use super::entities::book::{
   ActiveModel as BookActiveModel, Column as BookColumn, Model as BookModel,

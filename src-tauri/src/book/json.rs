@@ -44,14 +44,14 @@ impl IntoJson for LibraryBook<'_> {
   async fn into_json(self) -> Result<Json> {
     let book = ActiveBook::with_model(self.1)?;
     let title = Title::try_from(self.1.path.as_str())?;
-    let cover = book.get_cover(self.0).await?;
+    let cover = book.get_cover(self.0).map_ok(Json::from).await?;
 
     let value = json!({
       "id": self.1.id,
       "path": self.1.path,
       "title": title,
       "rating": self.1.rating,
-      "cover": Json::from(cover),
+      "cover": cover,
     });
 
     Ok(value)

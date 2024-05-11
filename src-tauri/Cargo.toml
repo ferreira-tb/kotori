@@ -13,7 +13,7 @@ workspace = true
 workspace = true
 
 [build-dependencies.tauri-build]
-version = "2.0.0-beta.14"
+version = "2.0.0-beta.15"
 features = []
 
 [dependencies]
@@ -22,6 +22,7 @@ anyhow = "1.0.83"
 axum = "0.7.5"
 chrono = "0.4.38"
 futures = "0.3.30"
+futures-concurrency = "7.6.0"
 globset = "0.4.14"
 image = "0.25.1"
 indexmap = "2.2.6"
@@ -31,13 +32,19 @@ natord = "1.0.9"
 rayon = "1.10.0"
 serde_json = "1.0.117"
 tauri-plugin-dialog = "2.0.0-beta.7"
-tauri-plugin-manatsu = "0.9.9"
+tauri-plugin-manatsu = "0.10.5"
 tauri-plugin-persisted-scope = "2.0.0-beta.7"
 tauri-plugin-shell = "2.0.0-beta.4"
+tauri-plugin-store = "2.0.0-beta.6"
 tempfile = "3.10.1"
 thiserror = "1.0.60"
 walkdir = "2.5.0"
-zip = "0.6.6"
+zip = "1.2.2"
+
+[dependencies.console-subscriber]
+version = "0.2.0"
+features = ["parking_lot"]
+optional = true
 
 [dependencies.migration]
 version = "*"
@@ -56,7 +63,7 @@ version = "0.26.2"
 features = ["derive"]
 
 [dependencies.tauri]
-version = "2.0.0-beta.18"
+version = "2.0.0-beta.19"
 features = ["protocol-asset"]
 
 [dependencies.tauri-plugin-http]
@@ -69,7 +76,7 @@ features = ["full"]
 
 [dependencies.tracing]
 version = "0.1.40"
-features = ["release_max_level_warn"]
+features = ["release_max_level_off"]
 
 [dependencies.tracing-appender]
 version = "0.2.3"
@@ -80,4 +87,4 @@ version = "0.3.18"
 features = ["chrono", "env-filter", "fmt", "parking_lot", "registry"]
 
 [features]
-custom-protocol = ["tauri/custom-protocol"]
+tokio-console = ["dep:console-subscriber", "tokio/tracing"]

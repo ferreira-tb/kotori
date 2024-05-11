@@ -1,9 +1,7 @@
 pub mod book {
   use crate::book::ActiveBook;
-  use crate::database::prelude::*;
-  use crate::event::Event;
   use crate::menu::prelude::*;
-  use crate::prelude::*;
+  use crate::{library, prelude::*};
 
   #[derive(Display, EnumString)]
   enum Id {
@@ -16,14 +14,13 @@ pub mod book {
     R: Runtime,
     M: Manager<R>,
   {
-    let menu = MenuBuilder::new(app)
+    MenuBuilder::new(app)
       .items(&[
         &menu_item!(app, Id::OpenBook, "Open")?,
         &menu_item!(app, Id::RemoveBook, "Remove")?,
       ])
-      .build()?;
-
-    Ok(menu)
+      .build()
+      .map_err(Into::into)
   }
 
   pub fn on_event<R>(app: &AppHandle, book_id: i32) -> impl Fn(&Window<R>, MenuEvent)
@@ -45,12 +42,10 @@ pub mod book {
     let app = app.clone();
     async_runtime::spawn(async move {
       if let Ok(book) = ActiveBook::from_id(&app, id).await {
-        info!("opening book {id}");
-        book
+        let _ = book
           .open(&app)
           .await
-          .inspect_err(|err| error!("{err}"))
-          .ok();
+          .inspect_err(|error| error!(%error));
       }
     });
   }
@@ -58,13 +53,9 @@ pub mod book {
   pub fn remove_book(app: &AppHandle, id: i32) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      if let Ok(title) = Book::get_title(&app, id).await {
-        info!("removing book {id}");
-        let title = title.to_string();
-        Event::RemoveBookRequested { id, title }
-          .emit(&app)
-          .ok();
-      }
+      let _ = library::remove_with_dialog(&app, id)
+        .await
+        .inspect_err(|error| error!(%error));
     });
   }
 }

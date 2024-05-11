@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { getBookCover } from '@/utils/server';
-import { openBook, updateBookRating } from '@/utils/commands';
+import { getBookCover } from '@/lib/server';
+import { openBook, updateBookRating } from '@/lib/commands';
 import type { ImagePassThroughOptions } from 'primevue/image';
 
 const props = defineProps<{

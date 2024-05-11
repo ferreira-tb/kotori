@@ -1,7 +1,5 @@
 use crate::book::ActiveBook;
-use crate::prelude::*;
-use crate::reader;
-use crate::VERSION;
+use crate::{prelude::*, reader, VERSION};
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
@@ -26,7 +24,7 @@ pub fn serve(app: &AppHandle) {
 }
 
 async fn reader_root(State(app): State<AppHandle>) -> Html<String> {
-  let windows = reader::get_windows(&app).await;
+  let windows = reader::get_windows(&app);
   let windows = windows.read().await;
   let amount = windows.len();
 
@@ -75,7 +73,7 @@ async fn book_page(
   State(app): State<AppHandle>,
   Path((window_id, page)): Path<(u16, usize)>,
 ) -> Response {
-  let windows = reader::get_windows(&app).await;
+  let windows = reader::get_windows(&app);
   let windows = windows.read().await;
   if let Some(window) = windows.get(&window_id) {
     return match window.book.get_page_as_bytes(page).await {

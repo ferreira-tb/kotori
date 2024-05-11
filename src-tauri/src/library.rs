@@ -3,7 +3,7 @@ use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::{self, glob};
-use tauri_plugin_dialog::FileDialogBuilder;
+use tauri_plugin_dialog::{FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use walkdir::WalkDir;
 
 pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
@@ -11,7 +11,7 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
   let dialog = app.dialog().clone();
 
   FileDialogBuilder::new(dialog).pick_folders(move |response| {
-    tx.send(response.unwrap_or_default()).ok();
+    let _ = tx.send(response.unwrap_or_default());
   });
 
   let folders = rx.await?;
@@ -31,48 +31,48 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
     }
   }
 
-  if books.is_empty() {
-    return Ok(());
+  if !books.is_empty() {
+    save_many(app, books).await?;
   }
 
-  save_many(app, books).await
+  Ok(())
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Json> {
   let kotori = app.kotori();
-  let tasks = Book::find()
+  let books = Book::find()
     .all(&kotori.db)
     .await?
-    .into_iter()
-    .map(|model| {
-      let app = app.clone();
-      async_runtime::spawn(async move {
-        if let Ok(false) = exists_or_remove(&app, model.id, &model.path).await {
-          return None;
-        }
-
-        let json = LibraryBook(&app, &model).into_json().await;
-        if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
-          let Ok(book) = ActiveBook::with_model(&model) else {
-            return json.ok();
-          };
-
-          if let Ok(cover) = Cover::path(&app, model.id) {
-            book.extract_cover(&app, cover);
-          }
-        }
-
-        json.ok()
-      })
-    });
-
-  let books = join_all(tasks)
+    .into_co_stream()
+    .map(|model| to_library_book(app.clone(), model))
+    .collect::<Vec<_>>()
     .await
     .into_iter()
-    .filter_map(|it| it.unwrap_or(None))
-    .collect_vec();
+    .flatten()
+    .collect();
 
   Ok(Json::Array(books))
+}
+
+async fn to_library_book(app: AppHandle, model: BookModel) -> Option<Json> {
+  // Remove the book if the file is missing.
+  if let Ok(false) = fs::try_exists(&model.path).await {
+    remove(&app, model.id).await.ok();
+    return None;
+  }
+
+  let json = LibraryBook(&app, &model).into_json().await;
+  if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
+    let Ok(book) = ActiveBook::with_model(&model) else {
+      return json.ok();
+    };
+
+    if let Ok(cover) = Cover::path(&app, model.id) {
+      book.extract_cover(&app, cover);
+    }
+  }
+
+  json.ok()
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
@@ -87,16 +87,29 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
-async fn exists_or_remove(app: &AppHandle, id: i32, path: impl AsRef<Path>) -> Result<bool> {
-  if let Ok(false) = fs::try_exists(path).await {
+pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
+  let (tx, rx) = oneshot::channel();
+  let dialog = app.dialog().clone();
+
+  let title = Book::get_title(app, id).await?;
+  let message = format!("{title} will be removed from the library.");
+
+  MessageDialogBuilder::new(dialog, "Remove book", message)
+    .kind(MessageDialogKind::Warning)
+    .ok_button_label("Remove")
+    .cancel_button_label("Cancel")
+    .show(move |response| {
+      let _ = tx.send(response);
+    });
+
+  if let Ok(true) = rx.await {
     remove(app, id).await?;
-    return Ok(false);
   }
 
-  Ok(true)
+  Ok(())
 }
 
-async fn save(app: &AppHandle, path: &Path) -> Result<()> {
+async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   let path = utils::path::to_string(path)?;
   let model = BookActiveModel {
     path: Set(path),
@@ -113,29 +126,25 @@ async fn save(app: &AppHandle, path: &Path) -> Result<()> {
     .exec_with_returning(&kotori.db)
     .await?;
 
-  let payload = LibraryBook(app, &book).into_json().await?;
-  Event::BookAdded(payload).emit(app)?;
+  let payload = LibraryBook(&app, &book).into_json().await?;
+  Event::BookAdded(payload).emit(&app)?;
 
   let active_book = ActiveBook::with_model(&book)?;
-  let cover = Cover::path(app, book.id)?;
-  active_book.extract_cover(app, cover);
+  let cover = Cover::path(&app, book.id)?;
+  active_book.extract_cover(&app, cover);
 
   Ok(())
 }
 
-async fn save_many<I>(app: &AppHandle, paths: I) -> Result<()>
+async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
 where
-  I: IntoIterator<Item = PathBuf>,
+  I: IntoConcurrentStream<Item = PathBuf>,
 {
-  let tasks = paths.into_iter().map(|path| {
-    let app = app.clone();
-    async_runtime::spawn(async move {
-      save(&app, &path).await?;
-      Ok::<(), Error>(())
-    })
-  });
-
-  join_all(tasks).await;
+  books
+    .into_co_stream()
+    .map(|path| save(app.clone(), path))
+    .collect::<Vec<_>>()
+    .await;
 
   Ok(())
 }

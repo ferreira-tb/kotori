@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "identifier": "tbdev.kotori",
   "build": {
-    "beforeDevCommand": "pnpm run vite:dev",
-    "beforeBuildCommand": "pnpm run vite:build",
+    "beforeDevCommand": "pnpm run vite-dev",
+    "beforeBuildCommand": "pnpm run vite-build",
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:1422"
+    "devUrl": "http://localhost:1420"
   },
   "bundle": {
     "active": true,

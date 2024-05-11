@@ -1,13 +1,13 @@
 pub mod entities;
+mod r#impl;
 pub mod prelude;
-mod traits;
 
 use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
 
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
-  let path = app.path().app_data_dir().unwrap();
+  let path = app.path().app_local_data_dir().unwrap();
 
   block_on(async move {
     fs::create_dir_all(&path).await?;

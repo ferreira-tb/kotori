@@ -1,13 +1,11 @@
-import 'primevue/resources/themes/aura-dark-noir/theme.css';
-import 'primeicons/primeicons.css';
-import '@/assets/style.css';
+import '@/lib/theme';
+import App from './App.vue';
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
 import PrimeVue from 'primevue/config';
-import { createManatsu, handleError } from 'manatsu';
-import App from './App.vue';
 import { RouteName, router } from './router';
 import { setupEventListeners } from './events';
+import { createManatsu, handleError } from 'manatsu';
 
 const app = createApp(App);
 const pinia = createPinia();

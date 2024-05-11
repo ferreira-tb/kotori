@@ -3,12 +3,17 @@
   "description": "all windows",
   "windows": ["main", "reader-*"],
   "permissions": [
+    "app:allow-name",
+    "dialog:allow-confirm",
     "dialog:allow-open",
     "event:allow-emit",
     "event:allow-emit-to",
     "event:allow-listen",
     "event:allow-unlisten",
     "manatsu:default",
+    "store:allow-get",
+    "store:allow-save",
+    "store:allow-set",
     {
       "identifier": "http:default",
       "allow": [{ "url": "http://localhost:3000/*" }]

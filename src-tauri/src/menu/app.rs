@@ -47,16 +47,16 @@ where
   M: Manager<R>,
 {
   let mut metadata = AboutMetadataBuilder::new()
-    .name(Some("Kotori"))
-    .version(Some(VERSION))
-    .copyright(Some("Copyright © 2024 Andrew Ferreira"));
+    .name("Kotori".into())
+    .version(VERSION.into())
+    .copyright("Copyright © 2024 Andrew Ferreira".into());
 
   if !cfg!(target_os = "macos") {
-    metadata = metadata.license(Some("MIT"));
+    metadata = metadata.license("MIT".into());
   }
 
   let metadata = metadata.build();
-  let about = PredefinedMenuItem::about(app, Some("About"), Some(metadata))?;
+  let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
   SubmenuBuilder::new(app, "Help")
     .items(&[&menu_item!(app, Id::Repository, "Repository")?])
     .item(&about)
@@ -84,20 +84,19 @@ where
 fn add_to_library_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    library::add_from_dialog(&app).await.ok();
+    let _ = library::add_from_dialog(&app).await;
   });
 }
 
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    book::open_from_dialog(&app).await.ok();
+    let _ = book::open_from_dialog(&app).await;
   });
 }
 
 fn open_repository(app: &AppHandle) {
-  app
+  let _ = app
     .shell()
-    .open("https://github.com/ferreira-tb/kotori", None)
-    .ok();
+    .open("https://github.com/ferreira-tb/kotori", None);
 }

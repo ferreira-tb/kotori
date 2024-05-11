@@ -23,11 +23,6 @@ pub mod collections {
   pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
 }
 
-pub mod date {
-  /// <https://docs.rs/chrono/latest/chrono/format/strftime/index.html>
-  pub const TIMESTAMP: &str = "%F %T%.3f %:z";
-}
-
 pub mod glob {
   use globset::{Glob, GlobBuilder, GlobSet, GlobSetBuilder};
 
@@ -61,7 +56,9 @@ pub mod glob {
 }
 
 pub mod path {
-  use crate::prelude::*;
+  use crate::err;
+  use crate::error::Result;
+  use std::path::Path;
 
   pub fn parent(path: &Path) -> Result<&Path> {
     path
@@ -81,17 +78,17 @@ pub mod path {
 }
 
 pub mod window {
-  use crate::prelude::*;
-  use tauri::WebviewUrl;
+  use crate::error::Result;
+  use std::path::PathBuf;
+  use tauri::{AppHandle, Manager, WebviewUrl};
 
   pub fn data_directory(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
     let name = name.as_ref();
-    let path = app
+    app
       .path()
-      .app_data_dir()?
-      .join(format!("windows/{name}"));
-
-    Ok(path)
+      .app_local_data_dir()
+      .map(|it| it.join(format!("windows/{name}")))
+      .map_err(Into::into)
   }
 
   pub fn webview_url(name: impl AsRef<str>) -> WebviewUrl {

@@ -13,6 +13,8 @@
     "tauri-apps.tauri-vscode",
     "vscode-icons-team.vscode-icons",
     "vue.volar",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "berublan.vscode-log-viewer",
+    "vadimcn.vscode-lldb"
   ]
 }

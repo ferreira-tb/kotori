@@ -11,7 +11,7 @@ pub use title::Title;
 
 use crate::database::prelude::*;
 use crate::event::Event;
-use crate::prelude::*;
+use crate::{prelude::*, reader};
 use tauri_plugin_dialog::FileDialogBuilder;
 
 pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
@@ -32,9 +32,9 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
     .collect_vec();
 
   if !books.is_empty() {
-    let kotori = app.kotori();
-    let reader = kotori.reader.read().await;
-    return reader.open_many(books).await.map_err(Into::into);
+    return reader::open_many(app, books)
+      .await
+      .map_err(Into::into);
   }
 
   Ok(())

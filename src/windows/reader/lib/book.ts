@@ -1,46 +1,62 @@
-import { Command } from '@/utils/commands';
 import { Page } from './page';
+import { getCurrentReaderBook } from '@/lib/commands';
 
-export function useBook() {
-  const book = useInvoke<ReaderBook | null>(Command.GetCurrentReaderBook, null);
+export class Book {
+  readonly #book = ref<ReaderBook | null>(null);
+  readonly #ready = ref(false);
+  readonly #currentIndex = ref(0);
 
-  const pages = ref<Page[]>([]);
-  watch(book.state, (value) => {
-    pages.value = value?.pages.map((id) => new Page(id)) ?? [];
+  public readonly ready = readonly(this.#ready);
+  public readonly pages = ref<Page[]>([]);
+  public readonly current = computed<Nullish<Page>>(() => {
+    return this.pages.value.at(this.#currentIndex.value);
   });
 
-  const currentIndex = ref(0);
-  const current = computed(() => pages.value.at(currentIndex.value));
-  watchImmediate(current, (value) => value?.eagerFetch());
+  constructor() {
+    watch(this.#book, (value) => {
+      this.pages.value = value?.pages.map((id) => new Page(id)) ?? [];
+    });
 
-  function go(page: number) {
-    const len = pages.value.length;
-    currentIndex.value = ((page % len) + len) % len;
+    watchImmediate(this.current, (value) => value?.eagerFetch());
+
+    this.load().catch(handleError);
   }
 
-  function next() {
-    go(currentIndex.value + 1);
+  public go(page: number) {
+    const len = this.pages.value.length;
+    this.#currentIndex.value = ((page % len) + len) % len;
   }
 
-  function previous() {
-    go(currentIndex.value - 1);
+  public next() {
+    this.go(this.#currentIndex.value + 1);
   }
 
-  function first() {
-    go(0);
+  public previous() {
+    this.go(this.#currentIndex.value - 1);
   }
 
-  function last() {
-    go(pages.value.length - 1);
+  public first() {
+    this.go(0);
   }
 
-  return {
-    pages,
-    current,
-    next,
-    previous,
-    first,
-    last,
-    reload: book.execute
-  };
+  public last() {
+    this.go(this.lastIndex());
+  }
+
+  public lastIndex() {
+    const index = this.pages.value.length - 1;
+    return index >= 0 ? index : 0;
+  }
+
+  public peek(page: number, offset = 0): Page | null {
+    const index = this.pages.value.findIndex(({ id }) => id === page);
+    if (index === -1) return null;
+    return this.pages.value.at(index + offset) ?? null;
+  }
+
+  public async load() {
+    this.#ready.value &&= false;
+    this.#book.value = await getCurrentReaderBook();
+    this.#ready.value ||= true;
+  }
 }

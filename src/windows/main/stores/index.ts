@@ -1,9 +1,17 @@
 import { defineStore } from 'pinia';
-import { Command } from '@/utils/commands';
+import { Command } from '@/lib/commands';
 
 export const useLibraryStore = defineStore('library', () => {
-  const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], { transform });
   const filter = ref('');
+  const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], {
+    lazy: true,
+    transform(it) {
+      return it.map((book) => {
+        book.cover &&= convertFileSrc(book.cover);
+        return book;
+      });
+    }
+  });
 
   function addBook(book: LibraryBook) {
     book.cover &&= convertFileSrc(book.cover);
@@ -28,7 +36,7 @@ export const useLibraryStore = defineStore('library', () => {
     const book = getBook(id);
     if (book) {
       try {
-        // Adds a version search parameter to the url to force the image to reload.
+        // Adds a version search parameter to the url to force reload the image.
         // Without this, it would be cached, not updating when the user changes the cover.
         const url = new URL(convertFileSrc(path));
         url.searchParams.set('v', (++nextCoverVersion).toString(10));
@@ -53,18 +61,13 @@ export const useLibraryStore = defineStore('library', () => {
     books: books.state,
     filter,
     addBook,
+    getBook,
+    load: books.execute,
     removeBook,
     updateBookCover,
     updateBookRating
   };
 });
-
-function transform(books: LibraryBook[]) {
-  return books.map((book) => {
-    book.cover &&= convertFileSrc(book.cover);
-    return book;
-  });
-}
 
 function isValidRating(current: number, next: number) {
   if (!Number.isInteger(next)) return false;

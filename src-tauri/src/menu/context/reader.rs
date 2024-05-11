@@ -1,9 +1,8 @@
 pub mod page {
   use crate::book::ActiveBook;
   use crate::database::prelude::*;
-  use crate::event::Event;
   use crate::menu::prelude::*;
-  use crate::prelude::*;
+  use crate::{prelude::*, reader};
 
   #[derive(Display, EnumString)]
   enum Id {
@@ -16,20 +15,19 @@ pub mod page {
     R: Runtime,
     M: Manager<R>,
   {
-    let set_as_cover = MenuItemBuilder::new("Set as cover")
+    let cover = MenuItemBuilder::new("Set as cover")
       .id(Id::SetAsCover)
       .enabled(book_id.is_some())
       .build(app)?;
 
-    let menu = MenuBuilder::new(app)
+    MenuBuilder::new(app)
       .items(&[
-        &set_as_cover,
+        &cover,
         &PredefinedMenuItem::separator(app)?,
         &menu_item!(app, Id::DeletePage, "Delete")?,
       ])
-      .build()?;
-
-    Ok(menu)
+      .build()
+      .map_err(Into::into)
   }
 
   pub fn on_event<R: Runtime>(
@@ -56,10 +54,10 @@ pub mod page {
   }
 
   fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
-    debug!("delete requested for page {page} at window {window_id}");
-    Event::DeletePageRequested { window_id, page }
-      .emit(app)
-      .ok();
+    let app = app.clone();
+    async_runtime::spawn(async move {
+      let _ = reader::delete_page_with_dialog(&app, window_id, page).await;
+    });
   }
 
   fn set_as_cover(app: &AppHandle, book_id: i32, page: usize) {
@@ -73,11 +71,10 @@ pub mod page {
         .and_then(|model| ActiveBook::with_model(&model).ok());
 
       if let Some(book) = book {
-        book
+        let _ = book
           .update_cover(&app, page)
           .await
-          .inspect_err(|err| error!("{err}"))
-          .ok();
+          .inspect_err(|error| error!(%error));
       }
     });
   }

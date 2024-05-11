@@ -3,9 +3,9 @@ use super::handle::Handle;
 use super::title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
-use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::{library, utils};
+use crate::{prelude::*, reader};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
@@ -92,9 +92,7 @@ impl ActiveBook {
   }
 
   pub async fn open(self, app: &AppHandle) -> Result<()> {
-    let kotori = app.kotori();
-    let reader = kotori.reader.read().await;
-    reader.open_book(self).await
+    reader::open_book(app, self).await
   }
 
   async fn get_page_name(&self, page: usize) -> Result<&str> {
