@@ -30,6 +30,12 @@ impl Reader {
   }
 }
 
+impl Default for Reader {
+  fn default() -> Self {
+    Self::new()
+  }
+}
+
 pub fn get_windows(app: &AppHandle) -> WindowMap {
   app.kotori().reader.windows()
 }
