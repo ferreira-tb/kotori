@@ -63,13 +63,11 @@ async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook
 
   let book = LibraryBook::from_model(&app, &model).await;
   if matches!(book, Ok(ref it) if it.cover.is_none()) {
-    let Ok(book) = ActiveBook::with_model(&model) else {
-      return book.ok();
+    let _: Result<()> = try {
+      let book = ActiveBook::with_model(&model)?;
+      let path = Cover::path(&app, model.id)?;
+      book.extract_cover(&app, path);
     };
-
-    if let Ok(cover) = Cover::path(&app, model.id) {
-      book.extract_cover(&app, cover);
-    }
   }
 
   book.ok()

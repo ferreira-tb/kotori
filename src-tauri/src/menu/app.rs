@@ -5,6 +5,7 @@ use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_shell::ShellExt;
 
 #[derive(Display, EnumString)]
+#[strum(serialize_all = "kebab-case")]
 enum Id {
   About,
   AddToLibrary,

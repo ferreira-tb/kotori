@@ -5,6 +5,7 @@ pub mod page {
   use crate::{prelude::*, reader};
 
   #[derive(Display, EnumString)]
+  #[strum(serialize_all = "kebab-case")]
   enum Id {
     DeletePage,
     SetAsCover,

@@ -4,6 +4,7 @@ pub mod book {
   use crate::{library, prelude::*};
 
   #[derive(Display, EnumString)]
+  #[strum(serialize_all = "kebab-case")]
   enum Id {
     OpenBook,
     RemoveBook,

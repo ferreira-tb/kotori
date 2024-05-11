@@ -1,10 +1,13 @@
 #[macro_export]
 macro_rules! menu_item {
   ($app:expr, $id:expr, $text:expr) => {{
-    tauri::menu::MenuItemBuilder::with_id($id, $text).build($app)
+    tauri::menu::MenuItemBuilder::new($text)
+      .id($id)
+      .build($app)
   }};
   ($app:expr, $id:expr, $text:expr, $accelerator:expr) => {{
-    tauri::menu::MenuItemBuilder::with_id($id, $text)
+    tauri::menu::MenuItemBuilder::new($text)
+      .id($id)
       .accelerator($accelerator)
       .build($app)
   }};
