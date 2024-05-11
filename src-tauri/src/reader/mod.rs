@@ -2,7 +2,7 @@ mod window;
 
 pub use window::{get_window_id, label, ReaderWindow};
 
-use crate::book::{ActiveBook, IntoJson, ReaderBook};
+use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::utils::collections::OrderedMap;
 use crate::{prelude::*, utils};
@@ -88,17 +88,6 @@ where
   }
 
   Ok(())
-}
-
-pub async fn get_book_as_json(app: &AppHandle, window_id: u16) -> Option<Json> {
-  let windows = get_windows(app);
-  let windows = windows.read().await;
-  windows
-    .get(&window_id)
-    .map(ReaderBook::from_reader_window)?
-    .into_json()
-    .await
-    .ok()
 }
 
 async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {

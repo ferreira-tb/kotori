@@ -12,6 +12,13 @@ pub enum Cover {
 }
 
 impl Cover {
+  pub fn as_path(&self) -> Option<&Path> {
+    match self {
+      Self::Extracted(path) => Some(path),
+      Self::NotExtracted => None,
+    }
+  }
+
   pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>) -> Result<()> {
     let path = path.as_ref().to_owned();
     let join = spawn_blocking(move || {
@@ -41,14 +48,5 @@ impl Cover {
 impl From<PathBuf> for Cover {
   fn from(path: PathBuf) -> Self {
     Self::Extracted(path)
-  }
-}
-
-impl From<Cover> for Json {
-  fn from(cover: Cover) -> Self {
-    match cover {
-      Cover::Extracted(path) => json!(path),
-      Cover::NotExtracted => Json::Null,
-    }
   }
 }

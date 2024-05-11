@@ -1,4 +1,4 @@
-use crate::book::{self, ActiveBook};
+use crate::book::{self, ActiveBook, ReaderBook};
 use crate::{prelude::*, reader};
 
 #[tauri::command]
@@ -16,14 +16,12 @@ pub async fn delete_page_with_dialog(
 }
 
 #[tauri::command]
-pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<Json> {
+pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<ReaderBook> {
   let label = webview.label();
   debug!(command = "get_current_reader_book", window = label);
   let window_id = reader::get_window_id(&app, label).await?;
-  
-  reader::get_book_as_json(&app, window_id)
-    .await
-    .ok_or_else(|| err!(BookNotFound))
+
+  ReaderBook::from_reader(&app, window_id).await
 }
 
 #[tauri::command]

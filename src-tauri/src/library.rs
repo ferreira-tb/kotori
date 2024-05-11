@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, Cover, IntoJson, LibraryBook};
+use crate::book::{ActiveBook, Cover, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
@@ -38,7 +38,7 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
   Ok(())
 }
 
-pub async fn get_all(app: &AppHandle) -> Result<Json> {
+pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   let kotori = app.kotori();
   let books = Book::find()
     .all(&kotori.db)
@@ -51,20 +51,20 @@ pub async fn get_all(app: &AppHandle) -> Result<Json> {
     .flatten()
     .collect();
 
-  Ok(Json::Array(books))
+  Ok(books)
 }
 
-async fn to_library_book(app: AppHandle, model: BookModel) -> Option<Json> {
+async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook> {
   // Remove the book if the file is missing.
   if let Ok(false) = fs::try_exists(&model.path).await {
     remove(&app, model.id).await.ok();
     return None;
   }
 
-  let json = LibraryBook(&app, &model).into_json().await;
-  if matches!(json, Ok(ref it) if it.get("cover").is_some_and(Json::is_null)) {
+  let book = LibraryBook::from_model(&app, &model).await;
+  if matches!(book, Ok(ref it) if it.cover.is_none()) {
     let Ok(book) = ActiveBook::with_model(&model) else {
-      return json.ok();
+      return book.ok();
     };
 
     if let Ok(cover) = Cover::path(&app, model.id) {
@@ -72,7 +72,7 @@ async fn to_library_book(app: AppHandle, model: BookModel) -> Option<Json> {
     }
   }
 
-  json.ok()
+  book.ok()
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
@@ -126,8 +126,8 @@ async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
     .exec_with_returning(&kotori.db)
     .await?;
 
-  let payload = LibraryBook(&app, &book).into_json().await?;
-  Event::BookAdded(payload).emit(&app)?;
+  let payload = LibraryBook::from_model(&app, &book).await?;
+  Event::BookAdded(&payload).emit(&app)?;
 
   let active_book = ActiveBook::with_model(&book)?;
   let cover = Cover::path(&app, book.id)?;

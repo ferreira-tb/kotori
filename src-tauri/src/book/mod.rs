@@ -1,12 +1,12 @@
 mod active;
 mod cover;
 mod handle;
-mod json;
+mod structs;
 mod title;
 
 pub use active::ActiveBook;
 pub use cover::Cover;
-pub use json::{IntoJson, LibraryBook, ReaderBook};
+pub use structs::{LibraryBook, ReaderBook};
 pub use title::Title;
 
 use crate::database::prelude::*;

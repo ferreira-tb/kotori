@@ -1,4 +1,5 @@
-use crate::{book, library, prelude::*};
+use crate::book::{self, LibraryBook};
+use crate::{library, prelude::*};
 
 #[tauri::command]
 pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
@@ -7,7 +8,7 @@ pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn get_library_books(app: AppHandle) -> Result<Json> {
+pub async fn get_library_books(app: AppHandle) -> Result<Vec<LibraryBook>> {
   debug!(command = "get_library_books");
   library::get_all(&app).await
 }
