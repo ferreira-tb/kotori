@@ -53,6 +53,11 @@ path = "../migration"
 version = "0.12.15"
 features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
+[dependencies.sea-query]
+version = "0.30"
+no-default-features = true
+features = ["backend-sqlite", "thread-safe"]
+
 [dependencies.serde]
 version = "1.0.201"
 features = ["derive"]
@@ -86,4 +91,5 @@ version = "0.3.18"
 features = ["chrono", "env-filter", "fmt", "parking_lot", "registry"]
 
 [features]
-tokio-console = ["dep:console-subscriber", "tokio/tracing"]
+devtools = ["tauri/devtools"]
+tokio-console = ["devtools", "dep:console-subscriber", "tokio/tracing"]

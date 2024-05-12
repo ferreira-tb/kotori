@@ -6,6 +6,7 @@ export enum Event {
   BookAdded = 'book_added',
   BookRemoved = 'book_removed',
   CoverExtracted = 'cover_extracted',
+  LibraryCleared = 'library_cleared',
   RatingUpdated = 'rating_updated'
 }
 
@@ -14,6 +15,7 @@ export function setupEventListeners() {
     onBookAdded(),
     onBookRemoved(),
     onCoverExtracted(),
+    onLibraryCleared(),
     onRatingUpdated()
   ]);
 
@@ -38,6 +40,13 @@ function onCoverExtracted() {
   return listen<CoverExtractedPayload>(Event.CoverExtracted, ({ payload }) => {
     const store = useLibraryStore();
     store.updateBookCover(payload.id, payload.path);
+  });
+}
+
+function onLibraryCleared() {
+  return listen(Event.LibraryCleared, () => {
+    const store = useLibraryStore();
+    store.load().catch((err: unknown) => handleError(err, { dialog: true }));
   });
 }
 

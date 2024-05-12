@@ -23,7 +23,7 @@ use tauri::{App, AppHandle, Manager, WindowEvent};
 use tracing::info;
 use utils::app::AppHandleExt;
 
-#[cfg(debug_assertions)]
+#[cfg(any(debug_assertions, feature = "devtools"))]
 use tracing_appender::non_blocking::WorkerGuard;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -34,7 +34,7 @@ pub struct Kotori {
 }
 
 fn main() {
-  #[cfg(debug_assertions)]
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   let _guard = setup_tracing();
 
   tauri::Builder::default()
@@ -97,7 +97,7 @@ fn on_main_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
   }
 }
 
-#[cfg(debug_assertions)]
+#[cfg(any(debug_assertions, feature = "devtools"))]
 fn setup_tracing() -> WorkerGuard {
   use tracing_appender::rolling;
   use tracing_subscriber::fmt::time::ChronoLocal;
@@ -108,7 +108,7 @@ fn setup_tracing() -> WorkerGuard {
 
   const TIMESTAMP: &str = "%F %T%.3f %:z";
 
-  #[allow(unused_mut)]
+  #[cfg_attr(not(feature = "tokio-console"), allow(unused_mut))]
   let mut filter = EnvFilter::builder()
     .from_env()
     .unwrap()
@@ -138,11 +138,11 @@ fn setup_tracing() -> WorkerGuard {
     .pretty();
 
   macro_rules! set_global_default {
-  ($($layer:expr),*) => {
-    let subscriber = Registry::default()$(.with($layer))*.with(filter);
-    tracing::subscriber::set_global_default(subscriber).unwrap();
-  };
-}
+    ($($layer:expr),*) => {
+      let subscriber = Registry::default()$(.with($layer))*.with(filter);
+      tracing::subscriber::set_global_default(subscriber).unwrap();
+    };
+  }
 
   #[cfg(feature = "tokio-console")]
   {

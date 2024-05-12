@@ -37,8 +37,13 @@ pub async fn show_reader_page_context_menu(
   use crate::menu::context::reader::page;
   use tauri::menu::ContextMenu;
 
-  let label = window.label();
-  debug!(command = "show_reader_page_context_menu", window = label, window_id, page);
+  debug!(
+    command = "show_reader_page_context_menu",
+    window = window.label(),
+    window_id,
+    page
+  );
+
   let windows = reader::get_windows(&app);
   let windows = windows.read().await;
 

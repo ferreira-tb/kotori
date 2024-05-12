@@ -13,6 +13,7 @@ pub enum Event<'a> {
   BookAdded(&'a LibraryBook),
   BookRemoved(i32),
   CoverExtracted { id: i32, path: &'a Path },
+  LibraryCleared,
   PageDeleted { window_id: u16 },
   RatingUpdated { id: i32, rating: u8 },
 }
@@ -22,12 +23,18 @@ impl<'a> Event<'a> {
     let event = self.to_string();
 
     macro_rules! to_main {
+      () => {{
+        emit_to_main(app, &event, ())
+      }};
       ($payload:expr) => {{
         emit_to_main(app, &event, $payload)
       }};
     }
 
     macro_rules! to_reader {
+      ($id:expr) => {{
+        emit_to_reader(app, &event, $id, ())
+      }};
       ($id:expr, $payload:expr) => {{
         emit_to_reader(app, &event, $id, $payload)
       }};
@@ -37,7 +44,8 @@ impl<'a> Event<'a> {
       Event::BookAdded(book) => to_main!(book),
       Event::BookRemoved(id) => to_main!(BookRemoved::new(id)),
       Event::CoverExtracted { id, path } => to_main!(CoverExtracted::new(id, path)?),
-      Event::PageDeleted { window_id, .. } => to_reader!(window_id, ()),
+      Event::LibraryCleared => to_main!(),
+      Event::PageDeleted { window_id, .. } => to_reader!(window_id),
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated::new(id, rating)),
     }
   }

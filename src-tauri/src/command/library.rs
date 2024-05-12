@@ -30,7 +30,12 @@ pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: 
   use crate::menu::context::library::book;
   use tauri::menu::ContextMenu;
 
-  debug!(command = "show_library_book_context_menu", book_id = id);
+  debug!(
+    command = "show_library_book_context_menu",
+    window = window.label(),
+    book_id = id
+  );
+
   let menu = book::build(&app)?;
   window.on_menu_event(book::on_event(&app, id));
   menu.popup(window).map_err(Into::into)

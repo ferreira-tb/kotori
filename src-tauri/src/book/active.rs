@@ -1,4 +1,4 @@
-use super::cover::Cover;
+use super::cover::{self, Cover};
 use super::handle::Handle;
 use super::title::Title;
 use crate::database::prelude::*;
@@ -125,7 +125,7 @@ impl ActiveBook {
 
   pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
     let id = self.id_or_try_init(app).await?;
-    let path = Cover::path(app, id)?;
+    let path = cover::path(app, id)?;
     if fs::try_exists(&path).await? {
       return Ok(path.into());
     }
@@ -166,7 +166,7 @@ impl ActiveBook {
       fs::create_dir_all(parent).await?;
 
       let format = ImageFormat::from_path(name)?;
-      Cover::resize(page, format, &path).await?;
+      cover::resize(page, format, &path).await?;
 
       let id = self.id_or_try_init(&app).await?;
       let path = path.as_ref();
@@ -182,7 +182,7 @@ impl ActiveBook {
     let name = self.get_page_name(page).await?;
     Book::update_cover(app, id, name).await?;
 
-    if let Ok(cover) = Cover::path(app, id) {
+    if let Ok(cover) = cover::path(app, id) {
       self.extract_cover(app, cover);
     }
 
@@ -217,7 +217,7 @@ impl ActiveBook {
         info!("book {id} had its cover deleted, resetting");
         Book::update_cover(app, id, None).await?;
 
-        if let Ok(cover) = Cover::path(app, id) {
+        if let Ok(cover) = cover::path(app, id) {
           self.reload_pages().await?;
           self.extract_cover(app, cover);
         }

@@ -3006,6 +3006,7 @@ dependencies = [
  "natord",
  "rayon",
  "sea-orm",
+ "sea-query",
  "serde",
  "serde_json",
  "strum 0.26.2",

@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, Cover, LibraryBook};
+use crate::book::{cover, ActiveBook, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
@@ -70,7 +70,7 @@ async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook
   if matches!(book, Ok(ref it) if it.cover.is_none()) {
     let _: Result<()> = try {
       let book = ActiveBook::with_model(&model)?;
-      let path = Cover::path(&app, model.id)?;
+      let path = cover::path(&app, model.id)?;
       book.extract_cover(&app, path);
     };
   }
@@ -83,7 +83,7 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   Book::delete_by_id(id).exec(&kotori.db).await?;
   Event::BookRemoved(id).emit(app)?;
 
-  if let Ok(cover) = Cover::path(app, id) {
+  if let Ok(cover) = cover::path(app, id) {
     fs::remove_file(cover).await?;
   }
 
@@ -112,6 +112,20 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
+pub async fn remove_all(app: &AppHandle) -> Result<()> {
+  use sea_query::Query;
+
+  let kotori = app.kotori();
+  let builder = kotori.db.get_database_backend();
+
+  let stmt = Query::delete().from_table(Book).to_owned();
+  kotori.db.execute(builder.build(&stmt)).await?;
+  Event::LibraryCleared.emit(app)?;
+
+  let path = cover::base_path(app)?;
+  fs::remove_dir_all(path).await.map_err(Into::into)
+}
+
 async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   let path = utils::path::to_string(path)?;
   let model = BookActiveModel {
@@ -133,7 +147,7 @@ async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   Event::BookAdded(&payload).emit(&app)?;
 
   let active_book = ActiveBook::with_model(&book)?;
-  let cover = Cover::path(&app, book.id)?;
+  let cover = cover::path(&app, book.id)?;
   active_book.extract_cover(&app, cover);
 
   Ok(())

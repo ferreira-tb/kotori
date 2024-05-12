@@ -1,11 +1,10 @@
 mod active;
-mod cover;
+pub mod cover;
 mod handle;
 mod structs;
 mod title;
 
 pub use active::ActiveBook;
-pub use cover::Cover;
 pub use structs::{LibraryBook, ReaderBook};
 pub use title::Title;
 

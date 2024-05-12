@@ -3,6 +3,7 @@ use crate::prelude::*;
 use crate::utils::dialog;
 use crate::{book, library, VERSION};
 use tauri::menu::AboutMetadataBuilder;
+use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
 
 #[derive(Debug, Display, EnumString)]
@@ -11,6 +12,8 @@ enum Id {
   About,
   #[strum(serialize = "kt-app-add-to-library")]
   AddToLibrary,
+  #[strum(serialize = "kt-app-clear-library")]
+  ClearLibrary,
   #[strum(serialize = "kt-app-discord")]
   Discord,
   #[strum(serialize = "kt-app-repository")]
@@ -27,6 +30,9 @@ where
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app)?)?;
   menu.append(&help_menu(app)?)?;
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  menu.append(&dev_menu(app)?)?;
 
   Ok(menu)
 }
@@ -74,6 +80,22 @@ where
     .map_err(Into::into)
 }
 
+#[cfg(any(debug_assertions, feature = "devtools"))]
+fn dev_menu<M, R>(app: &M) -> Result<Submenu<R>>
+where
+  R: Runtime,
+  M: Manager<R>,
+{
+  let library = SubmenuBuilder::new(app, "Library")
+    .items(&[&menu_item!(app, Id::ClearLibrary, "Clear")?])
+    .build()?;
+
+  SubmenuBuilder::new(app, "Developer")
+    .items(&[&library])
+    .build()
+    .map_err(Into::into)
+}
+
 pub fn on_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
 where
   R: Runtime,
@@ -84,6 +106,7 @@ where
       match id {
         Id::About => {}
         Id::AddToLibrary => add_to_library_from_dialog(&app),
+        Id::ClearLibrary => clear_library(&app),
         Id::Discord => open_discord(&app),
         Id::Repository => open_repository(&app),
         Id::OpenBook => open_book_from_dialog(&app),
@@ -98,6 +121,30 @@ fn add_to_library_from_dialog(app: &AppHandle) {
     if let Err(error) = library::add_from_dialog(&app).await {
       error!(%error);
       dialog::show_error(&app, error);
+    }
+  });
+}
+
+fn clear_library(app: &AppHandle) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    let (tx, rx) = oneshot::channel();
+    let dialog = app.dialog().clone();
+
+    let message = "All books will be removed.";
+    MessageDialogBuilder::new(dialog, "Clear library", message)
+      .kind(MessageDialogKind::Warning)
+      .ok_button_label("Clear")
+      .cancel_button_label("Cancel")
+      .show(move |response| {
+        let _ = tx.send(response);
+      });
+
+    if let Ok(true) = rx.await {
+      if let Err(error) = library::remove_all(&app).await {
+        error!(%error);
+        dialog::show_error(&app, error);
+      }
     }
   });
 }
