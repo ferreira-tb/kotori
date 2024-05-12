@@ -5,6 +5,7 @@ pub mod prelude;
 use crate::prelude::*;
 use migration::{Migrator, MigratorTrait};
 use sea_orm::{Database, DatabaseConnection};
+use tokio::fs;
 
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app.path().app_local_data_dir().unwrap();

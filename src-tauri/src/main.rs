@@ -14,6 +14,7 @@ mod prelude;
 mod reader;
 mod server;
 mod utils;
+mod window;
 
 use error::BoxResult;
 use reader::Reader;

@@ -1,20 +1,12 @@
-mod window;
-
-pub use window::{get_window_id, label, ReaderWindow};
-
 use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
-use crate::utils::window::{data_directory, webview_url};
-use std::sync::atomic::{self, AtomicU16};
-use tauri::{WebviewWindowBuilder, WindowEvent};
-use tauri_plugin_dialog::{MessageDialogBuilder, MessageDialogKind};
+use crate::window::ReaderWindow;
+use tauri::WindowEvent;
+use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
-
-static NEXT_WINDOW_ID: AtomicU16 = AtomicU16::new(0);
-
 pub struct Reader {
   windows: WindowMap,
 }
@@ -50,32 +42,12 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     }
   }
 
-  let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
-
-  let label = label(window_id);
-  let url = webview_url("reader");
-  let dir = data_directory(app, &label)?;
-
-  let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
-  trace!(%script);
-
-  let webview = WebviewWindowBuilder::new(app, label, url)
-    .initialization_script(&script)
-    .data_directory(dir)
-    .title(book.title.to_string())
-    .min_inner_size(800.0, 600.0)
-    .resizable(true)
-    .maximizable(true)
-    .minimizable(true)
-    .maximized(true)
-    .visible(false)
-    .build()?;
-
-  set_window_event(app, &webview, window_id);
+  let (id, window) = ReaderWindow::open(app, book)?;
+  on_window_event(app, &window.webview, id);
 
   let windows = get_windows(app);
   let mut windows = windows.write().await;
-  windows.insert(window_id, ReaderWindow { book, webview });
+  windows.insert(id, window);
 
   Ok(())
 }
@@ -91,16 +63,7 @@ where
   Ok(())
 }
 
-async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
-  let windows = get_windows(app);
-  let windows = windows.read().await;
-  windows
-    .iter()
-    .find(|(_, window)| window.webview.label() == label)
-    .map(|(id, _)| *id)
-}
-
-fn set_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
+fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   let app = app.clone();
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
@@ -112,6 +75,15 @@ fn set_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
       });
     }
   });
+}
+
+pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
+  let windows = get_windows(app);
+  let windows = windows.read().await;
+  windows
+    .iter()
+    .find(|(_, window)| window.webview.label() == label)
+    .map(|(id, _)| *id)
 }
 
 async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {

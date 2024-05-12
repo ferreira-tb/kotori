@@ -79,7 +79,7 @@ where
 {
   let app = app.clone();
   move |_, event| {
-    if let Ok(id) = Id::from_str(event.id.0.as_str()) {
+    if let Ok(id) = Id::try_from(event.id().as_ref()) {
       match id {
         Id::About => {}
         Id::AddToLibrary => add_to_library_from_dialog(&app),

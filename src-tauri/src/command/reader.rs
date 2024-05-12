@@ -9,17 +9,20 @@ pub async fn delete_page_with_dialog(
 ) -> Result<()> {
   let label = webview.label();
   debug!(command = "delete_page", window = label, page);
-
-  reader::get_window_id(&app, label)
-    .and_then(|window_id| reader::delete_page_with_dialog(&app, window_id, page))
+  let window_id = reader::get_window_id_by_label(&app, label)
     .await
+    .ok_or_else(|| err!(WindowNotFound, "{label}"))?;
+
+  reader::delete_page_with_dialog(&app, window_id, page).await
 }
 
 #[tauri::command]
 pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<ReaderBook> {
   let label = webview.label();
   debug!(command = "get_current_reader_book", window = label);
-  let window_id = reader::get_window_id(&app, label).await?;
+  let window_id = reader::get_window_id_by_label(&app, label)
+    .await
+    .ok_or_else(|| err!(WindowNotFound, "{label}"))?;
 
   ReaderBook::from_reader(&app, window_id).await
 }
@@ -34,7 +37,8 @@ pub async fn show_reader_page_context_menu(
   use crate::menu::context::reader::page;
   use tauri::menu::ContextMenu;
 
-  debug!(command = "show_reader_page_context_menu", window_id, page);
+  let label = window.label();
+  debug!(command = "show_reader_page_context_menu", window = label, window_id, page);
   let windows = reader::get_windows(&app);
   let windows = windows.read().await;
 

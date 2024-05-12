@@ -1,6 +1,6 @@
 pub mod app {
   use crate::Kotori;
-  use tauri::{Manager, Runtime, State, WebviewWindow};
+  use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow};
 
   pub trait AppHandleExt<R: Runtime>: Manager<R> {
     fn kotori(&self) -> State<Kotori> {
@@ -12,7 +12,7 @@ pub mod app {
     }
   }
 
-  impl<R: Runtime> AppHandleExt<R> for tauri::AppHandle<R> {}
+  impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {}
 }
 
 pub mod collections {
@@ -74,25 +74,5 @@ pub mod path {
 
   pub fn to_string(path: impl AsRef<Path>) -> Result<String> {
     to_str(path.as_ref()).map(ToOwned::to_owned)
-  }
-}
-
-pub mod window {
-  use crate::error::Result;
-  use std::path::PathBuf;
-  use tauri::{AppHandle, Manager, WebviewUrl};
-
-  pub fn data_directory(app: &AppHandle, name: impl AsRef<str>) -> Result<PathBuf> {
-    let name = name.as_ref();
-    app
-      .path()
-      .app_local_data_dir()
-      .map(|it| it.join(format!("windows/{name}")))
-      .map_err(Into::into)
-  }
-
-  pub fn webview_url(name: impl AsRef<str>) -> WebviewUrl {
-    let name = name.as_ref();
-    WebviewUrl::App(format!("src/windows/{name}/index.html",).into())
   }
 }

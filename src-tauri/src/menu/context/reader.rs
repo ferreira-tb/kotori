@@ -40,7 +40,7 @@ pub mod page {
   ) -> impl Fn(&Window<R>, MenuEvent) {
     let app = app.clone();
     move |_, event| {
-      let Ok(id) = Id::from_str(event.id.0.as_str()) else {
+      let Ok(id) = Id::try_from(event.id().as_ref()) else {
         return;
       };
 

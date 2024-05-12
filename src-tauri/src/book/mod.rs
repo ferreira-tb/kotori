@@ -12,7 +12,7 @@ pub use title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::{prelude::*, reader};
-use tauri_plugin_dialog::FileDialogBuilder;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 
 pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();

@@ -1,11 +1,11 @@
 mod payload;
 
 use crate::book::LibraryBook;
-use crate::{prelude::*, reader};
+use crate::prelude::*;
+use crate::window::WindowKind;
 use payload::{BookRemoved, CoverExtracted, RatingUpdated};
 use serde::Serialize;
 use strum::Display;
-use tauri::EventTarget;
 
 #[derive(Display)]
 #[strum(serialize_all = "snake_case")]
@@ -49,39 +49,16 @@ where
 {
   debug!(event, target = "main");
   app
-    .emit_to(Target::MainWindow, event, payload)
+    .emit_to(WindowKind::Main, event, payload)
     .map_err(Into::into)
 }
 
-fn emit_to_reader<S>(app: &AppHandle, event: &str, window_id: u16, payload: S) -> Result<()>
+fn emit_to_reader<S>(app: &AppHandle, event: &str, id: u16, payload: S) -> Result<()>
 where
   S: Serialize + Clone,
 {
-  debug!(event, target = "reader", reader_id = window_id);
+  debug!(event, target = "reader", id);
   app
-    .emit_to(Target::ReaderWindow(window_id), event, payload)
+    .emit_to(WindowKind::Reader(id), event, payload)
     .map_err(Into::into)
-}
-
-#[derive(Debug)]
-pub enum Target {
-  MainWindow,
-  ReaderWindow(u16),
-}
-
-impl Target {
-  pub fn label(&self) -> String {
-    match self {
-      Target::MainWindow => "main".into(),
-      Target::ReaderWindow(window_id) => reader::label(*window_id),
-    }
-  }
-}
-
-impl From<Target> for EventTarget {
-  fn from(target: Target) -> Self {
-    EventTarget::WebviewWindow {
-      label: target.label(),
-    }
-  }
 }

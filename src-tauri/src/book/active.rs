@@ -9,6 +9,7 @@ use crate::{prelude::*, reader};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
+use tokio::fs;
 
 #[derive(Clone)]
 pub struct ActiveBook {
