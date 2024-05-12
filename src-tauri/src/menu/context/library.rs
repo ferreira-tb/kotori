@@ -33,6 +33,7 @@ pub mod book {
     let app = app.clone();
     move |_, event| {
       if let Ok(id) = Id::try_from(event.id().as_ref()) {
+        debug!(menu_event = ?id);
         match id {
           Id::OpenBook => open_book(&app, book_id),
           Id::RemoveBook => remove_book(&app, book_id),

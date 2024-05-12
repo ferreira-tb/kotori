@@ -55,7 +55,7 @@ features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
 [dependencies.sea-query]
 version = "0.30"
-no-default-features = true
+default-features = false
 features = ["backend-sqlite", "thread-safe"]
 
 [dependencies.serde]

@@ -40,18 +40,13 @@ pub mod page {
   ) -> impl Fn(&Window<R>, MenuEvent) {
     let app = app.clone();
     move |_, event| {
-      let Ok(id) = Id::try_from(event.id().as_ref()) else {
-        return;
-      };
-
-      match id {
-        Id::DeletePage => delete_page(&app, window_id, page),
-        Id::SetAsCover => {
-          if let Some(book_id) = book_id {
-            set_as_cover(&app, book_id, page);
-          }
+      if let Ok(id) = Id::try_from(event.id().as_ref()) {
+        debug!(menu_event = ?id);
+        match id {
+          Id::DeletePage => delete_page(&app, window_id, page),
+          Id::SetAsCover => set_as_cover(&app, book_id, page),
         }
-      }
+      };
     }
   }
 
@@ -62,10 +57,12 @@ pub mod page {
     });
   }
 
-  fn set_as_cover(app: &AppHandle, book_id: i32, page: usize) {
-    let app = app.clone();
-    debug!("changing cover to page {page} for book {book_id}");
+  fn set_as_cover(app: &AppHandle, book_id: Option<i32>, page: usize) {
+    let Some(book_id) = book_id else {
+      return;
+    };
 
+    let app = app.clone();
     async_runtime::spawn(async move {
       let book = Book::get_by_id(&app, book_id)
         .await

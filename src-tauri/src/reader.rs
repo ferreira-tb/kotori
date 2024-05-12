@@ -77,6 +77,15 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   });
 }
 
+pub async fn close_all(app: &AppHandle) -> Result<()> {
+  let windows = get_windows(app);
+  for window in windows.read().await.values() {
+    let _ = window.webview.close();
+  }
+
+  Ok(())
+}
+
 pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
   let windows = get_windows(app);
   let windows = windows.read().await;

@@ -1,7 +1,7 @@
 use super::prelude::*;
 use crate::prelude::*;
 use crate::utils::dialog;
-use crate::{book, library, VERSION};
+use crate::{book, library, reader, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
@@ -14,6 +14,8 @@ enum Id {
   AddToLibrary,
   #[strum(serialize = "kt-app-clear-library")]
   ClearLibrary,
+  #[strum(serialize = "kt-app-close-all-reader-windows")]
+  CloseAllReaderWindows,
   #[strum(serialize = "kt-app-discord")]
   Discord,
   #[strum(serialize = "kt-app-repository")]
@@ -90,8 +92,12 @@ where
     .items(&[&menu_item!(app, Id::ClearLibrary, "Clear")?])
     .build()?;
 
+  let reader = SubmenuBuilder::new(app, "Reader")
+    .items(&[&menu_item!(app, Id::CloseAllReaderWindows, "Close all")?])
+    .build()?;
+
   SubmenuBuilder::new(app, "Developer")
-    .items(&[&library])
+    .items(&[&library, &reader])
     .build()
     .map_err(Into::into)
 }
@@ -103,10 +109,12 @@ where
   let app = app.clone();
   move |_, event| {
     if let Ok(id) = Id::try_from(event.id().as_ref()) {
+      debug!(menu_event = ?id);
       match id {
         Id::About => {}
         Id::AddToLibrary => add_to_library_from_dialog(&app),
         Id::ClearLibrary => clear_library(&app),
+        Id::CloseAllReaderWindows => close_all_reader_windows(&app),
         Id::Discord => open_discord(&app),
         Id::Repository => open_repository(&app),
         Id::OpenBook => open_book_from_dialog(&app),
@@ -145,6 +153,16 @@ fn clear_library(app: &AppHandle) {
         error!(%error);
         dialog::show_error(&app, error);
       }
+    }
+  });
+}
+
+fn close_all_reader_windows(app: &AppHandle) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    if let Err(error) = reader::close_all(&app).await {
+      error!(%error);
+      dialog::show_error(&app, error);
     }
   });
 }
