@@ -1,5 +1,6 @@
 use super::prelude::*;
 use crate::prelude::*;
+use crate::utils::dialog;
 use crate::{book, library, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_shell::ShellExt;
@@ -94,14 +95,20 @@ where
 fn add_to_library_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let _ = library::add_from_dialog(&app).await;
+    if let Err(error) = library::add_from_dialog(&app).await {
+      error!(%error);
+      dialog::show_error(&app, error);
+    }
   });
 }
 
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let _ = book::open_from_dialog(&app).await;
+    if let Err(error) = book::open_from_dialog(&app).await {
+      error!(%error);
+      dialog::show_error(&app, error);
+    }
   });
 }
 
