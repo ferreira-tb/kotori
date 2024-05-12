@@ -4,10 +4,11 @@ pub mod page {
   use crate::menu::prelude::*;
   use crate::{prelude::*, reader};
 
-  #[derive(Display, EnumString)]
-  #[strum(serialize_all = "kebab-case")]
+  #[derive(Debug, Display, EnumString)]
   enum Id {
+    #[strum(serialize = "kt-ctx-page-delete-page")]
     DeletePage,
+    #[strum(serialize = "kt-ctx-page-set-as-cover")]
     SetAsCover,
   }
 

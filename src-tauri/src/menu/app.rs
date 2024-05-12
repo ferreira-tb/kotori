@@ -4,12 +4,17 @@ use crate::{book, library, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_shell::ShellExt;
 
-#[derive(Display, EnumString)]
-#[strum(serialize_all = "kebab-case")]
+#[derive(Debug, Display, EnumString)]
 enum Id {
+  #[strum(serialize = "kt-app-about")]
   About,
+  #[strum(serialize = "kt-app-add-to-library")]
   AddToLibrary,
+  #[strum(serialize = "kt-app-discord")]
+  Discord,
+  #[strum(serialize = "kt-app-repository")]
   Repository,
+  #[strum(serialize = "kt-app-open-book")]
   OpenBook,
 }
 
@@ -59,7 +64,10 @@ where
   let metadata = metadata.build();
   let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
   SubmenuBuilder::new(app, "Help")
-    .items(&[&menu_item!(app, Id::Repository, "Repository")?])
+    .items(&[
+      &menu_item!(app, Id::Discord, "Discord")?,
+      &menu_item!(app, Id::Repository, "Repository")?,
+    ])
     .item(&about)
     .build()
     .map_err(Into::into)
@@ -75,6 +83,7 @@ where
       match id {
         Id::About => {}
         Id::AddToLibrary => add_to_library_from_dialog(&app),
+        Id::Discord => open_discord(&app),
         Id::Repository => open_repository(&app),
         Id::OpenBook => open_book_from_dialog(&app),
       }
@@ -94,6 +103,12 @@ fn open_book_from_dialog(app: &AppHandle) {
   async_runtime::spawn(async move {
     let _ = book::open_from_dialog(&app).await;
   });
+}
+
+fn open_discord(app: &AppHandle) {
+  let _ = app
+    .shell()
+    .open("https://discord.gg/aAje8qb49f", None);
 }
 
 fn open_repository(app: &AppHandle) {

@@ -51,7 +51,7 @@
   },
   "plugins": {
     "shell": {
-      "open": "https://github.com/ferreira-tb/kotori"
+      "open": true
     }
   }
 }

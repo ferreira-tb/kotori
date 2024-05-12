@@ -40,16 +40,19 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   let kotori = app.kotori();
-  let books = Book::find()
+  let mut set = Book::find()
     .all(&kotori.db)
     .await?
-    .into_co_stream()
-    .map(|model| to_library_book(app.clone(), model))
-    .collect::<Vec<_>>()
-    .await
     .into_iter()
-    .flatten()
-    .collect();
+    .map(|model| to_library_book(app.clone(), model))
+    .collect::<JoinSet<_>>();
+
+  let mut books = Vec::with_capacity(set.len());
+  while let Some(book) = set.join_next().await {
+    if let Some(book) = book? {
+      books.push(book);
+    }
+  }
 
   Ok(books)
 }
@@ -136,13 +139,16 @@ async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
 
 async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
 where
-  I: IntoConcurrentStream<Item = PathBuf>,
+  I: IntoIterator<Item = PathBuf>,
 {
-  books
-    .into_co_stream()
+  let mut tasks = books
+    .into_iter()
     .map(|path| save(app.clone(), path))
-    .collect::<Vec<_>>()
-    .await;
+    .collect::<JoinSet<_>>();
+
+  while let Some(result) = tasks.join_next().await {
+    let _ = result?.inspect_err(|error| warn!(%error));
+  }
 
   Ok(())
 }

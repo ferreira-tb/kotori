@@ -3,10 +3,11 @@ pub mod book {
   use crate::menu::prelude::*;
   use crate::{library, prelude::*};
 
-  #[derive(Display, EnumString)]
-  #[strum(serialize_all = "kebab-case")]
+  #[derive(Debug, Display, EnumString)]
   enum Id {
+    #[strum(serialize = "kt-ctx-book-open-book")]
     OpenBook,
+    #[strum(serialize = "kt-ctx-book-remove-book")]
     RemoveBook,
   }
 
