@@ -15,6 +15,19 @@ pub mod app {
   impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {}
 }
 
+pub mod dialog {
+  use std::fmt::Display;
+  use tauri::AppHandle;
+  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+
+  pub fn show_error(app: &AppHandle, error: impl Display) {
+    let dialog = app.dialog().clone();
+    MessageDialogBuilder::new(dialog, "Error", error.to_string())
+      .kind(MessageDialogKind::Error)
+      .show(|_| {});
+  }
+}
+
 pub mod collections {
   use ahash::AHasher;
   use indexmap::IndexMap;

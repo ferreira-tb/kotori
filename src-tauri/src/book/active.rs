@@ -44,7 +44,7 @@ impl ActiveBook {
 
   pub fn with_model(model: &BookModel) -> Result<Self> {
     let book = Self::new(&model.path)?;
-    book.id.set(model.id).ok();
+    let _ = book.id.set(model.id);
 
     Ok(book)
   }

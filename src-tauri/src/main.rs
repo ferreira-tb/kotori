@@ -24,7 +24,7 @@ use tracing::info;
 use utils::app::AppHandleExt;
 
 #[cfg(debug_assertions)]
-use std::sync::OnceLock;
+use tracing_appender::non_blocking::WorkerGuard;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -35,65 +35,7 @@ pub struct Kotori {
 
 fn main() {
   #[cfg(debug_assertions)]
-  let worker = OnceLock::new();
-
-  #[cfg(debug_assertions)]
-  {
-    use tracing_appender::rolling;
-    use tracing_subscriber::fmt::time::ChronoLocal;
-    use tracing_subscriber::fmt::writer::MakeWriterExt;
-    use tracing_subscriber::fmt::Layer;
-    use tracing_subscriber::layer::SubscriberExt;
-    use tracing_subscriber::{EnvFilter, Registry};
-
-    const TIMESTAMP: &str = "%F %T%.3f %:z";
-
-    let mut filter = EnvFilter::builder()
-      .from_env()
-      .unwrap()
-      .add_directive("kotori=trace".parse().unwrap())
-      .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
-
-    if cfg!(feature = "tokio-console") {
-      filter = filter
-        .add_directive("tokio=trace".parse().unwrap())
-        .add_directive("runtime=trace".parse().unwrap());
-    }
-
-    let appender = rolling::daily("../.temp", "kotori.log");
-    let (writer, guard) = tracing_appender::non_blocking(appender);
-    worker.set(guard).unwrap();
-
-    let file = Layer::default()
-      .with_ansi(false)
-      .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-      .with_writer(writer.with_max_level(tracing::Level::TRACE))
-      .pretty();
-
-    let stderr = Layer::default()
-      .with_ansi(true)
-      .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-      .with_writer(std::io::stderr)
-      .pretty();
-
-    macro_rules! set_global_default {
-    ($($layer:expr),*) => {
-      let subscriber = Registry::default()$(.with($layer))*.with(filter);
-      tracing::subscriber::set_global_default(subscriber).unwrap();
-    };
-  }
-
-    #[cfg(feature = "tokio-console")]
-    {
-      let console = console_subscriber::spawn();
-      set_global_default!(console, file, stderr);
-    }
-
-    #[cfg(not(feature = "tokio-console"))]
-    {
-      set_global_default!(file, stderr);
-    }
-  }
+  let _guard = setup_tracing();
 
   tauri::Builder::default()
     .plugin(tauri_plugin_dialog::init())
@@ -150,8 +92,68 @@ fn on_main_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
   move |event| {
     if matches!(event, WindowEvent::Destroyed) {
       info!("main window destroyed, exiting");
-      app.cleanup_before_exit();
       app.exit(0);
     }
   }
+}
+
+#[cfg(debug_assertions)]
+fn setup_tracing() -> WorkerGuard {
+  use tracing_appender::rolling;
+  use tracing_subscriber::fmt::time::ChronoLocal;
+  use tracing_subscriber::fmt::writer::MakeWriterExt;
+  use tracing_subscriber::fmt::Layer;
+  use tracing_subscriber::layer::SubscriberExt;
+  use tracing_subscriber::{EnvFilter, Registry};
+
+  const TIMESTAMP: &str = "%F %T%.3f %:z";
+
+  #[allow(unused_mut)]
+  let mut filter = EnvFilter::builder()
+    .from_env()
+    .unwrap()
+    .add_directive("kotori=trace".parse().unwrap())
+    .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
+
+  #[cfg(feature = "tokio-console")]
+  {
+    filter = filter
+      .add_directive("tokio=trace".parse().unwrap())
+      .add_directive("runtime=trace".parse().unwrap());
+  }
+
+  let appender = rolling::daily("../.temp", "kotori.log");
+  let (writer, guard) = tracing_appender::non_blocking(appender);
+
+  let file = Layer::default()
+    .with_ansi(false)
+    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+    .with_writer(writer.with_max_level(tracing::Level::TRACE))
+    .pretty();
+
+  let stderr = Layer::default()
+    .with_ansi(true)
+    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
+    .with_writer(std::io::stderr)
+    .pretty();
+
+  macro_rules! set_global_default {
+  ($($layer:expr),*) => {
+    let subscriber = Registry::default()$(.with($layer))*.with(filter);
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+  };
+}
+
+  #[cfg(feature = "tokio-console")]
+  {
+    let console = console_subscriber::spawn();
+    set_global_default!(console, file, stderr);
+  }
+
+  #[cfg(not(feature = "tokio-console"))]
+  {
+    set_global_default!(file, stderr);
+  }
+
+  guard
 }
