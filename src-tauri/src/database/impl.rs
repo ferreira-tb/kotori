@@ -30,15 +30,15 @@ impl Book {
     Title::try_from(book.path.as_str())
   }
 
-  pub async fn update_cover<C>(app: &AppHandle, id: i32, cover: Option<C>) -> Result<book::Model>
+  pub async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
   where
-    C: AsRef<str>,
+    C: Into<Option<&'a str>>,
   {
     let book = Self::get_by_id(app, id).await?;
     let mut book = book.into_active_model();
 
-    if let Some(cover) = cover {
-      let cover = cover.as_ref().to_owned();
+    if let Some(cover) = cover.into() {
+      let cover = cover.to_owned();
       book.cover = Set(Some(cover));
     } else {
       book.cover = Set(None);

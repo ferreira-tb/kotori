@@ -14,7 +14,6 @@
     "vscode-icons-team.vscode-icons",
     "vue.volar",
     "redhat.vscode-yaml",
-    "berublan.vscode-log-viewer",
-    "vadimcn.vscode-lldb"
+    "berublan.vscode-log-viewer"
   ]
 }

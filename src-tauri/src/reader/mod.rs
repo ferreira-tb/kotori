@@ -4,15 +4,16 @@ pub use window::{get_window_id, label, ReaderWindow};
 
 use crate::book::ActiveBook;
 use crate::event::Event;
+use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
-use crate::{prelude::*, utils};
+use crate::utils::window::{data_directory, webview_url};
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_dialog::{MessageDialogBuilder, MessageDialogKind};
 
-static NEXT_WINDOW_ID: AtomicU16 = AtomicU16::new(0);
-
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
+
+static NEXT_WINDOW_ID: AtomicU16 = AtomicU16::new(0);
 
 pub struct Reader {
   windows: WindowMap,
@@ -51,9 +52,9 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
 
   let window_id = NEXT_WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
 
-  let label = window::label(window_id);
-  let url = utils::window::webview_url("reader");
-  let dir = utils::window::data_directory(app, &label)?;
+  let label = label(window_id);
+  let url = webview_url("reader");
+  let dir = data_directory(app, &label)?;
 
   let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
   trace!(%script);

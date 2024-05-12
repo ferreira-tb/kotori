@@ -143,7 +143,7 @@ impl ActiveBook {
 
     let id = self.id_or_try_init(app).await?;
     let name = self.get_first_page_name().await?;
-    Book::update_cover(app, id, Some(name)).await?;
+    Book::update_cover(app, id, name).await?;
 
     Ok(name.to_owned())
   }
@@ -179,7 +179,7 @@ impl ActiveBook {
   pub async fn update_cover(self, app: &AppHandle, page: usize) -> Result<()> {
     let id = self.id_or_try_init(app).await?;
     let name = self.get_page_name(page).await?;
-    Book::update_cover(app, id, Some(name)).await?;
+    Book::update_cover(app, id, name).await?;
 
     if let Ok(cover) = Cover::path(app, id) {
       self.extract_cover(app, cover);
@@ -214,7 +214,7 @@ impl ActiveBook {
       let cover = self.get_cover_name(app).await?;
       if cover == name {
         info!("book {id} had its cover deleted, resetting");
-        Book::update_cover(app, id, None::<&str>).await?;
+        Book::update_cover(app, id, None).await?;
 
         if let Ok(cover) = Cover::path(app, id) {
           self.reload_pages().await?;
