@@ -7,7 +7,7 @@ use serde::Serialize;
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all(serialize = "camelCase"))]
 pub struct ReaderBook {
-  pub id: i32,
+  pub id: Option<i32>,
   pub path: PathBuf,
   pub title: Title,
   pub pages: Vec<usize>,
@@ -15,7 +15,7 @@ pub struct ReaderBook {
 
 impl ReaderBook {
   pub async fn from_active(app: &AppHandle, book: &ActiveBook) -> Result<Self> {
-    let id = book.id_or_try_init(app).await?;
+    let id = book.id_or_try_init(app).await.ok();
     let title = book.title.clone();
     let path = book.path.clone();
 
