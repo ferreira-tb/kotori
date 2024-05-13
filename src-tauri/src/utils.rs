@@ -7,7 +7,7 @@ pub mod app {
       self.state::<Kotori>()
     }
 
-    fn get_main_window(&self) -> WebviewWindow<R> {
+    fn main_window(&self) -> WebviewWindow<R> {
       self.get_webview_window("main").unwrap()
     }
   }

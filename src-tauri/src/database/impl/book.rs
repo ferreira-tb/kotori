@@ -1,11 +1,18 @@
-use super::entities::book;
-use super::entities::prelude::*;
 use crate::book::Title;
+use crate::database::entities::{book, prelude::*};
 use crate::{prelude::*, utils};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter};
 
 impl Book {
+  pub async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>> {
+    let kotori = app.kotori();
+    Self::find()
+      .all(&kotori.db)
+      .await
+      .map_err(Into::into)
+  }
+
   pub async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model> {
     let kotori = app.kotori();
     Self::find_by_id(id)

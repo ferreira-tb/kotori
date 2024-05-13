@@ -108,7 +108,7 @@ async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {
 }
 
 pub async fn switch_focus(app: &AppHandle) -> Result<()> {
-  let main_window = app.get_main_window();
+  let main_window = app.main_window();
   if main_window.is_focused().unwrap_or(false) {
     let windows = get_windows(app);
     let windows = windows.read().await;

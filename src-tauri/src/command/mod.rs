@@ -1,3 +1,4 @@
+pub mod collection;
 pub mod library;
 pub mod reader;
 
@@ -12,10 +13,7 @@ pub async fn close_window(window: WebviewWindow) -> Result<()> {
 #[tauri::command]
 pub async fn focus_main_window(app: AppHandle) -> Result<()> {
   debug!(command = "focus_main_window");
-  app
-    .get_main_window()
-    .set_focus()
-    .map_err(Into::into)
+  app.main_window().set_focus().map_err(Into::into)
 }
 
 #[tauri::command]

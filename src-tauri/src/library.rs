@@ -4,8 +4,7 @@ use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::{self, glob};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::fs;
-use tokio::task::JoinSet;
+use tokio::{fs, task::JoinSet};
 use walkdir::WalkDir;
 
 pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
@@ -41,9 +40,7 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
-  let kotori = app.kotori();
-  let mut set = Book::find()
-    .all(&kotori.db)
+  let mut set = Book::get_all(app)
     .await?
     .into_iter()
     .map(|model| to_library_book(app.clone(), model))
@@ -51,8 +48,10 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
 
   let mut books = Vec::with_capacity(set.len());
   while let Some(book) = set.join_next().await {
-    if let Some(book) = book? {
-      books.push(book);
+    match book {
+      Ok(Some(book)) => books.push(book),
+      Err(error) => warn!(%error),
+      _ => {}
     }
   }
 

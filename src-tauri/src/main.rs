@@ -51,6 +51,7 @@ fn main() {
       command::maximize_window,
       command::show_window,
       command::toggle_fullscreen,
+      command::collection::get_collections,
       command::library::add_to_library_from_dialog,
       command::library::get_library_books,
       command::library::remove_book,
@@ -77,7 +78,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(kotori);
 
-  let main_window = handle.get_main_window();
+  let main_window = handle.main_window();
   main_window.set_menu(menu::app::build(handle)?)?;
   main_window.on_menu_event(menu::app::on_event(handle));
   main_window.on_window_event(on_main_window_event(handle));
@@ -139,22 +140,16 @@ fn setup_tracing() -> WorkerGuard {
     .pretty();
 
   macro_rules! set_global_default {
-    ($($layer:expr),*) => {
+    ($($layer:expr),*) => {{
       let subscriber = Registry::default()$(.with($layer))*.with(filter);
       tracing::subscriber::set_global_default(subscriber).unwrap();
-    };
+    }};
   }
 
   #[cfg(feature = "tokio-console")]
-  {
-    let console = console_subscriber::spawn();
-    set_global_default!(console, file, stderr);
-  }
-
+  set_global_default!(console_subscriber::spawn(), file, stderr);
   #[cfg(not(feature = "tokio-console"))]
-  {
-    set_global_default!(file, stderr);
-  }
+  set_global_default!(file, stderr);
 
   guard
 }

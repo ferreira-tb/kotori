@@ -3,6 +3,7 @@ export enum Command {
   CloseWindow = 'close_window',
   DeletePageWithDialog = 'delete_page_with_dialog',
   FocusMainWindow = 'focus_main_window',
+  GetCollections = 'get_collections',
   GetCurrentReaderBook = 'get_current_reader_book',
   GetLibraryBooks = 'get_library_books',
   MaximizeWindow = 'maximize_window',

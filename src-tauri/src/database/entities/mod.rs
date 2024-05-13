@@ -3,3 +3,4 @@
 pub mod prelude;
 
 pub mod book;
+pub mod collection;
