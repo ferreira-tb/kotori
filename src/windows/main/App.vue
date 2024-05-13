@@ -3,9 +3,9 @@ import { RouteName } from './router';
 import { toPixel } from '@tb-dev/utils';
 import { symbols } from './lib/symbols';
 import { useLibraryStore } from './stores';
-import { showWindow } from '@/lib/commands';
 import { setGlobalSensors } from '@/lib/sensors';
 import type { MenuItem } from 'primevue/menuitem';
+import { maximizeWindow, showWindow } from '@/lib/commands';
 
 const menubar = ref<HTMLElement | null>(null);
 const { height: menubarHeight } = useElementSize(menubar);
@@ -24,8 +24,12 @@ const menuItems: MenuItem[] = [
 setGlobalSensors();
 
 onMounted(() => {
-  const library = useLibraryStore();
-  library.load().then(flushPromises).then(showWindow).catch(handleError);
+  useLibraryStore()
+    .load()
+    .then(flushPromises)
+    .then(maximizeWindow)
+    .then(showWindow)
+    .catch(handleErrorWithDialog);
 });
 </script>
 

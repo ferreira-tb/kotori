@@ -5,6 +5,7 @@ export enum Command {
   FocusMainWindow = 'focus_main_window',
   GetCurrentReaderBook = 'get_current_reader_book',
   GetLibraryBooks = 'get_library_books',
+  MaximizeWindow = 'maximize_window',
   OpenBook = 'open_book',
   OpenBookFromDialog = 'open_book_from_dialog',
   RemoveBook = 'remove_book',
@@ -35,6 +36,10 @@ export function focusMainWindow() {
 
 export function getCurrentReaderBook() {
   return invoke<ReaderBook>(Command.GetCurrentReaderBook);
+}
+
+export function maximizeWindow() {
+  invoke(Command.MaximizeWindow).catch(handleErrorWithDialog);
 }
 
 export async function removeBook(id: number) {

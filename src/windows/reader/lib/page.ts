@@ -59,7 +59,8 @@ export class Page {
       }
     }
 
-    Promise.all(promises).catch(handleError);
+    // Errors are already handled inside `fetch`.
+    void Promise.all(promises);
   }
 
   public async delete() {

@@ -48,6 +48,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       command::close_window,
       command::focus_main_window,
+      command::maximize_window,
       command::show_window,
       command::toggle_fullscreen,
       command::library::add_to_library_from_dialog,

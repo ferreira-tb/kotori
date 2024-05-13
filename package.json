@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Multiplatform manga reader",
   "type": "module",
-  "packageManager": "pnpm@9.1.0",
+  "packageManager": "pnpm@9.1.1",
   "private": true,
   "lint-staged": {
     "*.{?(c|m)@(j|t)s,css,vue,md,json,yaml}": "prettier --write"
@@ -17,6 +17,7 @@
     "format-check": "prettier . --check",
     "lint": "eslint . --config eslint.config.js --cache",
     "lint-fix": "eslint . --config eslint.config.js --cache --fix",
+    "no-bundle": "cargo tauri build --no-bundle --features devtools",
     "prepare": "husky",
     "tokio-console": "tokio-console --retain-for 5s",
     "type-check": "vue-tsc --noEmit",

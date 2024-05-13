@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { useReaderStore } from '../stores';
 import { READER_WINDOW_ID } from '../lib/global';
-import { showReaderPageContextMenu, showWindow } from '@/lib/commands';
+import { showReaderPageContextMenu } from '@/lib/commands';
 
 const store = useReaderStore();
-const { pages, current, ready } = storeToRefs(store);
+const { pages, current } = storeToRefs(store);
 
 onKeyDown('ArrowUp', store.previousPage);
 onKeyDown('ArrowLeft', store.previousPage);
@@ -21,10 +21,6 @@ useEventListener(window, 'wheel', (event: WheelEvent) => {
   } else {
     store.nextPage();
   }
-});
-
-onMounted(() => {
-  until(ready).toBeTruthy().then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 

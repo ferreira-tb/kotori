@@ -19,7 +19,7 @@ export class Book {
 
     watchImmediate(this.current, (value) => value?.eagerFetch());
 
-    this.load().catch(handleError);
+    this.load().catch(handleErrorWithDialog);
   }
 
   public go(page: number) {

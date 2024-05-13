@@ -19,6 +19,12 @@ pub async fn focus_main_window(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
+pub async fn maximize_window(window: WebviewWindow) -> Result<()> {
+  debug!(command = "maximize_window", label = window.label());
+  window.maximize().map_err(Into::into)
+}
+
+#[tauri::command]
 pub async fn show_window(window: WebviewWindow) -> Result<()> {
   debug!(command = "show_window", label = window.label());
   window.show().map_err(Into::into)
@@ -27,8 +33,7 @@ pub async fn show_window(window: WebviewWindow) -> Result<()> {
 #[tauri::command]
 pub async fn toggle_fullscreen(window: WebviewWindow) -> Result<()> {
   debug!(command = "toggle_fullscreen", label = window.label());
-  let is_fullscreen = window.is_fullscreen()?;
   window
-    .set_fullscreen(!is_fullscreen)
+    .set_fullscreen(!window.is_fullscreen()?)
     .map_err(Into::into)
 }
