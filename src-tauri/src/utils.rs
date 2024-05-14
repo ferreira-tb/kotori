@@ -97,24 +97,33 @@ pub mod path {
 
 pub mod result {
   use super::dialog;
-  use std::fmt::Display;
+  use std::error::Error;
   use tauri::AppHandle;
+  use tauri_plugin_manatsu::Log;
 
-  pub trait ResultExt<T, E: Display> {
-    /// Show an message dialog if the result is an error.
-    ///
-    /// This method will also log the error using the [`tracing::error`] macro.
-    fn show_dialog_on_error(self, app: &AppHandle) -> Result<T, E>;
+  pub trait ResultExt<T, E: Error> {
+    /// Saves an error log, consuming `self`, and discarding the success value, if any.
+    async fn into_log(self, app: &AppHandle);
+
+    /// Shows an error dialog, consuming `self`, and discarding the success value, if any.
+    async fn into_dialog(self, app: &AppHandle);
   }
 
-  impl<T, E: Display> ResultExt<T, E> for Result<T, E> {
-    fn show_dialog_on_error(self, app: &AppHandle) -> Result<T, E> {
+  impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
+    async fn into_log(self, app: &AppHandle) {
       if let Err(error) = &self {
         tracing::error!(%error);
-        dialog::show_error(app, error);
+        let _ = Log::new("Error", error.to_string())
+          .save(app)
+          .await;
       }
+    }
 
-      self
+    async fn into_dialog(self, app: &AppHandle) {
+      if let Err(error) = &self {
+        dialog::show_error(app, error);
+        self.into_log(app).await;
+      }
     }
   }
 }

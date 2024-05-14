@@ -39,6 +39,7 @@ fn main() {
   let _guard = setup_tracing();
 
   tauri::Builder::default()
+    .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())

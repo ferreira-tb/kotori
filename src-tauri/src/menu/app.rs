@@ -123,7 +123,7 @@ fn add_to_library_from_dialog(app: &AppHandle) {
   async_runtime::spawn(async move {
     let _ = library::add_from_dialog(&app)
       .await
-      .show_dialog_on_error(&app);
+      .into_dialog(&app);
   });
 }
 
@@ -143,9 +143,7 @@ fn clear_library(app: &AppHandle) {
       });
 
     if let Ok(true) = rx.await {
-      let _ = library::remove_all(&app)
-        .await
-        .show_dialog_on_error(&app);
+      let _ = library::remove_all(&app).await.into_dialog(&app);
     }
   });
 }
@@ -155,7 +153,7 @@ fn open_book_from_dialog(app: &AppHandle) {
   async_runtime::spawn(async move {
     let _ = book::open_from_dialog(&app)
       .await
-      .show_dialog_on_error(&app);
+      .into_dialog(&app);
   });
 }
 
@@ -163,12 +161,12 @@ fn open_discord(app: &AppHandle) {
   let _ = app
     .shell()
     .open("https://discord.gg/aAje8qb49f", None)
-    .show_dialog_on_error(app);
+    .into_dialog(app);
 }
 
 fn open_repository(app: &AppHandle) {
   let _ = app
     .shell()
     .open("https://github.com/ferreira-tb/kotori", None)
-    .show_dialog_on_error(app);
+    .into_dialog(app);
 }

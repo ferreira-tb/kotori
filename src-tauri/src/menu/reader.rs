@@ -1,6 +1,7 @@
 use super::prelude::*;
-use crate::{prelude::*, reader};
+use crate::{prelude::*, reader, utils::path};
 use tauri::menu::MenuId;
+use tauri_plugin_clipboard_manager::ClipboardExt;
 
 #[derive(Display, Debug, EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -10,7 +11,7 @@ pub enum Item {
   Close,
   CloseAll,
   CloseOthers,
-  CopyFilePath,
+  CopyBookPathToClipboard,
   RevealInExplorer,
 }
 
@@ -41,15 +42,14 @@ impl Listener for Item {
 
   fn execute(app: &AppHandle, window: &Window, event: &MenuEvent, ctx: Self::Context) {
     if let Some(item) = Self::from_menu_id(event.id(), ctx.window_id) {
-      debug!(menu_event = %item);
-      #[allow(clippy::match_same_arms)]
+      debug!(menu_event = %item, reader_window = ctx.window_id);
       match item {
         Item::Close => {
           let _ = window.close();
         }
         Item::CloseAll => close_all_reader_windows(app),
         Item::CloseOthers => close_other_reader_windows(app, ctx.window_id),
-        Item::CopyFilePath => {}
+        Item::CopyBookPathToClipboard => copy_path_to_clipboard(app, ctx.window_id),
         Item::RevealInExplorer => {}
       }
     };
@@ -87,8 +87,8 @@ where
     .items(&[
       &menu_item!(
         app,
-        Item::CopyFilePath.to_menu_id(window_id),
-        "Copy file path"
+        Item::CopyBookPathToClipboard.to_menu_id(window_id),
+        "Copy book path"
       )?,
       &menu_item!(
         app,
@@ -103,17 +103,36 @@ where
 pub(super) fn close_all_reader_windows(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let _ = reader::close_all(&app)
+    reader::close_all(&app)
       .await
-      .show_dialog_on_error(&app);
+      .into_dialog(&app)
+      .await;
   });
 }
 
 fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let _ = reader::close_others(&app, window_id)
+    reader::close_others(&app, window_id)
       .await
-      .show_dialog_on_error(&app);
+      .into_dialog(&app)
+      .await;
+  });
+}
+
+fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    let windows = app.reader_windows();
+    let windows = windows.read().await;
+    if let Some(window) = windows.get(&window_id) {
+      if let Ok(path) = path::to_str(&window.book.path) {
+        app
+          .clipboard()
+          .write_text(path)
+          .into_dialog(&app)
+          .await;
+      }
+    }
   });
 }

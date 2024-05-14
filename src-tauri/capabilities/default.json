@@ -16,7 +16,11 @@
     "store:allow-set",
     {
       "identifier": "http:default",
-      "allow": [{ "url": "http://localhost:3000/*" }]
+      "allow": [
+        {
+          "url": "http://localhost:3000/*"
+        }
+      ]
     }
   ]
 }

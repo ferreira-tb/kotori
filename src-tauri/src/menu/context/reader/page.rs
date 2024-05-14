@@ -53,9 +53,10 @@ where
 fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let _ = reader::delete_page_with_dialog(&app, window_id, page)
+    reader::delete_page_with_dialog(&app, window_id, page)
       .await
-      .show_dialog_on_error(&app);
+      .into_dialog(&app)
+      .await;
   });
 }
 
@@ -68,15 +69,15 @@ fn set_as_cover(app: &AppHandle, book_id: Option<i32>, page: usize) {
   async_runtime::spawn(async move {
     let book = Book::get_by_id(&app, book_id)
       .await
-      .show_dialog_on_error(&app)
       .ok()
       .and_then(|model| ActiveBook::with_model(&model).ok());
 
     if let Some(book) = book {
-      let _ = book
+      book
         .update_cover(&app, page)
         .await
-        .show_dialog_on_error(&app);
+        .into_dialog(&app)
+        .await;
     }
   });
 }
