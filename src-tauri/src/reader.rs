@@ -59,7 +59,7 @@ where
 pub async fn close_all(app: &AppHandle) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
-    let _ = window.webview.close();
+    window.webview.close().into_log(app);
   }
 
   Ok(())
@@ -69,11 +69,19 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
     if window.id != window_id {
-      let _ = window.webview.close();
+      window.webview.close().into_log(app);
     }
   }
 
   Ok(())
+}
+
+pub async fn get_book_path(app: &AppHandle, window_id: u16) -> Option<PathBuf> {
+  let windows = app.reader_windows();
+  let windows = windows.read().await;
+  windows
+    .get(&window_id)
+    .map(|window| window.book.path.clone())
 }
 
 pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {

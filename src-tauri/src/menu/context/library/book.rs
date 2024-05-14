@@ -45,7 +45,7 @@ pub fn open_book(app: &AppHandle, id: i32) {
   let app = app.clone();
   async_runtime::spawn(async move {
     if let Ok(book) = ActiveBook::from_id(&app, id).await {
-      book.open(&app).await.into_dialog(&app).await;
+      book.open(&app).await.into_dialog(&app);
     }
   });
 }
@@ -55,7 +55,6 @@ pub fn remove_book(app: &AppHandle, id: i32) {
   async_runtime::spawn(async move {
     library::remove_with_dialog(&app, id)
       .await
-      .into_dialog(&app)
-      .await;
+      .into_dialog(&app);
   });
 }

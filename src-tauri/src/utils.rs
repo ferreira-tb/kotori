@@ -98,31 +98,37 @@ pub mod path {
 pub mod result {
   use super::dialog;
   use std::error::Error;
-  use tauri::AppHandle;
+  use tauri::{async_runtime, AppHandle};
   use tauri_plugin_manatsu::Log;
 
   pub trait ResultExt<T, E: Error> {
     /// Saves an error log, consuming `self`, and discarding the success value, if any.
-    async fn into_log(self, app: &AppHandle);
+    fn into_log(self, app: &AppHandle);
 
     /// Shows an error dialog, consuming `self`, and discarding the success value, if any.
-    async fn into_dialog(self, app: &AppHandle);
+    fn into_dialog(self, app: &AppHandle);
   }
 
   impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
-    async fn into_log(self, app: &AppHandle) {
-      if let Err(error) = &self {
+    fn into_log(self, app: &AppHandle) {
+      if let Err(error) = self {
         tracing::error!(%error);
-        let _ = Log::new("Error", error.to_string())
-          .save(app)
-          .await;
+
+        let app = app.clone();
+        let message = error.to_string();
+        async_runtime::spawn(async move {
+          let _ = Log::new("Error", message)
+            .save(&app)
+            .await
+            .inspect_err(|error| tracing::error!(%error));
+        });
       }
     }
 
-    async fn into_dialog(self, app: &AppHandle) {
+    fn into_dialog(self, app: &AppHandle) {
       if let Err(error) = &self {
         dialog::show_error(app, error);
-        self.into_log(app).await;
+        self.into_log(app);
       }
     }
   }

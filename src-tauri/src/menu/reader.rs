@@ -2,6 +2,7 @@ use super::prelude::*;
 use crate::{prelude::*, reader, utils::path};
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
+use tokio::fs;
 
 #[derive(Display, Debug, EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -12,7 +13,7 @@ pub enum Item {
   CloseAll,
   CloseOthers,
   CopyBookPathToClipboard,
-  RevealInExplorer,
+  OpenBookFolder,
 }
 
 impl Item {
@@ -44,13 +45,11 @@ impl Listener for Item {
     if let Some(item) = Self::from_menu_id(event.id(), ctx.window_id) {
       debug!(menu_event = %item, reader_window = ctx.window_id);
       match item {
-        Item::Close => {
-          let _ = window.close();
-        }
+        Item::Close => window.close().into_log(app),
         Item::CloseAll => close_all_reader_windows(app),
         Item::CloseOthers => close_other_reader_windows(app, ctx.window_id),
         Item::CopyBookPathToClipboard => copy_path_to_clipboard(app, ctx.window_id),
-        Item::RevealInExplorer => {}
+        Item::OpenBookFolder => open_book_folder(app, ctx.window_id),
       }
     };
   }
@@ -92,8 +91,8 @@ where
       )?,
       &menu_item!(
         app,
-        Item::RevealInExplorer.to_menu_id(window_id),
-        "Reveal in explorer"
+        Item::OpenBookFolder.to_menu_id(window_id),
+        "Open book folder"
       )?,
     ]);
 
@@ -103,10 +102,7 @@ where
 pub(super) fn close_all_reader_windows(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    reader::close_all(&app)
-      .await
-      .into_dialog(&app)
-      .await;
+    reader::close_all(&app).await.into_dialog(&app);
   });
 }
 
@@ -115,23 +111,33 @@ fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
   async_runtime::spawn(async move {
     reader::close_others(&app, window_id)
       .await
-      .into_dialog(&app)
-      .await;
+      .into_dialog(&app);
   });
 }
 
 fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    let windows = app.reader_windows();
-    let windows = windows.read().await;
-    if let Some(window) = windows.get(&window_id) {
-      if let Ok(path) = path::to_str(&window.book.path) {
-        app
-          .clipboard()
-          .write_text(path)
-          .into_dialog(&app)
-          .await;
+    let path = reader::get_book_path(&app, window_id)
+      .await
+      .and_then(|it| path::to_string(it).ok());
+
+    if let Some(path) = path {
+      app.clipboard().write_text(path).into_dialog(&app);
+    }
+  });
+}
+
+fn open_book_folder(app: &AppHandle, window_id: u16) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    let dir = reader::get_book_path(&app, window_id)
+      .await
+      .and_then(|it| it.parent().map(ToOwned::to_owned));
+
+    if let Some(dir) = dir {
+      if let Ok(true) = fs::try_exists(&dir).await {
+        open::that_detached(dir).into_log(&app);
       }
     }
   });

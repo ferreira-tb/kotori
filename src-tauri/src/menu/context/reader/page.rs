@@ -55,8 +55,7 @@ fn delete_page(app: &AppHandle, window_id: u16, page: usize) {
   async_runtime::spawn(async move {
     reader::delete_page_with_dialog(&app, window_id, page)
       .await
-      .into_dialog(&app)
-      .await;
+      .into_dialog(&app);
   });
 }
 
@@ -76,8 +75,7 @@ fn set_as_cover(app: &AppHandle, book_id: Option<i32>, page: usize) {
       book
         .update_cover(&app, page)
         .await
-        .into_dialog(&app)
-        .await;
+        .into_dialog(&app);
     }
   });
 }

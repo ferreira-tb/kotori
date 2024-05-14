@@ -3077,6 +3077,7 @@ dependencies = [
  "itertools",
  "migration",
  "natord",
+ "open",
  "rayon",
  "sea-orm",
  "sea-query",

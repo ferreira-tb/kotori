@@ -50,6 +50,10 @@ optional = true
 version = "*"
 path = "../migration"
 
+[dependencies.open]
+version = "5.1.2"
+features = ["shellexecute-on-windows"]
+
 [dependencies.sea-orm]
 version = "0.12.15"
 features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]

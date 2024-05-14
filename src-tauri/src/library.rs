@@ -61,17 +61,19 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
 async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook> {
   // Remove the book if the file is missing.
   if let Ok(false) = fs::try_exists(&model.path).await {
-    remove(&app, model.id).await.ok();
+    remove(&app, model.id).await.into_log(&app);
     return None;
   }
 
   let book = LibraryBook::from_model(&app, &model).await;
   if matches!(book, Ok(ref it) if it.cover.is_none()) {
-    let _: Result<()> = try {
+    let result: Result<()> = try {
       let book = ActiveBook::with_model(&model)?;
       let path = cover::path(&app, model.id)?;
       book.extract_cover(&app, path);
     };
+
+    result.into_log(&app);
   }
 
   book.ok()
@@ -162,7 +164,7 @@ where
     .collect::<JoinSet<_>>();
 
   while let Some(result) = tasks.join_next().await {
-    let _ = result?.inspect_err(|error| warn!(%error));
+    result?.into_log(app);
   }
 
   Ok(())
