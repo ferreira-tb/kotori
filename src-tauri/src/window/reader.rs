@@ -38,7 +38,7 @@ impl ReaderWindow {
     let menu = menu::reader::build(app, id)?;
     window.webview.set_menu(menu)?;
 
-    // This menu should be hidden by default.
+    // This menu must be hidden by default.
     window.webview.hide_menu()?;
 
     let ctx = Context { window_id: id };
