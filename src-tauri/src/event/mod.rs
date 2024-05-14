@@ -5,9 +5,9 @@ use crate::prelude::*;
 use crate::window::WindowKind;
 use payload::{BookRemoved, CoverExtracted, RatingUpdated};
 use serde::Serialize;
-use strum::Display;
+use strum::{AsRefStr, Display};
 
-#[derive(Display)]
+#[derive(AsRefStr, Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum Event<'a> {
   BookAdded(&'a LibraryBook),
@@ -20,7 +20,7 @@ pub enum Event<'a> {
 
 impl<'a> Event<'a> {
   pub fn emit(self, app: &AppHandle) -> Result<()> {
-    let event = self.to_string();
+    let event = self.as_ref();
 
     macro_rules! to_main {
       () => {{

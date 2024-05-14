@@ -3078,6 +3078,7 @@ dependencies = [
  "migration",
  "natord",
  "open",
+ "rand 0.8.5",
  "sea-orm",
  "sea-query",
  "serde",

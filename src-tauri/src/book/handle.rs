@@ -8,7 +8,7 @@ use tempfile::NamedTempFile;
 use tokio::fs;
 use zip::{ZipArchive, ZipWriter};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub(super) struct Handle {
   handle: Arc<Mutex<ZipArchive<File>>>,
 }

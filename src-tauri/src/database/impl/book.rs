@@ -2,9 +2,22 @@ use crate::book::Title;
 use crate::database::entities::{book, prelude::*};
 use crate::{prelude::*, utils};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, QueryFilter};
+use sea_query::Query;
+
+use sea_orm::{
+  ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, PaginatorTrait,
+  QueryFilter,
+};
 
 impl Book {
+  pub async fn count(app: &AppHandle) -> Result<u64> {
+    let kotori = app.kotori();
+    Self::find()
+      .count(&kotori.db)
+      .await
+      .map_err(Into::into)
+  }
+
   pub async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>> {
     let kotori = app.kotori();
     Self::find()
@@ -35,6 +48,41 @@ impl Book {
   pub async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
     let book = Self::get_by_id(app, id).await?;
     Title::try_from(book.path.as_str())
+  }
+
+  /// Get a random book from the library.
+  /// Will return `None` if the library is empty.
+  pub async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
+    use rand::seq::SliceRandom;
+    use rand::thread_rng;
+
+    let kotori = app.kotori();
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::select()
+      .column(book::Column::Id)
+      .from(Book)
+      .to_owned();
+
+    let ids = kotori
+      .db
+      .query_all(builder.build(&stmt))
+      .await?
+      .into_iter()
+      .filter_map(|it| it.try_get::<i32>("", "id").ok())
+      .collect_vec();
+
+    let id = {
+      let mut rng = thread_rng();
+      ids.choose(&mut rng)
+    };
+
+    if let Some(id) = id {
+      info!("random book selected: {id}");
+      Self::get_by_id(app, *id).await.map(Some)
+    } else {
+      Ok(None)
+    }
   }
 
   pub async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>

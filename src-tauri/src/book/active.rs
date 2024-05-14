@@ -11,7 +11,7 @@ use natord::compare_ignore_case;
 use std::cmp::Ordering;
 use tokio::fs;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ActiveBook {
   pub path: PathBuf,
   pub title: Title,
@@ -36,17 +36,25 @@ impl ActiveBook {
     Ok(book)
   }
 
+  pub fn with_model(model: &BookModel) -> Result<Self> {
+    let book = Self::new(&model.path)?;
+    let _ = book.id.set(model.id);
+    Ok(book)
+  }
+
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
     Book::get_by_id(app, id)
       .await
       .and_then(|model| Self::with_model(&model))
   }
 
-  pub fn with_model(model: &BookModel) -> Result<Self> {
-    let book = Self::new(&model.path)?;
-    let _ = book.id.set(model.id);
-
-    Ok(book)
+  pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
+    let book = Book::get_random(app).await?;
+    if let Some(book) = book {
+      Self::with_model(&book).map(Some)
+    } else {
+      Ok(None)
+    }
   }
 
   pub fn id(&self) -> Option<i32> {

@@ -85,6 +85,12 @@ where
       &menu_item!(app, Item::CloseOthers.to_menu_id(window_id), "Close others")?,
     ])
     .separator()
+    .items(&[&menu_item!(
+      app,
+      Item::AddBookToLibrary.to_menu_id(window_id),
+      "Add to library"
+    )?])
+    .separator()
     .items(&[
       &menu_item!(
         app,
@@ -97,12 +103,6 @@ where
         "Open book folder"
       )?,
     ])
-    .separator()
-    .items(&[&menu_item!(
-      app,
-      Item::AddBookToLibrary.to_menu_id(window_id),
-      "Add to library"
-    )?])
     .build()
     .map_err(Into::into)
 }

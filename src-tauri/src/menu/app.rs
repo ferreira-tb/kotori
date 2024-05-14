@@ -1,6 +1,7 @@
 use super::prelude::*;
 use super::reader::close_all_reader_windows;
-use crate::{book, library, menu_item_or_bail, prelude::*, VERSION};
+use crate::book::{self, ActiveBook};
+use crate::{library, menu_item_or_bail, prelude::*, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
@@ -17,10 +18,12 @@ pub enum Item {
   CloseAllReaderWindows,
   #[strum(serialize = "kt-app-discord")]
   Discord,
+  #[strum(serialize = "kt-app-random-book")]
+  RandomBook,
   #[strum(serialize = "kt-app-repository")]
   Repository,
-  #[strum(serialize = "kt-app-open-book")]
-  OpenBook,
+  #[strum(serialize = "kt-app-open-file")]
+  OpenFile,
 }
 
 impl Listener for Item {
@@ -35,7 +38,8 @@ impl Listener for Item {
       Item::CloseAllReaderWindows => close_all_reader_windows(app),
       Item::Discord => open_discord(app),
       Item::Repository => open_repository(app),
-      Item::OpenBook => open_book_from_dialog(app),
+      Item::OpenFile => open_file(app),
+      Item::RandomBook => open_random_book(app),
     }
   }
 }
@@ -47,6 +51,7 @@ where
 {
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app)?)?;
+  menu.append(&read_menu(app)?)?;
   menu.append(&help_menu(app)?)?;
 
   #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -61,7 +66,7 @@ where
   M: Manager<R>,
 {
   let mut menu = SubmenuBuilder::new(app, "File").items(&[
-    &menu_item!(app, Item::OpenBook, "Open book", "Ctrl+O")?,
+    &menu_item!(app, Item::OpenFile, "Open file", "Ctrl+O")?,
     &menu_item!(app, Item::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
   ]);
 
@@ -70,6 +75,17 @@ where
   }
 
   menu.build().map_err(Into::into)
+}
+
+fn read_menu<M, R>(app: &M) -> Result<Submenu<R>>
+where
+  R: Runtime,
+  M: Manager<R>,
+{
+  SubmenuBuilder::new(app, "Read")
+    .items(&[&menu_item!(app, Item::RandomBook, "Random book")?])
+    .build()
+    .map_err(Into::into)
 }
 
 fn help_menu<M, R>(app: &M) -> Result<Submenu<R>>
@@ -148,7 +164,7 @@ fn clear_library(app: &AppHandle) {
   });
 }
 
-fn open_book_from_dialog(app: &AppHandle) {
+fn open_file(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
     book::open_from_dialog(&app)
@@ -169,4 +185,17 @@ fn open_repository(app: &AppHandle) {
     .shell()
     .open("https://github.com/ferreira-tb/kotori", None)
     .into_dialog(app);
+}
+
+fn open_random_book(app: &AppHandle) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    let result: Result<_> = try {
+      if let Some(book) = ActiveBook::random(&app).await? {
+        book.open(&app).await?;
+      }
+    };
+
+    result.into_dialog(&app);
+  });
 }

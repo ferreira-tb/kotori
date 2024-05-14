@@ -20,7 +20,9 @@ impl ReaderWindow {
   }
 
   pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<(u16, Self)> {
+    trace!(?book, "opening reader window");
     let window_id = WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
+    
     let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
     trace!(%script);
 
@@ -29,7 +31,6 @@ impl ReaderWindow {
       .initialization_script(&script)
       .data_directory(kind.data_dir(app)?)
       .title(book.title.to_string())
-      .min_inner_size(800.0, 600.0)
       .resizable(true)
       .maximizable(true)
       .minimizable(true)
@@ -41,7 +42,6 @@ impl ReaderWindow {
 
     let menu = build_menu(app, window_id)?;
 
-    // Having a book id is proof enough that the book is in the library.
     let book_id = window.book.id_or_try_init(app).await.ok();
     menu.set_item_enabled(
       &Item::AddBookToLibrary.to_menu_id(window_id),

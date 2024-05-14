@@ -73,7 +73,7 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
 }
 
 /// Spawn a task to remove a reader window from the map.
-/// This will, obviously, write lock it.
+/// The task will **write lock** [`crate::reader::WindowMap`].
 pub fn remove_window(app: &AppHandle, window_id: u16) {
   let app = app.clone();
   async_runtime::spawn(async move {
