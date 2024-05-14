@@ -1,5 +1,5 @@
 use super::prelude::*;
-use crate::{prelude::*, reader, utils::path};
+use crate::{library, prelude::*, reader, utils::path};
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tokio::fs;
@@ -7,6 +7,7 @@ use tokio::fs;
 #[derive(Display, Debug, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Item {
+  AddBookToLibrary,
   /// There's a [`tauri::menu::PredefinedMenuItem`] for this,
   /// but Linux doesn't support it.
   Close,
@@ -21,7 +22,7 @@ impl Item {
   /// When a item on a menu is clicked, Tauri notifies all windows.
   /// Most of the time, this is fine, but as we have multiple reader windows,
   /// we need to know exactly which window the menu item was clicked on.
-  fn to_menu_id(&self, window_id: u16) -> MenuId {
+  pub fn to_menu_id(&self, window_id: u16) -> MenuId {
     let prefix = Self::prefix(window_id);
     MenuId::new(format!("{prefix}{self}"))
   }
@@ -45,6 +46,7 @@ impl Listener for Item {
     if let Some(item) = Self::from_menu_id(event.id(), ctx.window_id) {
       debug!(menu_event = %item, reader_window = ctx.window_id);
       match item {
+        Item::AddBookToLibrary => add_to_library(app, ctx.window_id),
         Item::Close => window.close().into_log(app),
         Item::CloseAll => close_all_reader_windows(app),
         Item::CloseOthers => close_other_reader_windows(app, ctx.window_id),
@@ -76,7 +78,7 @@ where
   R: Runtime,
   M: Manager<R>,
 {
-  let menu = SubmenuBuilder::new(app, "File")
+  SubmenuBuilder::new(app, "File")
     .items(&[
       &menu_item!(app, Item::Close.to_menu_id(window_id), "Close", "Escape")?,
       &menu_item!(app, Item::CloseAll.to_menu_id(window_id), "Close all")?,
@@ -94,9 +96,35 @@ where
         Item::OpenBookFolder.to_menu_id(window_id),
         "Open book folder"
       )?,
-    ]);
+    ])
+    .separator()
+    .items(&[&menu_item!(
+      app,
+      Item::AddBookToLibrary.to_menu_id(window_id),
+      "Add to library"
+    )?])
+    .build()
+    .map_err(Into::into)
+}
 
-  menu.build().map_err(Into::into)
+fn add_to_library(app: &AppHandle, window_id: u16) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    if let Some(path) = reader::get_book_path(&app, window_id).await {
+      let result: Result<()> = try {
+        library::save(app.clone(), path).await?;
+
+        // Disable the menu item after adding the book to the library.
+        let windows = app.reader_windows();
+        let windows = windows.read().await;
+        if let Some(window) = windows.get(&window_id) {
+          window.set_menu_item_enabled(&Item::AddBookToLibrary, false)?;
+        }
+      };
+
+      result.into_dialog(&app);
+    };
+  });
 }
 
 pub(super) fn close_all_reader_windows(app: &AppHandle) {
@@ -137,7 +165,7 @@ fn open_book_folder(app: &AppHandle, window_id: u16) {
 
     if let Some(dir) = dir {
       if let Ok(true) = fs::try_exists(&dir).await {
-        open::that_detached(dir).into_log(&app);
+        open::that_detached(dir).into_dialog(&app);
       }
     }
   });

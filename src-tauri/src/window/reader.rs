@@ -1,8 +1,8 @@
 use super::WindowKind;
 use crate::book::ActiveBook;
-use crate::menu::reader::{Context, Item};
-use crate::menu::{self, Listener};
-use crate::prelude::*;
+use crate::menu::reader::{build as build_menu, Context, Item};
+use crate::menu::{Listener, MenuExt};
+use crate::{prelude::*, reader};
 use std::sync::atomic::{self, AtomicU16};
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -15,12 +15,16 @@ pub struct ReaderWindow {
 }
 
 impl ReaderWindow {
-  pub fn open(app: &AppHandle, book: ActiveBook) -> Result<(u16, Self)> {
-    let id = WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
-    let script = format!("window.KOTORI = {{ readerWindowId: {id} }}");
+  fn new(id: u16, book: ActiveBook, webview: WebviewWindow) -> Self {
+    Self { id, book, webview }
+  }
+
+  pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<(u16, Self)> {
+    let window_id = WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
+    let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
     trace!(%script);
 
-    let kind = WindowKind::Reader(id);
+    let kind = WindowKind::Reader(window_id);
     let window = WebviewWindowBuilder::new(app, kind.label(), kind.url())
       .initialization_script(&script)
       .data_directory(kind.data_dir(app)?)
@@ -31,22 +35,38 @@ impl ReaderWindow {
       .minimizable(true)
       .visible(false)
       .build()
-      .map(|webview| Self { id, book, webview })?;
+      .map(|webview| Self::new(window_id, book, webview))?;
 
-    on_window_event(app, &window.webview, id);
+    on_window_event(app, &window.webview, window_id);
 
-    let menu = menu::reader::build(app, id)?;
+    let menu = build_menu(app, window_id)?;
+
+    // Having a book id is proof enough that the book is in the library.
+    let book_id = window.book.id_or_try_init(app).await.ok();
+    menu.set_item_enabled(
+      &Item::AddBookToLibrary.to_menu_id(window_id),
+      book_id.is_none(),
+    )?;
+
     window.webview.set_menu(menu)?;
-
-    // This menu must be hidden by default.
-    window.webview.hide_menu()?;
-
-    let ctx = Context { window_id: id };
     window
       .webview
-      .on_menu_event(Item::on_event(app.clone(), ctx));
+      .on_menu_event(Item::on_event(app.clone(), Context { window_id }));
 
-    Ok((id, window))
+    // We should keep this hidden by default.
+    // The user may toggle it visible, however.
+    window.webview.hide_menu()?;
+
+    Ok((window_id, window))
+  }
+
+  pub fn set_menu_item_enabled(&self, item: &Item, enabled: bool) -> Result<()> {
+    if let Some(menu) = self.webview.menu() {
+      let id = item.to_menu_id(self.id);
+      menu.set_item_enabled(&id, enabled)?;
+    }
+
+    Ok(())
   }
 }
 
@@ -55,14 +75,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
       info!("close requested for reader window {window_id}");
-      let app = app.clone();
-      async_runtime::spawn(async move {
-        let windows = app.reader_windows();
-        let mut windows = windows.write().await;
-        windows.shift_remove(&window_id);
-
-        info!("reader window {window_id} closed");
-      });
+      reader::remove_window(&app, window_id);
     }
   });
 }

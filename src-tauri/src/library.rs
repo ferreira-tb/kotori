@@ -127,7 +127,7 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
   fs::remove_dir_all(path).await.map_err(Into::into)
 }
 
-async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
+pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   let path = utils::path::to_string(path)?;
   let model = BookActiveModel {
     path: Set(path),

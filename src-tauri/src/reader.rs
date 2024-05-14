@@ -6,6 +6,8 @@ use crate::window::ReaderWindow;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
+
+#[derive(Default)]
 pub struct Reader {
   windows: WindowMap,
 }
@@ -22,12 +24,6 @@ impl Reader {
   }
 }
 
-impl Default for Reader {
-  fn default() -> Self {
-    Self::new()
-  }
-}
-
 pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
   {
     let windows = app.reader_windows();
@@ -37,7 +33,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     }
   }
 
-  let (id, window) = ReaderWindow::open(app, book)?;
+  let (id, window) = ReaderWindow::open(app, book).await?;
   let windows = app.reader_windows();
   let mut windows = windows.write().await;
   windows.insert(id, window);
@@ -76,6 +72,17 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   Ok(())
 }
 
+/// Spawn a task to remove a reader window from the map.
+/// This will, obviously, write lock it.
+pub fn remove_window(app: &AppHandle, window_id: u16) {
+  let app = app.clone();
+  async_runtime::spawn(async move {
+    let windows = app.reader_windows();
+    let mut windows = windows.write().await;
+    windows.shift_remove(&window_id);
+  });
+}
+
 pub async fn get_book_path(app: &AppHandle, window_id: u16) -> Option<PathBuf> {
   let windows = app.reader_windows();
   let windows = windows.read().await;
@@ -84,6 +91,7 @@ pub async fn get_book_path(app: &AppHandle, window_id: u16) -> Option<PathBuf> {
     .map(|window| window.book.path.clone())
 }
 
+// TODO: Is this function still needed?
 pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
   let windows = app.reader_windows();
   let windows = windows.read().await;

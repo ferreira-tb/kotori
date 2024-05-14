@@ -36,7 +36,6 @@ pub async fn show_reader_page_context_menu(
 ) -> Result<()> {
   use crate::menu::context::reader::page::{self, Context, Item};
   use crate::menu::Listener;
-  use tauri::menu::ContextMenu;
 
   debug!(
     command = "show_reader_page_context_menu",
@@ -57,7 +56,7 @@ pub async fn show_reader_page_context_menu(
 
     let menu = page::build(&app, book_id)?;
     window.on_menu_event(Item::on_event(app, ctx));
-    menu.popup(window)?;
+    window.popup_menu(&menu)?;
   }
 
   Ok(())

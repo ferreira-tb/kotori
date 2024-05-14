@@ -30,7 +30,6 @@ pub async fn remove_book_with_dialog(app: AppHandle, id: i32) -> Result<()> {
 pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
   use crate::menu::context::library::book::{self, Context, Item};
   use crate::menu::Listener;
-  use tauri::menu::ContextMenu;
 
   debug!(
     command = "show_library_book_context_menu",
@@ -41,7 +40,7 @@ pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: 
   let ctx = Context { book_id: id };
   let menu = book::build(&app)?;
   window.on_menu_event(Item::on_event(app, ctx));
-  menu.popup(window).map_err(Into::into)
+  window.popup_menu(&menu).map_err(Into::into)
 }
 
 #[tauri::command]
