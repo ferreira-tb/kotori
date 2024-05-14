@@ -1,7 +1,7 @@
 use super::active::ActiveBook;
 use super::title::Title;
 use crate::database::prelude::*;
-use crate::{prelude::*, reader};
+use crate::prelude::*;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -38,7 +38,7 @@ impl ReaderBook {
   }
 
   pub async fn from_reader(app: &AppHandle, window_id: u16) -> Result<Self> {
-    let windows = reader::get_windows(app);
+    let windows = app.reader_windows();
     let windows = windows.read().await;
     let book = windows
       .get(&window_id)

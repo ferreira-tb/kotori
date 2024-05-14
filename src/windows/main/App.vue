@@ -3,7 +3,7 @@ import { RouteName } from './router';
 import { toPixel } from '@tb-dev/utils';
 import { symbols } from './lib/symbols';
 import { useLibraryStore } from './stores';
-import { setGlobalSensors } from '@/lib/sensors';
+import { setSensors } from './lib/sensors';
 import type { MenuItem } from 'primevue/menuitem';
 import { maximizeWindow, showWindow } from '@/lib/commands';
 
@@ -21,7 +21,7 @@ const menuItems: MenuItem[] = [
   { label: 'Tags', command: () => void router.push({ name: RouteName.BookTag }) }
 ];
 
-setGlobalSensors();
+setSensors();
 
 onMounted(() => {
   useLibraryStore()

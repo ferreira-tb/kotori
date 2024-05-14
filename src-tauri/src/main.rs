@@ -1,6 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#![feature(let_chains, try_blocks)]
+#![feature(try_blocks)]
 
 mod book;
 mod command;
@@ -17,6 +17,7 @@ mod utils;
 mod window;
 
 use error::BoxResult;
+use menu::Listener;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::{App, AppHandle, Manager, WindowEvent};
@@ -64,27 +65,31 @@ fn main() {
       command::reader::open_book_from_dialog,
       command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
+      command::reader::toggle_reader_menu
     ])
     .run(tauri::generate_context!())
     .expect("could not start kotori");
 }
 
 fn setup(app: &mut App) -> BoxResult<()> {
-  let handle = app.handle();
+  let app = app.handle();
   let kotori = Kotori {
-    db: database::connect(handle)?,
+    db: database::connect(app)?,
     reader: Reader::new(),
   };
 
   app.manage(kotori);
 
-  let main_window = handle.main_window();
-  main_window.set_menu(menu::app::build(handle)?)?;
-  main_window.on_menu_event(menu::app::on_event(handle));
-  main_window.on_window_event(on_main_window_event(handle));
+  let main_window = app.main_window();
+  main_window.set_menu(menu::app::build(app)?)?;
+  main_window.on_menu_event(menu::app::Item::on_event(app.clone(), ()));
+  main_window.on_window_event(on_main_window_event(app));
+
+  #[cfg(debug_assertions)]
+  main_window.open_devtools();
 
   // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
-  server::serve(handle);
+  server::serve(app);
 
   Ok(())
 }

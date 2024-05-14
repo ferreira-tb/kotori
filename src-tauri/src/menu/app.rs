@@ -1,13 +1,12 @@
 use super::prelude::*;
-use crate::prelude::*;
-use crate::utils::dialog;
-use crate::{book, library, reader, VERSION};
+use super::reader::close_all_reader_windows;
+use crate::{book, library, menu_item_or_bail, prelude::*, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
 
 #[derive(Debug, Display, EnumString)]
-enum Id {
+pub enum Item {
   #[strum(serialize = "kt-app-about")]
   About,
   #[strum(serialize = "kt-app-add-to-library")]
@@ -22,6 +21,23 @@ enum Id {
   Repository,
   #[strum(serialize = "kt-app-open-book")]
   OpenBook,
+}
+
+impl Listener for Item {
+  type Context = ();
+
+  fn execute(app: &AppHandle, _: &Window, event: &MenuEvent, (): Self::Context) {
+    let item = menu_item_or_bail!(event);
+    match item {
+      Item::About => {}
+      Item::AddToLibrary => add_to_library_from_dialog(app),
+      Item::ClearLibrary => clear_library(app),
+      Item::CloseAllReaderWindows => close_all_reader_windows(app),
+      Item::Discord => open_discord(app),
+      Item::Repository => open_repository(app),
+      Item::OpenBook => open_book_from_dialog(app),
+    }
+  }
 }
 
 pub fn build<M, R>(app: &M) -> Result<Menu<R>>
@@ -45,8 +61,8 @@ where
   M: Manager<R>,
 {
   let mut menu = SubmenuBuilder::new(app, "File").items(&[
-    &menu_item!(app, Id::OpenBook, "Open book", "Ctrl+O")?,
-    &menu_item!(app, Id::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
+    &menu_item!(app, Item::OpenBook, "Open book", "Ctrl+O")?,
+    &menu_item!(app, Item::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
   ]);
 
   if !cfg!(target_os = "linux") {
@@ -74,8 +90,8 @@ where
   let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
   SubmenuBuilder::new(app, "Help")
     .items(&[
-      &menu_item!(app, Id::Discord, "Discord")?,
-      &menu_item!(app, Id::Repository, "Repository")?,
+      &menu_item!(app, Item::Discord, "Discord")?,
+      &menu_item!(app, Item::Repository, "Repository")?,
     ])
     .item(&about)
     .build()
@@ -89,11 +105,11 @@ where
   M: Manager<R>,
 {
   let library = SubmenuBuilder::new(app, "Library")
-    .items(&[&menu_item!(app, Id::ClearLibrary, "Clear")?])
+    .items(&[&menu_item!(app, Item::ClearLibrary, "Clear")?])
     .build()?;
 
   let reader = SubmenuBuilder::new(app, "Reader")
-    .items(&[&menu_item!(app, Id::CloseAllReaderWindows, "Close all")?])
+    .items(&[&menu_item!(app, Item::CloseAllReaderWindows, "Close all")?])
     .build()?;
 
   SubmenuBuilder::new(app, "Developer")
@@ -102,34 +118,12 @@ where
     .map_err(Into::into)
 }
 
-pub fn on_event<R>(app: &AppHandle) -> impl Fn(&Window<R>, MenuEvent)
-where
-  R: Runtime,
-{
-  let app = app.clone();
-  move |_, event| {
-    if let Ok(id) = Id::try_from(event.id().as_ref()) {
-      debug!(menu_event = ?id);
-      match id {
-        Id::About => {}
-        Id::AddToLibrary => add_to_library_from_dialog(&app),
-        Id::ClearLibrary => clear_library(&app),
-        Id::CloseAllReaderWindows => close_all_reader_windows(&app),
-        Id::Discord => open_discord(&app),
-        Id::Repository => open_repository(&app),
-        Id::OpenBook => open_book_from_dialog(&app),
-      }
-    }
-  }
-}
-
 fn add_to_library_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    if let Err(error) = library::add_from_dialog(&app).await {
-      error!(%error);
-      dialog::show_error(&app, error);
-    }
+    let _ = library::add_from_dialog(&app)
+      .await
+      .show_dialog_on_error(&app);
   });
 }
 
@@ -149,20 +143,9 @@ fn clear_library(app: &AppHandle) {
       });
 
     if let Ok(true) = rx.await {
-      if let Err(error) = library::remove_all(&app).await {
-        error!(%error);
-        dialog::show_error(&app, error);
-      }
-    }
-  });
-}
-
-fn close_all_reader_windows(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    if let Err(error) = reader::close_all(&app).await {
-      error!(%error);
-      dialog::show_error(&app, error);
+      let _ = library::remove_all(&app)
+        .await
+        .show_dialog_on_error(&app);
     }
   });
 }
@@ -170,21 +153,22 @@ fn close_all_reader_windows(app: &AppHandle) {
 fn open_book_from_dialog(app: &AppHandle) {
   let app = app.clone();
   async_runtime::spawn(async move {
-    if let Err(error) = book::open_from_dialog(&app).await {
-      error!(%error);
-      dialog::show_error(&app, error);
-    }
+    let _ = book::open_from_dialog(&app)
+      .await
+      .show_dialog_on_error(&app);
   });
 }
 
 fn open_discord(app: &AppHandle) {
   let _ = app
     .shell()
-    .open("https://discord.gg/aAje8qb49f", None);
+    .open("https://discord.gg/aAje8qb49f", None)
+    .show_dialog_on_error(app);
 }
 
 fn open_repository(app: &AppHandle) {
   let _ = app
     .shell()
-    .open("https://github.com/ferreira-tb/kotori", None);
+    .open("https://github.com/ferreira-tb/kotori", None)
+    .show_dialog_on_error(app);
 }

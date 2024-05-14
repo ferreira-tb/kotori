@@ -34,7 +34,8 @@ pub async fn show_reader_page_context_menu(
   window_id: u16,
   page: usize,
 ) -> Result<()> {
-  use crate::menu::context::reader::page;
+  use crate::menu::context::reader::page::{self, Context, Item};
+  use crate::menu::Listener;
   use tauri::menu::ContextMenu;
 
   debug!(
@@ -44,14 +45,18 @@ pub async fn show_reader_page_context_menu(
     page
   );
 
-  let windows = reader::get_windows(&app);
+  let windows = app.reader_windows();
   let windows = windows.read().await;
-
   if let Some(reader_window) = windows.get(&window_id) {
     let book_id = reader_window.book.id_or_try_init(&app).await.ok();
-    let menu = page::build(&app, book_id)?;
-    window.on_menu_event(page::on_event(&app, window_id, book_id, page));
+    let ctx = Context {
+      window_id,
+      book_id,
+      page,
+    };
 
+    let menu = page::build(&app, book_id)?;
+    window.on_menu_event(Item::on_event(app, ctx));
     menu.popup(window)?;
   }
 
@@ -75,4 +80,14 @@ pub async fn open_book(app: AppHandle, id: i32) -> Result<()> {
 pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
   debug!(command = "open_book_from_dialog");
   book::open_from_dialog(&app).await
+}
+
+#[tauri::command]
+pub async fn toggle_reader_menu(webview: WebviewWindow) -> Result<()> {
+  debug!(command = "toggle_reader_menu", window = webview.label());
+  if webview.is_menu_visible()? {
+    webview.hide_menu().map_err(Into::into)
+  } else {
+    webview.show_menu().map_err(Into::into)
+  }
 }

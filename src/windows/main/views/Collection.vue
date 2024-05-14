@@ -3,6 +3,10 @@ import { useCollectionStore } from '../stores';
 
 const store = useCollectionStore();
 const { collections } = storeToRefs(store);
+
+onMounted(() => {
+  store.load().catch(handleErrorWithDialog);
+});
 </script>
 
 <template>

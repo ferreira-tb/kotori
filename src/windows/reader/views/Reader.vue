@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useReaderStore } from '../stores';
 import { READER_WINDOW_ID } from '../lib/global';
-import { showReaderPageContextMenu } from '@/lib/commands';
+import { showReaderPageContextMenu, toggleReaderMenu } from '@/lib/commands';
 
 const store = useReaderStore();
 const { pages, current } = storeToRefs(store);
@@ -25,7 +25,7 @@ useEventListener(window, 'wheel', (event: WheelEvent) => {
 </script>
 
 <template>
-  <main class="fixed inset-0 select-none overflow-hidden">
+  <main class="fixed inset-0 select-none overflow-hidden" @click="toggleReaderMenu">
     <div class="flex size-full items-center justify-center">
       <div
         v-if="pages.length > 0 && current"
