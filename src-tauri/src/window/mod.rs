@@ -3,10 +3,9 @@ mod reader;
 pub use reader::ReaderWindow;
 
 use crate::prelude::*;
-use strum::EnumIs;
 use tauri::{EventTarget, WebviewUrl};
 
-#[derive(Debug, EnumIs)]
+#[derive(Debug)]
 pub enum WindowKind {
   Main,
   Reader(u16),
