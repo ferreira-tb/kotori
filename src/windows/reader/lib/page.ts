@@ -65,7 +65,7 @@ export class Page {
 
   public async delete() {
     try {
-      await deletePageWithDialog(this.id);
+      await deletePageWithDialog(READER_WINDOW_ID, this.id);
     } catch (err) {
       handleError(err, { dialog: true });
     }

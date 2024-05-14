@@ -1,4 +1,5 @@
 import { Page } from './page';
+import { READER_WINDOW_ID } from './global';
 import { getCurrentReaderBook } from '@/lib/commands';
 
 export class Book {
@@ -56,7 +57,7 @@ export class Book {
 
   public async load() {
     this.#ready.value &&= false;
-    this.#book.value = await getCurrentReaderBook();
+    this.#book.value = await getCurrentReaderBook(READER_WINDOW_ID);
     this.#ready.value ||= true;
   }
 }

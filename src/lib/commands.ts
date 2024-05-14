@@ -28,16 +28,16 @@ export function closeWindow() {
   invoke(Command.CloseWindow).catch(handleError);
 }
 
-export async function deletePageWithDialog(page: number) {
-  await invoke(Command.DeletePageWithDialog, { page });
+export async function deletePageWithDialog(windowId: number, page: number) {
+  await invoke(Command.DeletePageWithDialog, { windowId, page });
 }
 
 export function focusMainWindow() {
   invoke(Command.FocusMainWindow).catch(handleError);
 }
 
-export function getCurrentReaderBook() {
-  return invoke<ReaderBook>(Command.GetCurrentReaderBook);
+export function getCurrentReaderBook(windowId: number) {
+  return invoke<ReaderBook>(Command.GetCurrentReaderBook, { windowId });
 }
 
 export function maximizeWindow() {
@@ -72,7 +72,7 @@ export async function switchReaderFocus() {
 }
 
 export async function openBook(bookId: number) {
-  await invoke(Command.OpenBook, { id: bookId });
+  await invoke(Command.OpenBook, { bookId });
 }
 
 export async function openBookFromDialog() {

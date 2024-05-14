@@ -91,16 +91,6 @@ pub async fn get_book_path(app: &AppHandle, window_id: u16) -> Option<PathBuf> {
     .map(|window| window.book.path.clone())
 }
 
-// TODO: Is this function still needed?
-pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
-  let windows = app.reader_windows();
-  let windows = windows.read().await;
-  windows
-    .iter()
-    .find(|(_, window)| window.webview.label() == label)
-    .map(|(_, window)| window.id)
-}
-
 async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {
   let windows = app.reader_windows();
   let windows = windows.read().await;

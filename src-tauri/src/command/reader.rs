@@ -2,28 +2,14 @@ use crate::book::{self, ActiveBook, ReaderBook};
 use crate::{prelude::*, reader};
 
 #[tauri::command]
-pub async fn delete_page_with_dialog(
-  app: AppHandle,
-  webview: WebviewWindow,
-  page: usize,
-) -> Result<()> {
-  let label = webview.label();
-  debug!(command = "delete_page", window = label, page);
-  let window_id = reader::get_window_id_by_label(&app, label)
-    .await
-    .ok_or_else(|| err!(WindowNotFound, "{label}"))?;
-
+pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, page: usize) -> Result<()> {
+  debug!(command = "delete_page", window_id, page);
   reader::delete_page_with_dialog(&app, window_id, page).await
 }
 
 #[tauri::command]
-pub async fn get_current_reader_book(app: AppHandle, webview: WebviewWindow) -> Result<ReaderBook> {
-  let label = webview.label();
-  debug!(command = "get_current_reader_book", window = label);
-  let window_id = reader::get_window_id_by_label(&app, label)
-    .await
-    .ok_or_else(|| err!(WindowNotFound, "{label}"))?;
-
+pub async fn get_current_reader_book(app: AppHandle, window_id: u16) -> Result<ReaderBook> {
+  debug!(command = "get_current_reader_book", window_id);
   ReaderBook::from_reader(&app, window_id).await
 }
 
@@ -69,9 +55,9 @@ pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn open_book(app: AppHandle, id: i32) -> Result<()> {
-  debug!(command = "open_book", book_id = id);
-  let book = ActiveBook::from_id(&app, id).await?;
+pub async fn open_book(app: AppHandle, book_id: i32) -> Result<()> {
+  debug!(command = "open_book", book_id);
+  let book = ActiveBook::from_id(&app, book_id).await?;
   book.open(&app).await
 }
 
