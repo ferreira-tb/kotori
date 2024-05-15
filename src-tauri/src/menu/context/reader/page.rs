@@ -63,19 +63,17 @@ async fn set_as_cover(app: &AppHandle) {
     (ctx.book_id, ctx.page)
   };
 
-  let Some(book_id) = book_id else {
-    return;
-  };
-
-  let book = Book::get_by_id(app, book_id)
-    .await
-    .ok()
-    .and_then(|model| ActiveBook::with_model(&model).ok());
-
-  if let Some(book) = book {
-    book
-      .update_cover(app, page)
+  if let Some(book_id) = book_id {
+    let book = Book::get_by_id(app, book_id)
       .await
-      .into_dialog(app);
-  }
+      .ok()
+      .and_then(|model| ActiveBook::with_model(&model).ok());
+
+    if let Some(book) = book {
+      book
+        .update_cover(app, page)
+        .await
+        .into_dialog(app);
+    }
+  };
 }

@@ -1,6 +1,6 @@
 use crate::book::Title;
 use crate::database::entities::{book, prelude::*};
-use crate::{prelude::*, utils};
+use crate::prelude::*;
 use sea_orm::ActiveValue::Set;
 use sea_query::Query;
 
@@ -36,7 +36,8 @@ impl Book {
 
   pub async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
     let kotori = app.kotori();
-    let path = utils::path::to_str(path.as_ref())?;
+    let path = path.as_ref();
+    let path = path.try_to_str()?;
 
     Self::find()
       .filter(book::Column::Path.eq(path))

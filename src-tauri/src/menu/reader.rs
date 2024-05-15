@@ -1,5 +1,5 @@
 use super::prelude::*;
-use crate::{library, prelude::*, reader, utils::path};
+use crate::{library, prelude::*, reader};
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tokio::fs;
@@ -137,7 +137,7 @@ async fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
 async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
   let path = reader::get_book_path(app, window_id)
     .await
-    .and_then(|it| path::to_string(it).ok());
+    .and_then(|it| it.try_to_string().ok());
 
   if let Some(path) = path {
     app.clipboard().write_text(path).into_dialog(app);

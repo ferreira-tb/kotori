@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::utils::path;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -23,7 +22,10 @@ pub struct CoverExtracted {
 
 impl CoverExtracted {
   pub fn new(id: i32, path: impl AsRef<Path>) -> Result<Self> {
-    path::to_string(path).map(|path| Self { id, path })
+    path
+      .as_ref()
+      .try_to_string()
+      .map(|path| Self { id, path })
   }
 }
 

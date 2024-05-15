@@ -4,8 +4,7 @@ use super::title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::utils::collections::OrderedMap;
-use crate::{library, utils};
-use crate::{prelude::*, reader};
+use crate::{library, prelude::*, reader};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
@@ -166,21 +165,23 @@ impl ActiveBook {
   pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
     let app = app.clone();
     async_runtime::spawn(async move {
-      let name = self.get_cover_name(&app).await?;
-      let handle = self.handle_or_try_init().await?;
-      let page = handle.get_page_by_name(&name).await?;
+      let result: Result<_> = try {
+        let name = self.get_cover_name(&app).await?;
+        let handle = self.handle_or_try_init().await?;
+        let page = handle.get_page_by_name(&name).await?;
 
-      let parent = utils::path::parent(&path)?;
-      fs::create_dir_all(parent).await?;
+        let parent = path.try_parent()?;
+        fs::create_dir_all(parent).await?;
 
-      let format = ImageFormat::from_path(name)?;
-      cover::resize(page, format, &path).await?;
+        let format = ImageFormat::from_path(name)?;
+        cover::resize(page, format, &path).await?;
 
-      let id = self.id_or_try_init(&app).await?;
-      let path = path.as_ref();
-      Event::CoverExtracted { id, path }.emit(&app)?;
+        let id = self.id_or_try_init(&app).await?;
+        let path = path.as_ref();
+        Event::CoverExtracted { id, path }.emit(&app)?;
+      };
 
-      Ok::<(), Error>(())
+      result.into_log(&app);
     });
   }
 

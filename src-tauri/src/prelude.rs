@@ -1,5 +1,6 @@
 pub use crate::error::{Error, JoinResult, Result};
 pub use crate::utils::app::AppHandleExt;
+pub use crate::utils::path::PathExt;
 pub use crate::utils::result::ResultExt;
 pub use crate::{bail, err};
 pub use futures::{FutureExt, TryFutureExt};

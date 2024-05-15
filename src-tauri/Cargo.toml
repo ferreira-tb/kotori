@@ -93,7 +93,7 @@ features = ["parking_lot"]
 
 [dependencies.tracing-subscriber]
 version = "0.3.18"
-features = ["chrono", "env-filter", "fmt", "parking_lot", "registry"]
+features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [features]
 devtools = ["tauri/devtools"]

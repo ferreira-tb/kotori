@@ -15,7 +15,6 @@ export class Page {
   public async fetch() {
     try {
       if (this.status !== 'not started') return;
-      console.log('Fetching page', this.id);
       this.status = 'pending';
       const blob = await getBookPage(READER_WINDOW_ID, this.id);
       this.url = URL.createObjectURL(blob);

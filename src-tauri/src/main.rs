@@ -22,9 +22,6 @@ use tauri::{App, Manager};
 use utils::app::AppHandleExt;
 use window::app::{on_menu_event, on_window_event};
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
-use tracing_appender::non_blocking::WorkerGuard;
-
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
@@ -33,9 +30,6 @@ pub struct Kotori {
 }
 
 fn main() {
-  #[cfg(any(debug_assertions, feature = "devtools"))]
-  let _guard = setup_tracing();
-
   tauri::Builder::default()
     .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
@@ -72,12 +66,14 @@ fn main() {
 
 fn setup(app: &mut App) -> BoxResult<()> {
   let app = app.handle();
-  let kotori = Kotori {
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  utils::log::setup_tracing(app);
+
+  app.manage(Kotori {
     db: database::connect(app)?,
     reader: Reader::new(),
-  };
-
-  app.manage(kotori);
+  });
 
   let main_window = app.main_window();
   main_window.set_menu(menu::app::build(app)?)?;
@@ -91,59 +87,4 @@ fn setup(app: &mut App) -> BoxResult<()> {
   server::serve(app);
 
   Ok(())
-}
-
-#[cfg(any(debug_assertions, feature = "devtools"))]
-fn setup_tracing() -> WorkerGuard {
-  use tracing_appender::rolling;
-  use tracing_subscriber::fmt::time::ChronoLocal;
-  use tracing_subscriber::fmt::writer::MakeWriterExt;
-  use tracing_subscriber::fmt::Layer;
-  use tracing_subscriber::layer::SubscriberExt;
-  use tracing_subscriber::{EnvFilter, Registry};
-
-  const TIMESTAMP: &str = "%F %T%.3f %:z";
-
-  #[cfg_attr(not(feature = "tokio-console"), allow(unused_mut))]
-  let mut filter = EnvFilter::builder()
-    .from_env()
-    .unwrap()
-    .add_directive("kotori=trace".parse().unwrap())
-    .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
-
-  #[cfg(feature = "tokio-console")]
-  {
-    filter = filter
-      .add_directive("tokio=trace".parse().unwrap())
-      .add_directive("runtime=trace".parse().unwrap());
-  }
-
-  let appender = rolling::daily("../.temp", "kotori.log");
-  let (writer, guard) = tracing_appender::non_blocking(appender);
-
-  let file = Layer::default()
-    .with_ansi(false)
-    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-    .with_writer(writer.with_max_level(tracing::Level::TRACE))
-    .pretty();
-
-  let stderr = Layer::default()
-    .with_ansi(true)
-    .with_timer(ChronoLocal::new(TIMESTAMP.into()))
-    .with_writer(std::io::stderr)
-    .pretty();
-
-  macro_rules! set_global_default {
-    ($($layer:expr),*) => {{
-      let subscriber = Registry::default()$(.with($layer))*.with(filter);
-      tracing::subscriber::set_global_default(subscriber).unwrap();
-    }};
-  }
-
-  #[cfg(feature = "tokio-console")]
-  set_global_default!(console_subscriber::spawn(), file, stderr);
-  #[cfg(not(feature = "tokio-console"))]
-  set_global_default!(file, stderr);
-
-  guard
 }

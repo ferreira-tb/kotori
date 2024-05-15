@@ -2,7 +2,7 @@ use crate::book::{cover, ActiveBook, LibraryBook};
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
-use crate::utils::{self, glob};
+use crate::utils::glob;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::{fs, task::JoinSet};
 use walkdir::WalkDir;
@@ -128,7 +128,7 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
-  let path = utils::path::to_string(path)?;
+  let path = path.as_ref().try_to_string()?;
   let model = BookActiveModel {
     path: Set(path),
     ..Default::default()

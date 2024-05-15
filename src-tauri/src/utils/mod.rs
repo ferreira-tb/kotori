@@ -1,3 +1,8 @@
+#[cfg(any(debug_assertions, feature = "devtools"))]
+pub mod log;
+pub mod path;
+pub mod result;
+
 pub mod app {
   use crate::reader::WindowMap;
   use crate::Kotori;
@@ -70,66 +75,5 @@ pub mod glob {
       .add(glob("*.webp"))
       .build()
       .unwrap()
-  }
-}
-
-pub mod path {
-  use crate::err;
-  use crate::error::Result;
-  use std::path::Path;
-
-  pub fn parent(path: &Path) -> Result<&Path> {
-    path
-      .parent()
-      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))
-  }
-
-  pub fn to_str(path: &Path) -> Result<&str> {
-    path
-      .to_str()
-      .ok_or_else(|| err!(InvalidPath, "{}", path.display()))
-  }
-
-  pub fn to_string(path: impl AsRef<Path>) -> Result<String> {
-    to_str(path.as_ref()).map(ToOwned::to_owned)
-  }
-}
-
-pub mod result {
-  use super::dialog;
-  use std::error::Error;
-  use tauri::{async_runtime, AppHandle};
-  use tauri_plugin_manatsu::Log;
-
-  pub trait ResultExt<T, E: Error> {
-    /// Saves an error log, consuming `self`, and discarding the success value, if any.
-    fn into_log(self, app: &AppHandle);
-
-    /// Shows an error dialog, consuming `self`, and discarding the success value, if any.
-    fn into_dialog(self, app: &AppHandle);
-  }
-
-  impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
-    fn into_log(self, app: &AppHandle) {
-      if let Err(error) = self {
-        tracing::error!(%error);
-
-        let app = app.clone();
-        let message = error.to_string();
-        async_runtime::spawn(async move {
-          let _ = Log::new("Error", message)
-            .save(&app)
-            .await
-            .inspect_err(|error| tracing::error!(%error));
-        });
-      }
-    }
-
-    fn into_dialog(self, app: &AppHandle) {
-      if let Err(error) = &self {
-        dialog::show_error(app, error);
-        self.into_log(app);
-      }
-    }
   }
 }
