@@ -27,14 +27,7 @@ impl ReaderBook {
       .sorted_unstable()
       .collect_vec();
 
-    let book = Self {
-      id,
-      path,
-      title,
-      pages,
-    };
-
-    Ok(book)
+    Ok(Self { id, path, title, pages })
   }
 
   pub async fn from_reader(app: &AppHandle, window_id: u16) -> Result<Self> {

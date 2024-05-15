@@ -3,3 +3,4 @@ max_width = 100
 tab_spaces = 2
 newline_style = "Unix"
 chain_width = 50
+struct_lit_width = 36

@@ -15,13 +15,11 @@ pub async fn get_current_reader_book(app: AppHandle, window_id: u16) -> Result<R
 
 #[tauri::command]
 pub async fn show_reader_page_context_menu(
-  app: AppHandle,
   window: Window,
   window_id: u16,
   page: usize,
 ) -> Result<()> {
-  use crate::menu::context::reader::page::{self, Context, Item};
-  use crate::menu::Listener;
+  use crate::menu::context::reader::page::{self, Context, ReaderPageContextMenu};
 
   debug!(
     command = "show_reader_page_context_menu",
@@ -30,19 +28,25 @@ pub async fn show_reader_page_context_menu(
     page
   );
 
+  let app = window.app_handle();
   let windows = app.reader_windows();
   let windows = windows.read().await;
-  if let Some(reader_window) = windows.get(&window_id) {
-    let book_id = reader_window.book.id_or_try_init(&app).await.ok();
-    let ctx = Context {
-      window_id,
-      book_id,
-      page,
-    };
+  let Some(reader_window) = windows.get(&window_id) else {
+    return Ok(());
+  };
 
-    let menu = page::build(&app, book_id)?;
-    window.on_menu_event(Item::on_event(app, ctx));
+  let book_id = reader_window.book.id_or_try_init(&app).await.ok();
+  let ctx = Context { window_id, book_id, page };
+
+  if let Some(state) = window.try_state::<ReaderPageContextMenu>() {
+    *state.ctx.lock().await = ctx;
+    window.popup_menu(&state.menu)?;
+  } else {
+    let menu = page::build(app)?;
     window.popup_menu(&menu)?;
+
+    let ctx = Mutex::new(ctx);
+    window.manage(ReaderPageContextMenu { menu, ctx });
   }
 
   Ok(())

@@ -1,5 +1,4 @@
 use crate::book::{self, LibraryBook};
-
 use crate::{library, prelude::*};
 
 #[tauri::command]
@@ -27,20 +26,28 @@ pub async fn remove_book_with_dialog(app: AppHandle, id: i32) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn show_library_book_context_menu(app: AppHandle, window: Window, id: i32) -> Result<()> {
-  use crate::menu::context::library::book::{self, Context, Item};
-  use crate::menu::Listener;
+pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Result<()> {
+  use crate::menu::context::library::book::{self, Context, LibraryBookContextMenu};
 
   debug!(
     command = "show_library_book_context_menu",
     window = window.label(),
-    book_id = id
+    book_id
   );
 
-  let ctx = Context { book_id: id };
-  let menu = book::build(&app)?;
-  window.on_menu_event(Item::on_event(app, ctx));
-  window.popup_menu(&menu).map_err(Into::into)
+  let ctx = Context { book_id };
+  if let Some(state) = window.try_state::<LibraryBookContextMenu>() {
+    *state.ctx.lock().await = ctx;
+    window.popup_menu(&state.menu)?;
+  } else {
+    let menu = book::build(&window)?;
+    window.popup_menu(&menu)?;
+
+    let ctx = Mutex::new(ctx);
+    window.manage(LibraryBookContextMenu { menu, ctx });
+  }
+
+  Ok(())
 }
 
 #[tauri::command]

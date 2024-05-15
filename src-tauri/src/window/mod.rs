@@ -1,7 +1,6 @@
-mod app;
+pub mod app;
 mod reader;
 
-pub use app::on_main_window_event;
 pub use reader::ReaderWindow;
 
 use crate::prelude::*;

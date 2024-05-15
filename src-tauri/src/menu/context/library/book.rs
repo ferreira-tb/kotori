@@ -11,27 +11,29 @@ pub enum Item {
 }
 
 impl Listener for Item {
-  type Context = Context;
-
-  fn execute(app: &AppHandle, _: &Window, event: &MenuEvent, ctx: Self::Context) {
+  fn execute(window: &Window, event: &MenuEvent) {
     let item = menu_item_or_bail!(event);
-    match item {
-      Item::OpenBook => open_book(app, ctx.book_id),
-      Item::RemoveBook => remove_book(app, ctx.book_id),
-    }
+    let app = window.app_handle().clone();
+    async_runtime::spawn(async move {
+      match item {
+        Item::OpenBook => open_book(&app).await,
+        Item::RemoveBook => remove_book(&app).await,
+      }
+    });
   }
 }
 
-#[derive(Clone)]
+pub struct LibraryBookContextMenu {
+  pub menu: Menu<Wry>,
+  pub ctx: Mutex<Context>,
+}
+
+#[derive(Clone, Debug)]
 pub struct Context {
   pub book_id: i32,
 }
 
-pub fn build<M, R>(app: &M) -> Result<Menu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
   MenuBuilder::new(app)
     .items(&[
       &menu_item!(app, Item::OpenBook, "Open")?,
@@ -41,20 +43,20 @@ where
     .map_err(Into::into)
 }
 
-pub fn open_book(app: &AppHandle, id: i32) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    if let Ok(book) = ActiveBook::from_id(&app, id).await {
-      book.open(&app).await.into_dialog(&app);
-    }
-  });
+pub async fn open_book(app: &AppHandle) {
+  let state = app.state::<LibraryBookContextMenu>();
+  let id = state.ctx.lock().await.book_id;
+
+  if let Ok(book) = ActiveBook::from_id(app, id).await {
+    book.open(app).await.into_dialog(app);
+  }
 }
 
-pub fn remove_book(app: &AppHandle, id: i32) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    library::remove_with_dialog(&app, id)
-      .await
-      .into_dialog(&app);
-  });
+pub async fn remove_book(app: &AppHandle) {
+  let state = app.state::<LibraryBookContextMenu>();
+  let id = state.ctx.lock().await.book_id;
+
+  library::remove_with_dialog(app, id)
+    .await
+    .into_dialog(app);
 }

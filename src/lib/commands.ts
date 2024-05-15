@@ -54,12 +54,12 @@ export async function removeBookWithDialog(id: Nullish<number>) {
 }
 
 export function showLibraryBookContextMenu(bookId: number) {
-  invoke(Command.ShowLibraryBookContextMenu, { id: bookId }).catch(handleError);
+  invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleErrorWithDialog);
 }
 
 export function showReaderPageContextMenu(windowId: number, page: Nullish<number>) {
   if (typeof page === 'number') {
-    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
+    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleErrorWithDialog);
   }
 }
 

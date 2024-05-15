@@ -8,6 +8,6 @@ pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};
 pub use std::sync::Arc;
 pub use tauri::async_runtime::{self, block_on, spawn_blocking};
-pub use tauri::{AppHandle, Manager, Runtime, WebviewWindow, Window};
+pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
 pub use tokio::sync::{oneshot, Mutex, OnceCell, RwLock};
 pub use tracing::{debug, info, trace, warn};

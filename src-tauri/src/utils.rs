@@ -1,14 +1,14 @@
 pub mod app {
   use crate::reader::WindowMap;
   use crate::Kotori;
-  use tauri::{AppHandle, Manager, Runtime, State, WebviewWindow};
+  use tauri::{AppHandle, Manager, State, WebviewWindow, Wry};
 
-  pub trait AppHandleExt<R: Runtime>: Manager<R> {
+  pub trait AppHandleExt: Manager<Wry> {
     fn kotori(&self) -> State<Kotori> {
       self.state::<Kotori>()
     }
 
-    fn main_window(&self) -> WebviewWindow<R> {
+    fn main_window(&self) -> WebviewWindow {
       self.get_webview_window("main").unwrap()
     }
 
@@ -17,7 +17,7 @@ pub mod app {
     }
   }
 
-  impl<R: Runtime> AppHandleExt<R> for AppHandle<R> {}
+  impl AppHandleExt for AppHandle {}
 }
 
 pub mod collections {
