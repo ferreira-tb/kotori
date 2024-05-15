@@ -64,7 +64,7 @@ default-features = false
 features = ["backend-sqlite", "thread-safe"]
 
 [dependencies.serde]
-version = "1.0.201"
+version = "1.0.202"
 features = ["derive"]
 
 [dependencies.strum]
