@@ -128,7 +128,7 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
-  let path = path.as_ref().try_to_string()?;
+  let path = path.try_to_string()?;
   let model = BookActiveModel {
     path: Set(path),
     ..Default::default()

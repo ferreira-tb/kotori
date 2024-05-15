@@ -22,10 +22,7 @@ pub struct CoverExtracted {
 
 impl CoverExtracted {
   pub fn new(id: i32, path: impl AsRef<Path>) -> Result<Self> {
-    path
-      .as_ref()
-      .try_to_string()
-      .map(|path| Self { id, path })
+    path.try_to_string().map(|path| Self { id, path })
   }
 }
 

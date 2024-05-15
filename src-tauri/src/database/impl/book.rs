@@ -36,9 +36,7 @@ impl Book {
 
   pub async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
     let kotori = app.kotori();
-    let path = path.as_ref();
     let path = path.try_to_str()?;
-
     Self::find()
       .filter(book::Column::Path.eq(path))
       .one(&kotori.db)
@@ -47,16 +45,27 @@ impl Book {
   }
 
   pub async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
-    let book = Self::get_by_id(app, id).await?;
-    Title::try_from(book.path.as_str())
+    let kotori = app.kotori();
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::select()
+      .column(book::Column::Path)
+      .and_where(book::Column::Id.eq(id))
+      .from(Book)
+      .to_owned();
+
+    kotori
+      .db
+      .query_one(builder.build(&stmt))
+      .await?
+      .and_then(|it| it.try_get::<String>("", "path").ok())
+      .ok_or_else(|| err!(BookNotFound))
+      .and_then(|it| Title::try_from(it.as_str()))
   }
 
   /// Get a random book from the library.
   /// Will return `None` if the library is empty.
   pub async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
-    use rand::seq::SliceRandom;
-    use rand::thread_rng;
-
     let kotori = app.kotori();
     let builder = kotori.db.get_database_backend();
 
@@ -74,6 +83,9 @@ impl Book {
       .collect_vec();
 
     let id = {
+      use rand::seq::SliceRandom;
+      use rand::thread_rng;
+
       let mut rng = thread_rng();
       ids.choose(&mut rng)
     };
