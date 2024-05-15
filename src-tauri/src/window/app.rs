@@ -5,7 +5,8 @@ use crate::utils::result::ResultExt;
 use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::menu::MenuEvent;
-use tauri::{async_runtime, AppHandle, DragDropEvent, Window, WindowEvent};
+use tauri::DragDropEvent::Dropped;
+use tauri::{async_runtime, AppHandle, Window, WindowEvent};
 use tracing::{info, trace};
 
 // Calling `on_menu_event` on a window will override previously registered event listeners.
@@ -25,11 +26,9 @@ pub fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
       info!("main window destroyed, exiting");
       app.exit(0);
     }
-    WindowEvent::DragDrop(it) => {
-      if let DragDropEvent::Dropped { paths, .. } = it {
-        trace!(?paths, "dropped files");
-        handle_drop_event(&app, &paths);
-      }
+    WindowEvent::DragDrop(Dropped { paths, .. }) => {
+      trace!(?paths, "dropped files");
+      handle_drop_event(&app, paths);
     }
     _ => {}
   }

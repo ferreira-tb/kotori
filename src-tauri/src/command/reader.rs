@@ -35,7 +35,7 @@ pub async fn show_reader_page_context_menu(
     return Ok(());
   };
 
-  let book_id = reader_window.book.id_or_try_init(&app).await.ok();
+  let book_id = reader_window.book.id_or_try_init(app).await.ok();
   let ctx = Context { window_id, book_id, page };
 
   if let Some(state) = window.try_state::<ReaderPageContextMenu>() {

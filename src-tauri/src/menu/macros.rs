@@ -5,12 +5,6 @@ macro_rules! menu_item {
       .id($id)
       .build($app)
   }};
-  ($app:expr, $id:expr, $text:expr, $accelerator:expr) => {{
-    tauri::menu::MenuItemBuilder::new($text)
-      .id($id)
-      .accelerator($accelerator)
-      .build($app)
-  }};
 }
 
 #[macro_export]

@@ -59,8 +59,8 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
 
 fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let mut menu = SubmenuBuilder::new(app, "File").items(&[
-    &menu_item!(app, Item::OpenFile, "Open file", "Ctrl+O")?,
-    &menu_item!(app, Item::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
+    &menu_item!(app, Item::OpenFile, "Open file")?,
+    &menu_item!(app, Item::AddToLibrary, "Add to library")?,
   ]);
 
   if !cfg!(target_os = "linux") {

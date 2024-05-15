@@ -74,7 +74,7 @@ pub fn build<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Menu<Wry>> {
 fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
   SubmenuBuilder::new(app, "File")
     .items(&[
-      &menu_item!(app, Item::Close.to_menu_id(window_id), "Close", "Escape")?,
+      &menu_item!(app, Item::Close.to_menu_id(window_id), "Close")?,
       &menu_item!(app, Item::CloseAll.to_menu_id(window_id), "Close all")?,
       &menu_item!(app, Item::CloseOthers.to_menu_id(window_id), "Close others")?,
     ])
@@ -119,8 +119,8 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
 }
 
 fn close_reader_window(app: &AppHandle, label: &str) {
-  if let Some(window) = app.get_webview_window(&label) {
-    window.close().into_dialog(&app);
+  if let Some(window) = app.get_webview_window(label) {
+    window.close().into_dialog(app);
   }
 }
 
