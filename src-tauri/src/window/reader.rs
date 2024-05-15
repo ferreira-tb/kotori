@@ -1,9 +1,10 @@
 use super::WindowKind;
 use crate::book::ActiveBook;
-use crate::menu::reader::{build as build_menu, Context, Item};
-use crate::menu::{Listener, MenuExt};
+use crate::menu::reader::{build as build_menu, Item};
+use crate::menu::MenuExt;
 use crate::{prelude::*, reader};
 use std::sync::atomic::{self, AtomicU16};
+use tauri::menu::MenuEvent;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
 static WINDOW_ID: AtomicU16 = AtomicU16::new(0);
@@ -22,7 +23,7 @@ impl ReaderWindow {
   pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<(u16, Self)> {
     trace!(?book, "opening reader window");
     let window_id = WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
-    
+
     let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
     trace!(%script);
 
@@ -49,9 +50,7 @@ impl ReaderWindow {
     )?;
 
     window.webview.set_menu(menu)?;
-    window
-      .webview
-      .on_menu_event(Item::on_event(app.clone(), Context { window_id }));
+    window.webview.on_menu_event(on_menu_event());
 
     // We should keep this hidden by default.
     // The user may toggle it visible, however.
@@ -67,6 +66,14 @@ impl ReaderWindow {
     }
 
     Ok(())
+  }
+}
+
+fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
+  use crate::menu::{self, context, Listener};
+  move |window, event| {
+    menu::reader::Item::execute(window, &event);
+    context::reader::page::Item::execute(window, &event);
   }
 }
 

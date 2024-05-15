@@ -27,28 +27,25 @@ pub enum Item {
 }
 
 impl Listener for Item {
-  type Context = ();
-
-  fn execute(app: &AppHandle, _: &Window, event: &MenuEvent, (): Self::Context) {
+  fn execute(window: &Window, event: &MenuEvent) {
     let item = menu_item_or_bail!(event);
-    match item {
-      Item::About => {}
-      Item::AddToLibrary => add_to_library_from_dialog(app),
-      Item::ClearLibrary => clear_library(app),
-      Item::CloseAllReaderWindows => close_all_reader_windows(app),
-      Item::Discord => open_discord(app),
-      Item::Repository => open_repository(app),
-      Item::OpenFile => open_file(app),
-      Item::RandomBook => open_random_book(app),
-    }
+    let app = window.app_handle().clone();
+    async_runtime::spawn(async move {
+      match item {
+        Item::About => {}
+        Item::AddToLibrary => add_to_library_from_dialog(&app).await,
+        Item::ClearLibrary => clear_library(&app).await,
+        Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
+        Item::Discord => open_discord(&app),
+        Item::Repository => open_repository(&app),
+        Item::OpenFile => open_file(&app).await,
+        Item::RandomBook => open_random_book(&app).await,
+      }
+    });
   }
 }
 
-pub fn build<M, R>(app: &M) -> Result<Menu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app)?)?;
   menu.append(&read_menu(app)?)?;
@@ -60,11 +57,7 @@ where
   Ok(menu)
 }
 
-fn file_menu<M, R>(app: &M) -> Result<Submenu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let mut menu = SubmenuBuilder::new(app, "File").items(&[
     &menu_item!(app, Item::OpenFile, "Open file", "Ctrl+O")?,
     &menu_item!(app, Item::AddToLibrary, "Add to library", "Ctrl+Shift+A")?,
@@ -77,22 +70,14 @@ where
   menu.build().map_err(Into::into)
 }
 
-fn read_menu<M, R>(app: &M) -> Result<Submenu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   SubmenuBuilder::new(app, "Read")
     .items(&[&menu_item!(app, Item::RandomBook, "Random book")?])
     .build()
     .map_err(Into::into)
 }
 
-fn help_menu<M, R>(app: &M) -> Result<Submenu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let mut metadata = AboutMetadataBuilder::new()
     .name("Kotori".into())
     .version(VERSION.into())
@@ -115,11 +100,7 @@ where
 }
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
-fn dev_menu<M, R>(app: &M) -> Result<Submenu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let library = SubmenuBuilder::new(app, "Library")
     .items(&[&menu_item!(app, Item::ClearLibrary, "Clear")?])
     .build()?;
@@ -134,43 +115,32 @@ where
     .map_err(Into::into)
 }
 
-fn add_to_library_from_dialog(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    library::add_from_dialog(&app)
-      .await
-      .into_dialog(&app);
-  });
+async fn add_to_library_from_dialog(app: &AppHandle) {
+  library::add_from_dialog(app)
+    .await
+    .into_dialog(app);
 }
 
-fn clear_library(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    let (tx, rx) = oneshot::channel();
-    let dialog = app.dialog().clone();
+async fn clear_library(app: &AppHandle) {
+  let (tx, rx) = oneshot::channel();
+  let dialog = app.dialog().clone();
 
-    let message = "All books will be removed.";
-    MessageDialogBuilder::new(dialog, "Clear library", message)
-      .kind(MessageDialogKind::Warning)
-      .ok_button_label("Clear")
-      .cancel_button_label("Cancel")
-      .show(move |response| {
-        let _ = tx.send(response);
-      });
+  let message = "All books will be removed.";
+  MessageDialogBuilder::new(dialog, "Clear library", message)
+    .kind(MessageDialogKind::Warning)
+    .ok_button_label("Clear")
+    .cancel_button_label("Cancel")
+    .show(move |response| {
+      let _ = tx.send(response);
+    });
 
-    if let Ok(true) = rx.await {
-      library::remove_all(&app).await.into_dialog(&app);
-    }
-  });
+  if let Ok(true) = rx.await {
+    library::remove_all(app).await.into_dialog(app);
+  }
 }
 
-fn open_file(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    book::open_from_dialog(&app)
-      .await
-      .into_dialog(&app);
-  });
+async fn open_file(app: &AppHandle) {
+  book::open_from_dialog(app).await.into_dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {
@@ -187,15 +157,12 @@ fn open_repository(app: &AppHandle) {
     .into_dialog(app);
 }
 
-fn open_random_book(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    let result: Result<_> = try {
-      if let Some(book) = ActiveBook::random(&app).await? {
-        book.open(&app).await?;
-      }
-    };
+async fn open_random_book(app: &AppHandle) {
+  let result: Result<_> = try {
+    if let Some(book) = ActiveBook::random(app).await? {
+      book.open(app).await?;
+    }
+  };
 
-    result.into_dialog(&app);
-  });
+  result.into_dialog(app);
 }

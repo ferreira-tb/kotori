@@ -21,9 +21,9 @@ impl Handle {
       ZipArchive::new(file).map_err(Into::into)
     });
 
-    join.await?.map(|zip| Self {
-      handle: Arc::new(Mutex::new(zip)),
-    })
+    join
+      .await?
+      .map(|zip| Self { handle: Arc::new(Mutex::new(zip)) })
   }
 
   pub async fn pages(&self) -> OrderedMap<usize, String> {

@@ -103,6 +103,15 @@ async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {
   None
 }
 
+pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
+  let windows = app.reader_windows();
+  let windows = windows.read().await;
+  windows
+    .iter()
+    .find(|(_, window)| window.webview.label() == label)
+    .map(|(_, window)| window.id)
+}
+
 pub async fn switch_focus(app: &AppHandle) -> Result<()> {
   let main_window = app.main_window();
   if main_window.is_focused().unwrap_or(false) {

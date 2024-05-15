@@ -13,8 +13,6 @@ macro_rules! menu_item {
   }};
 }
 
-/// Try to convert the event id to a menu item variant.
-/// If it fails, return early from the listener.
 #[macro_export]
 macro_rules! menu_item_or_bail {
   ($event:expr) => {{

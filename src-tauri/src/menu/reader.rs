@@ -4,7 +4,7 @@ use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tokio::fs;
 
-#[derive(Display, Debug, EnumString)]
+#[derive(Debug, Display, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Item {
   AddBookToLibrary,
@@ -40,44 +40,38 @@ impl Item {
 }
 
 impl Listener for Item {
-  type Context = Context;
+  fn execute(window: &Window, event: &MenuEvent) {
+    let app = window.app_handle().clone();
+    let label = window.label().to_owned();
+    let menu_id = event.id().to_owned();
+    async_runtime::spawn(async move {
+      let Some(window_id) = reader::get_window_id_by_label(&app, &label).await else {
+        return;
+      };
 
-  fn execute(app: &AppHandle, window: &Window, event: &MenuEvent, ctx: Self::Context) {
-    if let Some(item) = Self::from_menu_id(event.id(), ctx.window_id) {
-      debug!(menu_event = %item, reader_window = ctx.window_id);
-      match item {
-        Item::AddBookToLibrary => add_to_library(app, ctx.window_id),
-        Item::Close => window.close().into_log(app),
-        Item::CloseAll => close_all_reader_windows(app),
-        Item::CloseOthers => close_other_reader_windows(app, ctx.window_id),
-        Item::CopyBookPathToClipboard => copy_path_to_clipboard(app, ctx.window_id),
-        Item::OpenBookFolder => open_book_folder(app, ctx.window_id),
-      }
-    };
+      if let Some(item) = Self::from_menu_id(&menu_id, window_id) {
+        debug!(menu_event = %item, reader_window = window_id);
+        match item {
+          Item::AddBookToLibrary => add_to_library(&app, window_id).await,
+          Item::Close => close_reader_window(&app, &label),
+          Item::CloseAll => close_all_reader_windows(&app).await,
+          Item::CloseOthers => close_other_reader_windows(&app, window_id).await,
+          Item::CopyBookPathToClipboard => copy_path_to_clipboard(&app, window_id).await,
+          Item::OpenBookFolder => open_book_folder(&app, window_id).await,
+        }
+      };
+    });
   }
 }
 
-#[derive(Clone)]
-pub struct Context {
-  pub window_id: u16,
-}
-
-pub fn build<M, R>(app: &M, window_id: u16) -> Result<Menu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+pub fn build<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Menu<Wry>> {
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app, window_id)?)?;
 
   Ok(menu)
 }
 
-fn file_menu<M, R>(app: &M, window_id: u16) -> Result<Submenu<R>>
-where
-  R: Runtime,
-  M: Manager<R>,
-{
+fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
   SubmenuBuilder::new(app, "File")
     .items(&[
       &menu_item!(app, Item::Close.to_menu_id(window_id), "Close", "Escape")?,
@@ -107,66 +101,57 @@ where
     .map_err(Into::into)
 }
 
-fn add_to_library(app: &AppHandle, window_id: u16) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    if let Some(path) = reader::get_book_path(&app, window_id).await {
-      let result: Result<()> = try {
-        library::save(app.clone(), path).await?;
+async fn add_to_library(app: &AppHandle, window_id: u16) {
+  if let Some(path) = reader::get_book_path(app, window_id).await {
+    let result: Result<()> = try {
+      library::save(app.clone(), path).await?;
 
-        // Disable the menu item after adding the book to the library.
-        let windows = app.reader_windows();
-        let windows = windows.read().await;
-        if let Some(window) = windows.get(&window_id) {
-          window.set_menu_item_enabled(&Item::AddBookToLibrary, false)?;
-        }
-      };
-
-      result.into_dialog(&app);
-    };
-  });
-}
-
-pub(super) fn close_all_reader_windows(app: &AppHandle) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    reader::close_all(&app).await.into_dialog(&app);
-  });
-}
-
-fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    reader::close_others(&app, window_id)
-      .await
-      .into_dialog(&app);
-  });
-}
-
-fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    let path = reader::get_book_path(&app, window_id)
-      .await
-      .and_then(|it| path::to_string(it).ok());
-
-    if let Some(path) = path {
-      app.clipboard().write_text(path).into_dialog(&app);
-    }
-  });
-}
-
-fn open_book_folder(app: &AppHandle, window_id: u16) {
-  let app = app.clone();
-  async_runtime::spawn(async move {
-    let dir = reader::get_book_path(&app, window_id)
-      .await
-      .and_then(|it| it.parent().map(ToOwned::to_owned));
-
-    if let Some(dir) = dir {
-      if let Ok(true) = fs::try_exists(&dir).await {
-        open::that_detached(dir).into_dialog(&app);
+      // Disable the menu item after adding the book to the library.
+      let windows = app.reader_windows();
+      let windows = windows.read().await;
+      if let Some(window) = windows.get(&window_id) {
+        window.set_menu_item_enabled(&Item::AddBookToLibrary, false)?;
       }
+    };
+
+    result.into_dialog(app);
+  };
+}
+
+fn close_reader_window(app: &AppHandle, label: &str) {
+  if let Some(window) = app.get_webview_window(&label) {
+    window.close().into_dialog(&app);
+  }
+}
+
+pub(super) async fn close_all_reader_windows(app: &AppHandle) {
+  reader::close_all(app).await.into_dialog(app);
+}
+
+async fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
+  reader::close_others(app, window_id)
+    .await
+    .into_dialog(app);
+}
+
+async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
+  let path = reader::get_book_path(app, window_id)
+    .await
+    .and_then(|it| path::to_string(it).ok());
+
+  if let Some(path) = path {
+    app.clipboard().write_text(path).into_dialog(app);
+  }
+}
+
+async fn open_book_folder(app: &AppHandle, window_id: u16) {
+  let dir = reader::get_book_path(app, window_id)
+    .await
+    .and_then(|it| it.parent().map(ToOwned::to_owned));
+
+  if let Some(dir) = dir {
+    if let Ok(true) = fs::try_exists(&dir).await {
+      open::that_detached(dir).into_dialog(app);
     }
-  });
+  }
 }

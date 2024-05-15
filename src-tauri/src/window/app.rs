@@ -1,18 +1,26 @@
 use crate::book::ActiveBook;
 use crate::reader;
-use crate::utils::app::AppHandleExt;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
 use itertools::Itertools;
 use std::path::PathBuf;
-use tauri::{async_runtime, AppHandle, DragDropEvent, WindowEvent};
+use tauri::menu::MenuEvent;
+use tauri::{async_runtime, AppHandle, DragDropEvent, Window, WindowEvent};
 use tracing::{info, trace};
 
-pub fn on_main_window_event(app: &AppHandle) {
-  let app = app.clone();
-  let main_window = app.main_window();
+// Calling `on_menu_event` on a window will override previously registered event listeners.
+// For this reason, all listeners must be registered inside a single call.
+pub fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
+  use crate::menu::{self, context, Listener};
+  move |window, event| {
+    menu::app::Item::execute(window, &event);
+    context::library::book::Item::execute(window, &event);
+  }
+}
 
-  main_window.on_window_event(move |event| match event {
+pub fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
+  let app = app.clone();
+  move |event| match event {
     WindowEvent::Destroyed => {
       info!("main window destroyed, exiting");
       app.exit(0);
@@ -24,7 +32,7 @@ pub fn on_main_window_event(app: &AppHandle) {
       }
     }
     _ => {}
-  });
+  }
 }
 
 fn handle_drop_event(app: &AppHandle, paths: &[PathBuf]) {
