@@ -20,9 +20,9 @@ use error::BoxResult;
 use menu::Listener;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use tauri::{App, AppHandle, Manager, WindowEvent};
-use tracing::info;
+use tauri::{App, Manager};
 use utils::app::AppHandleExt;
+use window::on_main_window_event;
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use tracing_appender::non_blocking::WorkerGuard;
@@ -84,7 +84,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let main_window = app.main_window();
   main_window.set_menu(menu::app::build(app)?)?;
   main_window.on_menu_event(menu::app::Item::on_event(app.clone(), ()));
-  main_window.on_window_event(on_main_window_event(app));
+  on_main_window_event(app);
 
   #[cfg(debug_assertions)]
   main_window.open_devtools();
@@ -93,16 +93,6 @@ fn setup(app: &mut App) -> BoxResult<()> {
   server::serve(app);
 
   Ok(())
-}
-
-fn on_main_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
-  let app = app.clone();
-  move |event| {
-    if matches!(event, WindowEvent::Destroyed) {
-      info!("main window destroyed, exiting");
-      app.exit(0);
-    }
-  }
 }
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
