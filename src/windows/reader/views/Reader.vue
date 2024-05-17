@@ -6,6 +6,10 @@ import { showReaderPageContextMenu, toggleReaderMenu } from '@/lib/commands';
 const store = useReaderStore();
 const { pages, current } = storeToRefs(store);
 
+// Using `alt` doesn't seem to be a good idea.
+// What could be a better way to toggle the menu?
+onAltKeyDown('Alt', toggleReaderMenu);
+
 onKeyDown('ArrowUp', store.previousPage);
 onKeyDown('ArrowLeft', store.previousPage);
 onKeyDown('ArrowDown', store.nextPage);
@@ -25,7 +29,7 @@ useEventListener(window, 'wheel', (event: WheelEvent) => {
 </script>
 
 <template>
-  <main class="fixed inset-0 select-none overflow-hidden" @click="toggleReaderMenu">
+  <main class="fixed inset-0 select-none overflow-hidden">
     <div class="flex size-full items-center justify-center">
       <div
         v-if="pages.length > 0 && current"

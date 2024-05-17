@@ -1,6 +1,5 @@
 use crate::book::{self, LibraryBook};
 use crate::{library, prelude::*};
-use std::sync::Mutex;
 
 #[tauri::command]
 pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
@@ -44,7 +43,7 @@ pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Res
     let menu = book::build(&window)?;
     window.popup_menu(&menu)?;
 
-    let ctx = Mutex::new(ctx);
+    let ctx = std::sync::Mutex::new(ctx);
     window.manage(LibraryBookContextMenu { menu, ctx });
   }
 

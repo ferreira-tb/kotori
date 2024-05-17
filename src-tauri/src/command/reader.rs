@@ -1,6 +1,5 @@
 use crate::book::{self, ActiveBook, ReaderBook};
 use crate::{prelude::*, reader};
-use std::sync::Mutex;
 
 #[tauri::command]
 pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, page: usize) -> Result<()> {
@@ -46,7 +45,7 @@ pub async fn show_reader_page_context_menu(
     let menu = page::build(app)?;
     window.popup_menu(&menu)?;
 
-    let ctx = Mutex::new(ctx);
+    let ctx = std::sync::Mutex::new(ctx);
     window.manage(ReaderPageContextMenu { menu, ctx });
   }
 

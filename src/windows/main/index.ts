@@ -1,22 +1,13 @@
 import '@/lib/theme';
 import App from './App.vue';
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
-import PrimeVue from 'primevue/config';
+import { createApp } from '@/lib/app';
+import { handleError } from 'manatsu';
 import { RouteName, router } from './router';
 import { setupEventListeners } from './events';
-import { createManatsu, handleError } from 'manatsu';
-
-const app = createApp(App);
-const pinia = createPinia();
-const manatsu = createManatsu();
-
-app.use(router);
-app.use(pinia);
-app.use(manatsu);
-app.use(PrimeVue);
 
 setupEventListeners();
+
+const app = createApp(App).use(router);
 
 router
   .push({ name: RouteName.Library })
