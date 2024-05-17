@@ -4,6 +4,7 @@ use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::window::ReaderWindow;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+use tokio::sync::{oneshot, RwLock};
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
 

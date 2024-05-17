@@ -4,7 +4,7 @@ use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::{fs, task::JoinSet};
+use tokio::{fs, sync::oneshot, task::JoinSet};
 use walkdir::WalkDir;
 
 pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {

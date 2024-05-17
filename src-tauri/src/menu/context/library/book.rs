@@ -1,6 +1,7 @@
 use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::{library, menu_item_or_bail, prelude::*};
+use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
@@ -45,7 +46,7 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
 
 pub async fn open_book(app: &AppHandle) {
   let state = app.state::<LibraryBookContextMenu>();
-  let id = state.ctx.lock().await.book_id;
+  let id = state.ctx.lock().unwrap().book_id;
 
   if let Ok(book) = ActiveBook::from_id(app, id).await {
     book.open(app).await.into_dialog(app);
@@ -54,7 +55,7 @@ pub async fn open_book(app: &AppHandle) {
 
 pub async fn remove_book(app: &AppHandle) {
   let state = app.state::<LibraryBookContextMenu>();
-  let id = state.ctx.lock().await.book_id;
+  let id = state.ctx.lock().unwrap().book_id;
 
   library::remove_with_dialog(app, id)
     .await

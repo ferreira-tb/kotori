@@ -5,7 +5,7 @@ use natord::compare_ignore_case;
 use std::fs::File;
 use std::io::Read;
 use tempfile::NamedTempFile;
-use tokio::fs;
+use tokio::{fs, sync::Mutex};
 use zip::{ZipArchive, ZipWriter};
 
 #[derive(Clone, Debug)]

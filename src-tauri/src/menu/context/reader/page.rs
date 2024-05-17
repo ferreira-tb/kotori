@@ -2,6 +2,7 @@ use crate::book::ActiveBook;
 use crate::database::prelude::*;
 use crate::menu::prelude::*;
 use crate::{menu_item_or_bail, prelude::*, reader};
+use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
@@ -49,9 +50,12 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
 
 async fn delete_page(app: &AppHandle) {
   let state = app.state::<ReaderPageContextMenu>();
-  let ctx = state.ctx.lock().await;
+  let (window_id, page) = {
+    let ctx = state.ctx.lock().unwrap();
+    (ctx.window_id, ctx.page)
+  };
 
-  reader::delete_page_with_dialog(app, ctx.window_id, ctx.page)
+  reader::delete_page_with_dialog(app, window_id, page)
     .await
     .into_dialog(app);
 }
@@ -59,7 +63,7 @@ async fn delete_page(app: &AppHandle) {
 async fn set_as_cover(app: &AppHandle) {
   let (book_id, page) = {
     let state = app.state::<ReaderPageContextMenu>();
-    let ctx = state.ctx.lock().await;
+    let ctx = state.ctx.lock().unwrap();
     (ctx.book_id, ctx.page)
   };
 

@@ -5,6 +5,7 @@ use crate::{library, menu_item_or_bail, prelude::*, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
+use tokio::sync::oneshot;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
