@@ -5,7 +5,7 @@ const store = useCollectionStore();
 const { collections } = storeToRefs(store);
 
 onMounted(() => {
-  store.load().catch(handleErrorWithDialog);
+  store.load().catch(handleError);
 });
 </script>
 

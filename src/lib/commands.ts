@@ -41,7 +41,7 @@ export function getCurrentReaderBook(windowId: number) {
 }
 
 export function maximizeWindow() {
-  invoke(Command.MaximizeWindow).catch(handleErrorWithDialog);
+  invoke(Command.MaximizeWindow).catch(handleError);
 }
 
 export async function removeBook(id: number) {
@@ -54,12 +54,12 @@ export async function removeBookWithDialog(id: Nullish<number>) {
 }
 
 export function showLibraryBookContextMenu(bookId: number) {
-  invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleErrorWithDialog);
+  invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleError);
 }
 
 export function showReaderPageContextMenu(windowId: number, page: Nullish<number>) {
   if (typeof page === 'number') {
-    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleErrorWithDialog);
+    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
   }
 }
 
@@ -80,11 +80,11 @@ export async function openBookFromDialog() {
 }
 
 export function toggleFullscreen() {
-  invoke(Command.ToggleFullscreen).catch(handleErrorWithDialog);
+  invoke(Command.ToggleFullscreen).catch(handleError);
 }
 
 export function toggleReaderMenu() {
-  invoke(Command.ToggleReaderMenu).catch(handleErrorWithDialog);
+  invoke(Command.ToggleReaderMenu).catch(handleError);
 }
 
 export function updateBookRating(bookId: number, rating: number) {

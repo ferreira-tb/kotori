@@ -20,5 +20,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <reader />
+  <main class="fixed inset-0 select-none">
+    <Reader />
+  </main>
 </template>

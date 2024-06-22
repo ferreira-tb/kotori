@@ -29,7 +29,7 @@ pub fn setup_tracing(app: &AppHandle) {
       .add_directive("runtime=trace".parse().unwrap());
   }
 
-  let appender = rolling::daily("../.temp", "kotori.log");
+  let appender = rolling::never("../", ".log");
   let (writer, guard) = tracing_appender::non_blocking(appender);
   app.manage(TracingGuard { _guard: guard });
 

@@ -13,12 +13,12 @@ workspace = true
 workspace = true
 
 [build-dependencies.tauri-build]
-version = "2.0.0-beta.15"
+version = "2.0.0-beta.17"
 features = []
 
 [dependencies]
 ahash = "0.8.11"
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 axum = "0.7.5"
 chrono = "0.4.38"
 futures = "0.3.30"
@@ -30,28 +30,28 @@ itertools = "0.13.0"
 natord = "1.0.9"
 rand = "0.8.5"
 serde_json = "1.0.117"
-tauri-plugin-clipboard-manager = "2.1.0-beta.2"
-tauri-plugin-dialog = "2.0.0-beta.7"
-tauri-plugin-manatsu = "0.10.7"
-tauri-plugin-persisted-scope = "2.0.0-beta.7"
-tauri-plugin-shell = "2.0.0-beta.5"
-tauri-plugin-store = "2.0.0-beta.6"
+tauri-plugin-clipboard-manager = "2.1.0-beta.4"
+tauri-plugin-dialog = "2.0.0-beta.9"
+tauri-plugin-manatsu = "0.11.6"
+tauri-plugin-persisted-scope = "2.0.0-beta.9"
+tauri-plugin-shell = "2.0.0-beta.7"
+tauri-plugin-store = "2.0.0-beta.8"
 tempfile = "3.10.1"
-thiserror = "1.0.60"
+thiserror = "1.0.61"
 walkdir = "2.5.0"
-zip = "1.3.0"
+zip = "2.1.3"
 
 [dependencies.console-subscriber]
-version = "0.2.0"
+version = "0.3.0"
 features = ["parking_lot"]
 optional = true
 
-[dependencies.migration]
+[dependencies.kotori-migration]
 version = "*"
-path = "../migration"
+path = "../crates/migration"
 
 [dependencies.open]
-version = "5.1.3"
+version = "5.1.4"
 features = ["shellexecute-on-windows"]
 
 [dependencies.sea-orm]
@@ -64,7 +64,7 @@ default-features = false
 features = ["backend-sqlite", "thread-safe"]
 
 [dependencies.serde]
-version = "1.0.202"
+version = "1.0.203"
 features = ["derive"]
 
 [dependencies.strum]
@@ -72,15 +72,15 @@ version = "0.26.2"
 features = ["derive"]
 
 [dependencies.tauri]
-version = "2.0.0-beta.19"
-features = ["protocol-asset"]
+version = "2.0.0-beta.22"
+features = ["protocol-asset", "rustls-tls"]
 
 [dependencies.tauri-plugin-http]
-version = "2.0.0-beta.7"
+version = "2.0.0-beta.10"
 features = ["rustls-tls"]
 
 [dependencies.tokio]
-version = "1.37.0"
+version = "1.38.0"
 features = ["full"]
 
 [dependencies.tracing]
@@ -97,5 +97,5 @@ features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [features]
 devtools = ["tauri/devtools"]
-fresh = ["devtools"]
+ephemeral = ["devtools"]
 tokio-console = ["devtools", "dep:console-subscriber", "tokio/tracing"]

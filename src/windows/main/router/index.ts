@@ -15,7 +15,7 @@ const router = createRouter({
       component: () => import('../views/Collection.vue')
     },
     {
-      path: '/book-tag',
+      path: '/tag',
       name: RouteName.BookTag,
       component: () => import('../views/BookTag.vue')
     }

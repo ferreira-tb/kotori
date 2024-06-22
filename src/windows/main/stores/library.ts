@@ -43,9 +43,9 @@ export const useLibraryStore = defineStore('library', () => {
         book.cover = url.toString();
       } catch {
         book.cover = convertFileSrc(path);
+      } finally {
+        triggerRef(books.state);
       }
-
-      triggerRef(books.state);
     }
   }
 

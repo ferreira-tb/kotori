@@ -29,24 +29,22 @@ useEventListener(window, 'wheel', (event: WheelEvent) => {
 </script>
 
 <template>
-  <main class="fixed inset-0 select-none overflow-hidden">
-    <div class="flex size-full items-center justify-center">
-      <div
-        v-if="pages.length > 0 && current"
-        class="flex size-full flex-col items-center justify-center"
-      >
-        <img
-          v-if="current.status === 'done' && current.url"
-          :src="current.url"
-          class="size-full object-scale-down"
-          @contextmenu="showReaderPageContextMenu(READER_WINDOW_ID, current?.id)"
-        />
-        <p-progress-spinner
-          v-else-if="current.status === 'pending'"
-          class="size-16"
-          stroke-width="4"
-        />
-      </div>
+  <div class="flex size-full items-center justify-center">
+    <div
+      v-if="pages.length > 0 && current"
+      class="flex size-full flex-col items-center justify-center"
+    >
+      <img
+        v-if="current.status === 'done' && current.url"
+        :src="current.url"
+        class="size-full object-scale-down"
+        @contextmenu="showReaderPageContextMenu(READER_WINDOW_ID, current?.id)"
+      />
+      <!-- p-progress-spinner
+        v-else-if="current.status === 'pending'"
+        class="size-16"
+        stroke-width="4"
+      /-->
     </div>
-  </main>
+  </div>
 </template>

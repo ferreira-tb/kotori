@@ -18,7 +18,7 @@ async function open(id: number) {
 </script>
 
 <template>
-  <div id="kt-book-grid">
+  <div class="grid gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
     <template v-for="book of books" :key="book.id">
       <div
         v-if="book.cover && contains(filter, book.title)"
@@ -27,16 +27,8 @@ async function open(id: number) {
         @dblclick="open(book.id)"
         @contextmenu="showLibraryBookContextMenu(book.id)"
       >
-        <img :src="book.cover" class="size-full object-cover" />
+        <img :src="book.cover" :alt="book.title" class="size-full object-cover" />
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-#kt-book-grid {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 1rem;
-}
-</style>
