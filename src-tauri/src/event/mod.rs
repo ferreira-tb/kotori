@@ -28,20 +28,20 @@ impl<'a> Event<'a> {
 
     macro_rules! to_main {
       ($payload:expr) => {{
-        emit_to_main(app, &event, $payload)
+        emit_to_main(app, event, $payload)
       }};
     }
 
     macro_rules! to_reader {
       ($id:expr, $payload:expr) => {{
-        emit_to_reader(app, &event, $id, $payload)
+        emit_to_reader(app, event, $id, $payload)
       }};
     }
 
     match self {
       Event::BookAdded(book) => to_main!(book),
       Event::BookRemoved(id) => to_main!(BookRemoved { id }),
-      Event::ConfigUpdated(label) => emit_filter(app, &event, (), label),
+      Event::ConfigUpdated(label) => emit_filter(app, event, (), label),
       Event::CoverExtracted { id, path } => to_main!(CoverExtracted::new(id, path)?),
       Event::LibraryCleared => to_main!(()),
       Event::PageDeleted { window_id, .. } => to_reader!(window_id, ()),
@@ -50,9 +50,9 @@ impl<'a> Event<'a> {
   }
 }
 
-fn emit_to_main<S>(app: &AppHandle, event: &str, payload: S) -> Result<()>
+fn emit_to_main<P>(app: &AppHandle, event: &str, payload: P) -> Result<()>
 where
-  S: Serialize + Clone + fmt::Debug,
+  P: Serialize + Clone + fmt::Debug,
 {
   debug!(event, target = "main", ?payload);
   app
@@ -60,9 +60,9 @@ where
     .map_err(Into::into)
 }
 
-fn emit_to_reader<S>(app: &AppHandle, event: &str, id: u16, payload: S) -> Result<()>
+fn emit_to_reader<P>(app: &AppHandle, event: &str, id: u16, payload: P) -> Result<()>
 where
-  S: Serialize + Clone + fmt::Debug,
+  P: Serialize + Clone + fmt::Debug,
 {
   debug!(event, target = "reader", id, ?payload);
   app
@@ -70,9 +70,9 @@ where
     .map_err(Into::into)
 }
 
-fn emit_filter<S>(app: &AppHandle, event: &str, payload: S, exclude: &str) -> Result<()>
+fn emit_filter<P>(app: &AppHandle, event: &str, payload: P, exclude: &str) -> Result<()>
 where
-  S: Serialize + Clone + fmt::Debug,
+  P: Serialize + Clone + fmt::Debug,
 {
   debug!(event, target = "all", exclude, ?payload);
   app.emit_filter(event, payload, |target| match target {

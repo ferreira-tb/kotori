@@ -8,8 +8,7 @@ use tokio::fs;
 #[strum(serialize_all = "kebab-case")]
 pub enum Item {
   AddBookToLibrary,
-  /// There's a [`tauri::menu::PredefinedMenuItem`] for this,
-  /// but Linux doesn't support it.
+  /// There's a [`tauri::menu::PredefinedMenuItem`] for this, but Linux doesn't support it.
   Close,
   CloseAll,
   CloseOthers,

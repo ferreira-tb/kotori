@@ -33,6 +33,9 @@ function onBookRemoved() {
   return listen<BookRemovedPayload>(Event.BookRemoved, ({ payload }) => {
     const store = useLibraryStore();
     store.library.remove(payload.id);
+    if (store.selected?.id === payload.id) {
+      store.selected = null;
+    }
   });
 }
 
@@ -47,6 +50,7 @@ function onLibraryCleared() {
   return listen(Event.LibraryCleared, () => {
     const store = useLibraryStore();
     store.library.load().catch(handleError);
+    store.selected = null;
   });
 }
 

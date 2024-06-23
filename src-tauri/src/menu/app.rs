@@ -40,7 +40,7 @@ impl Listener for Item {
     async_runtime::spawn(async move {
       match item {
         Item::About => {}
-        Item::AddToLibrary => add_to_library_from_dialog(&app).await,
+        Item::AddToLibrary => add_to_library_with_dialog(&app).await,
         Item::ClearLibrary => clear_library(&app).await,
         Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
         Item::ColorModeAuto | Item::ColorModeDark | Item::ColorModeLight => {
@@ -142,8 +142,8 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     .map_err(Into::into)
 }
 
-async fn add_to_library_from_dialog(app: &AppHandle) {
-  library::add_from_dialog(app)
+async fn add_to_library_with_dialog(app: &AppHandle) {
+  library::add_with_dialog(app)
     .await
     .into_dialog(app);
 }

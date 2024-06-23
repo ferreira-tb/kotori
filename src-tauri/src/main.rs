@@ -52,7 +52,7 @@ fn main() {
       command::show_window,
       command::toggle_fullscreen,
       command::collection::get_collections,
-      command::library::add_to_library_from_dialog,
+      command::library::add_to_library_with_dialog,
       command::library::get_library_books,
       command::library::remove_book,
       command::library::remove_book_with_dialog,

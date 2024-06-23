@@ -1,6 +1,13 @@
 pub mod entities;
 mod r#impl;
-pub mod prelude;
+
+pub mod prelude {
+  pub use super::entities::book;
+  pub use super::entities::prelude::*;
+  pub use sea_orm::sea_query::OnConflict;
+  pub use sea_orm::ActiveValue::Set;
+  pub use sea_orm::{ActiveModelTrait, ConnectionTrait, EntityTrait};
+}
 
 use crate::prelude::*;
 use kotori_migration::{Migrator, MigratorTrait};

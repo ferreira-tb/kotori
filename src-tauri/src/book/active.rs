@@ -35,7 +35,7 @@ impl ActiveBook {
     Ok(book)
   }
 
-  pub fn with_model(model: &BookModel) -> Result<Self> {
+  pub fn with_model(model: &book::Model) -> Result<Self> {
     let book = Self::new(&model.path)?;
     let _ = book.id.set(model.id);
     Ok(book)
@@ -94,7 +94,7 @@ impl ActiveBook {
     self.pages_or_try_init().await
   }
 
-  async fn model(&self, app: &AppHandle) -> Result<BookModel> {
+  async fn model(&self, app: &AppHandle) -> Result<book::Model> {
     let id = self.id_or_try_init(app).await?;
     Book::get_by_id(app, id).await
   }
@@ -265,10 +265,10 @@ impl TryFrom<&Path> for ActiveBook {
   }
 }
 
-impl TryFrom<BookModel> for ActiveBook {
+impl TryFrom<book::Model> for ActiveBook {
   type Error = crate::error::Error;
 
-  fn try_from(model: BookModel) -> Result<Self> {
+  fn try_from(model: book::Model) -> Result<Self> {
     Self::with_model(&model)
   }
 }

@@ -53,7 +53,7 @@ pub struct LibraryBook {
 }
 
 impl LibraryBook {
-  pub async fn from_model(app: &AppHandle, model: &BookModel) -> Result<Self> {
+  pub async fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
     let book = ActiveBook::with_model(model)?;
     let title = Title::try_from(model.path.as_str())?;
     let rating = u8::try_from(model.rating).unwrap_or(0);

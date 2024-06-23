@@ -43,7 +43,7 @@
     "date-fns": "^3.6.0",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.396.0",
-    "manatsu": "^0.11.6",
+    "manatsu": "^0.11.7",
     "pinia": "^2.1.7",
     "radix-vue": "^1.8.4",
     "tailwind-merge": "^2.3.0",

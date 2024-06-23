@@ -2,9 +2,9 @@ use crate::book::{self, LibraryBook};
 use crate::{library, prelude::*};
 
 #[tauri::command]
-pub async fn add_to_library_from_dialog(app: AppHandle) -> Result<()> {
-  debug!(command = "add_to_library_from_dialog");
-  library::add_from_dialog(&app).await
+pub async fn add_to_library_with_dialog(app: AppHandle) -> Result<()> {
+  debug!(command = "add_to_library_with_dialog");
+  library::add_with_dialog(&app).await
 }
 
 #[tauri::command]

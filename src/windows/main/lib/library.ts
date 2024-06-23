@@ -62,10 +62,8 @@ export class Library {
   }
 
   public add(book: LibraryBook) {
-    if (!this.#books.has(book.id)) {
-      this.#books.set(book.id, new LibraryBookImpl(book));
-      this.#trigger();
-    }
+    this.#books.set(book.id, new LibraryBookImpl(book));
+    this.#trigger();
   }
 
   public find(id: number) {

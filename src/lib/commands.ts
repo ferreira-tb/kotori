@@ -1,5 +1,5 @@
 export enum Command {
-  AddToLibraryFromDialog = 'add_to_library_from_dialog',
+  AddToLibraryWithDialog = 'add_to_library_with_dialog',
   CloseWindow = 'close_window',
   DeletePageWithDialog = 'delete_page_with_dialog',
   FocusMainWindow = 'focus_main_window',
@@ -19,8 +19,8 @@ export enum Command {
   UpdateBookRating = 'update_book_rating'
 }
 
-export async function addToLibraryFromDialog() {
-  await invoke(Command.AddToLibraryFromDialog);
+export async function addToLibraryWithDialog() {
+  await invoke(Command.AddToLibraryWithDialog);
 }
 
 export function closeWindow() {
