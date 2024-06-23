@@ -1,11 +1,7 @@
 <script setup lang="ts">
-// import { useCollectionStore } from '../stores';
 import { Button } from '@/components/ui/button';
 import { Library, Plus, Star, Tag } from 'lucide-vue-next';
 import { LibraryMode, navigateToLibrary, navigateToTags } from '../router';
-
-/*const store = useCollectionStore();
-const { collections } = storeToRefs(store);*/
 </script>
 
 <template>

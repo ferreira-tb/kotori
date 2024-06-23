@@ -236,7 +236,7 @@ declare global {
   export type { ComputedSymbol, MaybeNullishRef, RefSymbol, ShallowRefSymbol, WritableRefSymbol, WritableShallowRefSymbol } from 'manatsu'
   import('manatsu')
   // @ts-ignore
-  export type { MaybeArray, MaybePromise, Nullish, PartialNullish } from '@tb-dev/utility-types'
+  export type { Fn, MaybeArray, MaybePromise, Nullish, PartialNullish } from '@tb-dev/utility-types'
   import('@tb-dev/utility-types')
   // @ts-ignore
   export type { CSSProperties, Component, ComponentInstance, ComponentPublicInstance, ComputedRef, InjectionKey, MaybeRefOrGetter, Ref, ShallowRef, VNode } from 'vue'

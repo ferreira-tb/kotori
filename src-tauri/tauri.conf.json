@@ -26,8 +26,6 @@
         "label": "main",
         "title": "Kotori",
         "url": "src/windows/main/index.html",
-        "minWidth": 800,
-        "minHeight": 600,
         "visible": false,
         "fullscreen": false,
         "resizable": true,

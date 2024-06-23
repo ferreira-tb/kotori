@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import { contains } from '@/lib/string';
-import { openBook, showLibraryBookContextMenu } from '@/lib/commands';
+import type { LibraryBookImpl } from '../lib/library';
+import { showLibraryBookContextMenu } from '@/lib/commands';
 
 defineProps<{
-  books: LibraryBook[];
+  books: Iterable<LibraryBookImpl>;
   filter: string;
 }>();
 
-defineEmits<(e: 'select', book: LibraryBook) => void>();
-
-function open(id: number) {
-  openBook(id).catch(handleError);
-}
+defineEmits<(e: 'select', book: LibraryBookImpl) => void>();
 </script>
 
 <template>
@@ -21,7 +18,7 @@ function open(id: number) {
         v-if="book.cover && contains(filter, book.title)"
         class="cursor-pointer overflow-hidden rounded-md border border-solid shadow-md"
         @click="$emit('select', book)"
-        @dblclick="open(book.id)"
+        @dblclick="book.open()"
         @contextmenu="showLibraryBookContextMenu(book.id)"
       >
         <img

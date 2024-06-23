@@ -15,10 +15,11 @@ mod server;
 mod utils;
 mod window;
 
-use error::BoxResult;
+use error::{BoxResult, Result};
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use tauri::{App, Manager};
+use tauri::{App, AppHandle, Manager};
+use tauri_plugin_window_state::StateFlags;
 use utils::app::AppHandleExt;
 use window::app::{on_menu_event, on_window_event};
 
@@ -30,14 +31,19 @@ pub struct Kotori {
 }
 
 fn main() {
+  let window_state = tauri_plugin_window_state::Builder::new()
+    .with_state_flags(StateFlags::MAXIMIZED | StateFlags::POSITION | StateFlags::SIZE);
+
   tauri::Builder::default()
     .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    .plugin(tauri_plugin_single_instance::init(single_instance))
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_store::Builder::new().build())
+    .plugin(window_state.build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
@@ -86,4 +92,15 @@ fn setup(app: &mut App) -> BoxResult<()> {
   server::serve(app);
 
   Ok(())
+}
+
+fn single_instance(app: &AppHandle, _: Vec<String>, _: String) {
+  let _: Result<()> = try {
+    let window = app.main_window();
+    if window.is_minimized()? {
+      window.unminimize()?;
+    }
+
+    window.set_focus()?;
+  };
 }

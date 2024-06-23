@@ -39,6 +39,10 @@ export function getCurrentReaderBook(windowId: number) {
   return invoke<ReaderBook>(Command.GetCurrentReaderBook, { windowId });
 }
 
+export function getLibraryBooks() {
+  return invoke<LibraryBook[]>(Command.GetLibraryBooks);
+}
+
 export async function removeBook(id: number) {
   await invoke(Command.RemoveBook, { id });
 }
@@ -52,10 +56,8 @@ export function showLibraryBookContextMenu(bookId: number) {
   invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleError);
 }
 
-export function showReaderPageContextMenu(windowId: number, page: Nullish<number>) {
-  if (typeof page === 'number') {
-    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
-  }
+export function showReaderPageContextMenu(windowId: number, page: number) {
+  invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
 }
 
 export async function showWindow() {
