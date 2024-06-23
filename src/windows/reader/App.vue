@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import Reader from './views/Reader.vue';
 import { useReaderStore } from './stores';
+import { useConfigStore } from '@/stores';
 import { setSensors } from './lib/sensors';
-import { maximizeWindow, showWindow } from '@/lib/commands';
+import { showWindow } from '@/lib/commands';
 
 const store = useReaderStore();
 const { ready } = storeToRefs(store);
@@ -10,12 +11,9 @@ const { ready } = storeToRefs(store);
 setSensors();
 
 onMounted(() => {
-  until(ready)
-    .toBeTruthy()
-    .then(flushPromises)
-    .then(maximizeWindow)
-    .then(showWindow)
-    .catch(handleError);
+  const config = useConfigStore();
+  const promises = [config.load(), until(ready).toBeTruthy()];
+  Promise.all(promises).then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 

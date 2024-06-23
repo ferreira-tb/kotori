@@ -42,7 +42,7 @@ fn main() {
     .invoke_handler(tauri::generate_handler![
       command::close_window,
       command::focus_main_window,
-      command::maximize_window,
+      command::notify_config_update,
       command::show_window,
       command::toggle_fullscreen,
       command::collection::get_collections,
@@ -83,7 +83,6 @@ fn setup(app: &mut App) -> BoxResult<()> {
   #[cfg(debug_assertions)]
   main_window.open_devtools();
 
-  // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
   server::serve(app);
 
   Ok(())

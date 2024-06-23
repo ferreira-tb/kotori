@@ -1,19 +1,16 @@
 <script setup lang="ts">
 import { contains } from '@/lib/string';
-import { useLibraryStore } from '../stores';
 import { openBook, showLibraryBookContextMenu } from '@/lib/commands';
+
+defineProps<{
+  books: LibraryBook[];
+  filter: string;
+}>();
 
 defineEmits<(e: 'select', book: LibraryBook) => void>();
 
-const store = useLibraryStore();
-const { books, filter } = storeToRefs(store);
-
-async function open(id: number) {
-  try {
-    await openBook(id);
-  } catch (err) {
-    handleError(err, { dialog: true });
-  }
+function open(id: number) {
+  openBook(id).catch(handleError);
 }
 </script>
 
@@ -22,12 +19,16 @@ async function open(id: number) {
     <template v-for="book of books" :key="book.id">
       <div
         v-if="book.cover && contains(filter, book.title)"
-        class="cursor-pointer overflow-hidden rounded-sm"
+        class="cursor-pointer overflow-hidden rounded-md border border-solid shadow-md"
         @click="$emit('select', book)"
         @dblclick="open(book.id)"
         @contextmenu="showLibraryBookContextMenu(book.id)"
       >
-        <img :src="book.cover" :alt="book.title" class="size-full object-cover" />
+        <img
+          :src="book.cover"
+          :alt="book.title"
+          class="h-auto w-auto object-cover transition-all hover:scale-110"
+        />
       </div>
     </template>
   </div>

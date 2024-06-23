@@ -137,7 +137,7 @@ async fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
 async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
   let path = reader::get_book_path(app, window_id)
     .await
-    .and_then(|it| it.try_to_string().ok());
+    .and_then(|it| it.try_string().ok());
 
   if let Some(path) = path {
     app.clipboard().write_text(path).into_dialog(app);

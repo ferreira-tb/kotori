@@ -3,6 +3,7 @@ import { Command } from '@/lib/commands';
 
 export const useLibraryStore = defineStore('library', () => {
   const filter = ref('');
+  const selected = ref<Nullish<LibraryBook>>();
   const books = useInvoke<LibraryBook[]>(Command.GetLibraryBooks, [], {
     lazy: true,
     transform(it) {
@@ -28,6 +29,10 @@ export const useLibraryStore = defineStore('library', () => {
     if (index !== -1) {
       books.state.value.splice(index, 1);
       triggerRef(books.state);
+
+      if (selected.value?.id === id) {
+        selected.value = null;
+      }
     }
   }
 
@@ -51,7 +56,7 @@ export const useLibraryStore = defineStore('library', () => {
 
   function updateBookRating(id: number, rating: number) {
     const book = getBook(id);
-    if (book && isValidRating(book.rating, rating)) {
+    if (book && isValidRating(book, rating)) {
       book.rating = rating;
       triggerRef(books.state);
     }
@@ -60,6 +65,7 @@ export const useLibraryStore = defineStore('library', () => {
   return {
     books: books.state,
     filter,
+    selected,
     addBook,
     getBook,
     load: books.execute,
@@ -69,7 +75,7 @@ export const useLibraryStore = defineStore('library', () => {
   };
 });
 
-function isValidRating(current: number, next: number) {
-  if (!Number.isInteger(next)) return false;
-  return current !== next && next >= 0 && next <= 5;
+function isValidRating(book: LibraryBook, value: number) {
+  if (!Number.isInteger(value)) return false;
+  return book.rating !== value && value >= 0 && value <= 5;
 }

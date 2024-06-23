@@ -46,7 +46,7 @@ function onCoverExtracted() {
 function onLibraryCleared() {
   return listen(Event.LibraryCleared, () => {
     const store = useLibraryStore();
-    store.load().catch((err: unknown) => handleError(err, { dialog: true }));
+    store.load().catch(handleError);
   });
 }
 

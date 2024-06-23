@@ -8,6 +8,5 @@ pub use indoc::formatdoc;
 pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};
 pub use std::sync::Arc;
-pub use tauri::async_runtime::{self, block_on, spawn_blocking};
-pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
+pub use tauri::{async_runtime, AppHandle, Manager, WebviewWindow, Window, Wry};
 pub use tracing::{debug, info, trace, warn};

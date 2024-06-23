@@ -76,3 +76,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer kotori {
+  .ellipsis {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

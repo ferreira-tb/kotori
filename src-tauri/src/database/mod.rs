@@ -10,7 +10,7 @@ use tokio::fs;
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app.path().app_local_data_dir()?;
 
-  block_on(async move {
+  async_runtime::block_on(async move {
     fs::create_dir_all(&path).await?;
 
     #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -18,7 +18,7 @@ pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
     #[cfg(not(any(debug_assertions, feature = "devtools")))]
     let path = path.join("kotori.db");
 
-    let url = format!("sqlite://{}?mode=rwc", path.try_to_str()?);
+    let url = format!("sqlite://{}?mode=rwc", path.try_str()?);
     let conn = Database::connect(url).await?;
 
     #[cfg(not(feature = "ephemeral"))]

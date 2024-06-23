@@ -36,7 +36,7 @@ impl Book {
 
   pub async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
     let kotori = app.kotori();
-    let path = path.try_to_str()?;
+    let path = path.try_str()?;
     Self::find()
       .filter(book::Column::Path.eq(path))
       .one(&kotori.db)

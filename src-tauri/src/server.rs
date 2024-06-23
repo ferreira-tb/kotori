@@ -8,10 +8,11 @@ use axum::Router;
 use std::thread;
 use tokio::net::TcpListener;
 
+/// This depends on state managed by Tauri.
 pub fn serve(app: &AppHandle) {
   let app = app.clone();
   thread::spawn(move || {
-    block_on(async move {
+    async_runtime::block_on(async move {
       let router = Router::new()
         .route("/library/:book_id/cover", get(book_cover))
         .route("/reader", get(reader_root))

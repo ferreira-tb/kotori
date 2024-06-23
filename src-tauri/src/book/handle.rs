@@ -16,7 +16,7 @@ pub(super) struct Handle {
 impl Handle {
   pub async fn new(path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref().to_owned();
-    let join: JoinResult<ZipArchive<File>> = spawn_blocking(move || {
+    let join: JoinResult<ZipArchive<File>> = async_runtime::spawn_blocking(move || {
       let file = File::open(path)?;
       ZipArchive::new(file).map_err(Into::into)
     });
@@ -59,12 +59,12 @@ impl Handle {
     let name = name.to_owned();
     let handle = Arc::clone(&self.handle);
 
-    let join = spawn_blocking(move || {
+    let join = async_runtime::spawn_blocking(move || {
       let mut temp = NamedTempFile::new()?;
       let mut writer = ZipWriter::new(&mut temp);
 
       // We shouldn't skip files that aren't pages here.
-      let mut handle = block_on(handle.lock());
+      let mut handle = async_runtime::block_on(handle.lock());
       let names = handle
         .file_names()
         .filter(|it| *it != name)

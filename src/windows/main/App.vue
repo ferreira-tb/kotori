@@ -1,41 +1,55 @@
 <script setup lang="ts">
-import { symbols } from './lib/symbols';
-import { toPixel } from '@tb-dev/utils';
-import { useLibraryStore } from './stores';
 import { setSensors } from './lib/sensors';
 import { showWindow } from '@/lib/commands';
-import Navbar from './components/Navbar.vue';
+import Sidebar from './components/Sidebar.vue';
+import { Button } from '@/components/ui/button';
+import { useConfigStore } from '@/stores/config';
+import { Separator } from '@/components/ui/separator';
+import { loadStores, useLibraryStore } from './stores';
 
-const navbar = ref<HTMLElement>();
-const navbarHeight = useHeight(navbar);
-const windowHeight = useWindowHeight();
-provide(symbols.windowHeight, windowHeight);
+const config = useConfigStore();
+const { resume } = useIntervalFn(config.save, 30_000, { immediate: false });
 
-const contentHeight = computed(() => windowHeight.value - navbarHeight.value);
-provide(symbols.contentHeight, contentHeight);
+const library = useLibraryStore();
+const { books, selected } = storeToRefs(library);
 
 setSensors();
 
 onMounted(() => {
-  useLibraryStore().load().then(flushPromises).then(showWindow).catch(handleError);
+  loadStores().then(flushPromises).then(resume).then(showWindow).catch(handleError);
 });
 </script>
 
 <template>
   <main class="fixed inset-0 select-none">
-    <div ref="navbar" class="absolute inset-x-0 top-0">
-      <Navbar />
-    </div>
-
-    <div
-      class="relative w-full overflow-hidden px-2 pb-2 pt-0"
-      :style="{ top: toPixel(navbarHeight), height: contentHeight }"
-    >
-      <RouterView #default="{ Component }">
-        <template v-if="Component">
-          <component :is="Component" />
-        </template>
-      </RouterView>
+    <div class="flex size-full flex-col overflow-hidden">
+      <div class="flex flex-1">
+        <Sidebar />
+        <div class="w-full">
+          <RouterView #default="{ Component }">
+            <template v-if="Component">
+              <component :is="Component" />
+            </template>
+          </RouterView>
+        </div>
+      </div>
+      <Separator class="w-full" />
+      <footer v-show="books.length > 0" class="flex flex-col overflow-hidden">
+        <div class="flex h-16 items-center">
+          <div v-if="selected" class="flex w-full justify-between px-2">
+            <div class="flex items-center gap-2">
+              <img v-if="selected.cover" :src="selected.cover" :alt="selected.title" class="h-10" />
+              <div class="flex flex-col overflow-hidden">
+                <div class="ellipsis">{{ selected.title }}</div>
+                <div class="ellipsis text-xs">{{ selected.path }}</div>
+              </div>
+            </div>
+            <div class="flex items-center pr-2">
+              <Button class="h-8">Open</Button>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   </main>
 </template>

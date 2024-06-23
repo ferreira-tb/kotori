@@ -3,6 +3,18 @@ name = "kotori"
 version = "0.1.0"
 publish = false
 
+[package.homepage]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.authors]
+workspace = true
+
+[package.license]
+workspace = true
+
 [package.edition]
 workspace = true
 
@@ -40,11 +52,6 @@ tempfile = "3.10.1"
 thiserror = "1.0.61"
 walkdir = "2.5.0"
 zip = "2.1.3"
-
-[dependencies.console-subscriber]
-version = "0.3.0"
-features = ["parking_lot"]
-optional = true
 
 [dependencies.kotori-migration]
 version = "*"
@@ -98,4 +105,3 @@ features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 [features]
 devtools = ["tauri/devtools"]
 ephemeral = ["devtools"]
-tokio-console = ["devtools", "dep:console-subscriber", "tokio/tracing"]

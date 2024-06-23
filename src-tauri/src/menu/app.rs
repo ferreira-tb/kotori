@@ -17,6 +17,12 @@ pub enum Item {
   ClearLibrary,
   #[strum(serialize = "kt-app-close-all-reader-windows")]
   CloseAllReaderWindows,
+  #[strum(serialize = "kt-app-color-mode-auto")]
+  ColorModeAuto,
+  #[strum(serialize = "kt-app-color-mode-dark")]
+  ColorModeDark,
+  #[strum(serialize = "kt-app-color-mode-light")]
+  ColorModeLight,
   #[strum(serialize = "kt-app-discord")]
   Discord,
   #[strum(serialize = "kt-app-random-book")]
@@ -37,6 +43,9 @@ impl Listener for Item {
         Item::AddToLibrary => add_to_library_from_dialog(&app).await,
         Item::ClearLibrary => clear_library(&app).await,
         Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
+        Item::ColorModeAuto | Item::ColorModeDark | Item::ColorModeLight => {
+          todo!("color mode")
+        }
         Item::Discord => open_discord(&app),
         Item::Repository => open_repository(&app),
         Item::OpenFile => open_file(&app).await,
@@ -50,6 +59,7 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
   let menu = Menu::new(app)?;
   menu.append(&file_menu(app)?)?;
   menu.append(&read_menu(app)?)?;
+  menu.append(&view_menu(app)?)?;
   menu.append(&help_menu(app)?)?;
 
   #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -78,6 +88,21 @@ fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     .map_err(Into::into)
 }
 
+fn view_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+  let color_mode = SubmenuBuilder::new(app, "Color mode")
+    .items(&[
+      &menu_item!(app, Item::ColorModeAuto, "Auto")?,
+      &menu_item!(app, Item::ColorModeLight, "Light")?,
+      &menu_item!(app, Item::ColorModeDark, "Dark")?,
+    ])
+    .build()?;
+
+  SubmenuBuilder::new(app, "View")
+    .items(&[&color_mode])
+    .build()
+    .map_err(Into::into)
+}
+
 fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let mut metadata = AboutMetadataBuilder::new()
     .name("Kotori".into())
@@ -85,7 +110,8 @@ fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     .copyright("Copyright © 2024 Andrew Ferreira".into());
 
   if !cfg!(target_os = "macos") {
-    metadata = metadata.license("MIT".into());
+    const LICENSE: &str = env!("CARGO_PKG_LICENSE");
+    metadata = metadata.license(LICENSE.into());
   }
 
   let metadata = metadata.build();
@@ -152,9 +178,10 @@ fn open_discord(app: &AppHandle) {
 }
 
 fn open_repository(app: &AppHandle) {
+  const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
   app
     .shell()
-    .open("https://github.com/ferreira-tb/kotori", None)
+    .open(REPOSITORY, None)
     .into_dialog(app);
 }
 

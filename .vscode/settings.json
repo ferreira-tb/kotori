@@ -23,7 +23,7 @@
     ".eslintcache": true
   },
   "logViewer.logLevel": "trace",
-  "logViewer.watch": [".log"],
+  "logViewer.watch": ["kotori.log"],
   "prettier.requireConfig": true,
   "rust-analyzer.showUnlinkedFileNotification": false,
   "tailwindCSS.classAttributes": ["class", "header-class", "input-class"],

@@ -2,6 +2,7 @@ pub mod collection;
 pub mod library;
 pub mod reader;
 
+use crate::event::Event;
 use crate::prelude::*;
 
 #[tauri::command]
@@ -17,9 +18,10 @@ pub async fn focus_main_window(app: AppHandle) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn maximize_window(window: WebviewWindow) -> Result<()> {
-  debug!(command = "maximize_window", label = window.label());
-  window.maximize().map_err(Into::into)
+pub async fn notify_config_update(app: AppHandle, window: WebviewWindow) -> Result<()> {
+  let label = window.label();
+  debug!(command = "notify_config_update", window = label);
+  Event::ConfigUpdated(label).emit(&app)
 }
 
 #[tauri::command]
