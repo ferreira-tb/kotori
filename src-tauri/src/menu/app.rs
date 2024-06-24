@@ -1,6 +1,7 @@
 use super::prelude::*;
 use super::reader::close_all_reader_windows;
 use crate::book::{self, ActiveBook};
+use crate::reader;
 use crate::{library, menu_item_or_bail, prelude::*, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
@@ -188,7 +189,7 @@ fn open_repository(app: &AppHandle) {
 async fn open_random_book(app: &AppHandle) {
   let result: Result<_> = try {
     if let Some(book) = ActiveBook::random(app).await? {
-      book.open(app).await?;
+      reader::open_book(app, book).await?;
     }
   };
 

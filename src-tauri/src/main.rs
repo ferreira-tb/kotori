@@ -15,11 +15,11 @@ mod server;
 mod utils;
 mod window;
 
+use book::handle::BookHandle;
 use error::{BoxResult, Result};
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::{App, AppHandle, Manager};
-use tauri_plugin_window_state::StateFlags;
 use utils::app::AppHandleExt;
 use window::app::{on_menu_event, on_window_event};
 
@@ -27,13 +27,11 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
   pub db: DatabaseConnection,
+  pub book_handle: BookHandle,
   pub reader: Reader,
 }
 
 fn main() {
-  let window_state = tauri_plugin_window_state::Builder::new()
-    .with_state_flags(StateFlags::MAXIMIZED | StateFlags::POSITION | StateFlags::SIZE);
-
   tauri::Builder::default()
     .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
@@ -43,7 +41,6 @@ fn main() {
     .plugin(tauri_plugin_single_instance::init(single_instance))
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_store::Builder::new().build())
-    .plugin(window_state.build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
@@ -78,6 +75,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(Kotori {
     db: database::connect(app)?,
+    book_handle: BookHandle::new(app),
     reader: Reader::new(),
   });
 

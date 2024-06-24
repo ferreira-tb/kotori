@@ -39,7 +39,7 @@ fn handle_drop_event(app: &AppHandle, paths: &[PathBuf]) {
   let books = paths
     .iter()
     .filter(|it| globset.is_match(it))
-    .filter_map(|it| ActiveBook::new(it).ok())
+    .filter_map(|it| ActiveBook::new(app, it).ok())
     .collect_vec();
 
   if !books.is_empty() {

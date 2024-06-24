@@ -2,91 +2,260 @@ use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
 use natord::compare_ignore_case;
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
-use tempfile::NamedTempFile;
-use tokio::{fs, sync::Mutex};
+use std::{fmt, thread};
+use strum::Display;
+use tokio::sync::{mpsc, oneshot};
+use uuid::Uuid;
 use zip::{ZipArchive, ZipWriter};
 
-#[derive(Clone, Debug)]
-pub(super) struct Handle {
-  handle: Arc<Mutex<ZipArchive<File>>>,
+type TxResult<T> = oneshot::Sender<Result<T>>;
+
+pub struct Actor {
+  app: AppHandle,
+  books: HashMap<PathBuf, BookFile>,
+  receiver: mpsc::Receiver<Message>,
 }
 
-impl Handle {
-  pub async fn new(path: impl AsRef<Path>) -> Result<Self> {
-    let path = path.as_ref().to_owned();
-    let join: JoinResult<ZipArchive<File>> = async_runtime::spawn_blocking(move || {
-      let file = File::open(path)?;
-      ZipArchive::new(file).map_err(Into::into)
-    });
-
-    join
-      .await?
-      .map(|zip| Self { handle: Arc::new(Mutex::new(zip)) })
+impl Actor {
+  fn new(app: &AppHandle, receiver: mpsc::Receiver<Message>) -> Self {
+    Self {
+      app: app.clone(),
+      books: HashMap::new(),
+      receiver,
+    }
   }
 
-  pub async fn pages(&self) -> OrderedMap<usize, String> {
+  pub async fn run(&mut self) {
+    while let Some(message) = self.receiver.recv().await {
+      self
+        .handle_message(message)
+        .await
+        .into_log(&self.app);
+    }
+  }
+
+  async fn handle_message(&mut self, message: Message) -> Result<()> {
+    #[cfg(debug_assertions)]
+    {
+      let books = self
+        .books
+        .keys()
+        .filter_map(|it| it.try_str().ok())
+        .collect_vec();
+
+      debug!(%message, ?books);
+    }
+
+    match message {
+      Message::GetPages { path, tx } => {
+        let result = self
+          .get_book(&path)
+          .await
+          .map(|it| &it.pages)
+          .cloned();
+
+        let _ = tx.send(result);
+      }
+      Message::ReadPage { path, page, tx } => {
+        let result = self
+          .get_book(&path)
+          .await
+          .and_then(|it| it.read_page(&page));
+
+        let _ = tx.send(result);
+      }
+      Message::DeletePage { path, page, tx } => {
+        let result = self
+          .get_book(&path)
+          .await
+          .and_then(|it| it.delete_page(path, &page));
+
+        let _ = tx.send(result);
+      }
+      Message::Close { path } => {
+        self.books.remove(&path);
+      }
+    };
+
+    Ok(())
+  }
+
+  async fn get_book(&mut self, path: impl AsRef<Path>) -> Result<&mut BookFile> {
+    let path = path.as_ref();
+    if !self.books.contains_key(path) {
+      let book = BookFile::open(&path).await?;
+      self.books.insert(path.to_owned(), book);
+    }
+
+    self.books.get_mut(path).map(Ok).unwrap()
+  }
+}
+
+#[derive(Clone)]
+pub struct BookHandle {
+  sender: mpsc::Sender<Message>,
+}
+
+impl BookHandle {
+  pub fn new(app: &AppHandle) -> Self {
+    let (sender, receiver) = mpsc::channel(8);
+    let mut actor = Actor::new(app, receiver);
+
+    thread::spawn(move || {
+      async_runtime::block_on(async move { actor.run().await });
+    });
+
+    Self { sender }
+  }
+
+  pub async fn get_pages(&self, path: impl AsRef<Path>) -> Result<OrderedMap<usize, String>> {
+    let path = path.as_ref().to_owned();
+    let (tx, rx) = oneshot::channel();
+    let _ = self
+      .sender
+      .send(Message::GetPages { path, tx })
+      .await;
+
+    rx.await?
+  }
+
+  pub async fn read_page<P, S>(&self, path: P, page: S) -> Result<Vec<u8>>
+  where
+    P: AsRef<Path>,
+    S: AsRef<str>,
+  {
+    let path = path.as_ref().to_owned();
+    let page = page.as_ref().to_owned();
+    let (tx, rx) = oneshot::channel();
+    let _ = self
+      .sender
+      .send(Message::ReadPage { path, page, tx })
+      .await;
+
+    rx.await?
+  }
+
+  pub async fn delete_page<P, S>(&self, path: P, page: S) -> Result<()>
+  where
+    P: AsRef<Path>,
+    S: AsRef<str>,
+  {
+    let path = path.as_ref().to_owned();
+    let page = page.as_ref().to_owned();
+    let (tx, rx) = oneshot::channel();
+    let _ = self
+      .sender
+      .send(Message::DeletePage { path, page, tx })
+      .await;
+
+    rx.await?
+  }
+
+  pub async fn close(&self, path: impl AsRef<Path>) {
+    let path = path.as_ref().to_owned();
+    let _ = self.sender.send(Message::Close { path }).await;
+  }
+}
+
+impl fmt::Debug for BookHandle {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_struct("BookHandle").finish()
+  }
+}
+
+#[derive(Display)]
+#[strum(serialize_all = "snake_case")]
+enum Message {
+  GetPages {
+    path: PathBuf,
+    tx: TxResult<OrderedMap<usize, String>>,
+  },
+  ReadPage {
+    path: PathBuf,
+    page: String,
+    tx: TxResult<Vec<u8>>,
+  },
+  DeletePage {
+    path: PathBuf,
+    page: String,
+    tx: TxResult<()>,
+  },
+  Close {
+    path: PathBuf,
+  },
+}
+
+struct BookFile {
+  file: ZipArchive<File>,
+  pages: OrderedMap<usize, String>,
+}
+
+impl BookFile {
+  async fn open(path: impl AsRef<Path>) -> Result<Self> {
+    let path = path.as_ref().to_owned();
+    let join = async_runtime::spawn_blocking(move || {
+      let mut file = BookFile {
+        file: ZipArchive::new(File::open(&path)?)?,
+        pages: OrderedMap::default(),
+      };
+
+      file.get_pages();
+
+      Ok(file)
+    });
+
+    join.await?
+  }
+
+  fn get_pages(&mut self) {
     let globset = glob::book_page();
-    let handle = self.handle.lock().await;
-    handle
+    self.pages = self
+      .file
       .file_names()
       .filter(|name| globset.is_match(name))
       .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
       .enumerate()
       .map(|(idx, name)| (idx, name.to_owned()))
-      .collect()
+      .collect();
   }
 
-  pub async fn has_page(&self, name: &str) -> bool {
-    let handle = self.handle.lock().await;
-    let mut file_names = handle.file_names();
-    file_names.any(|it| it == name)
-  }
-
-  pub async fn get_page_by_name(&self, name: &str) -> Result<Vec<u8>> {
-    let mut handle = self.handle.lock().await;
-    let mut file = handle.by_name(name)?;
-
-    let size = usize::try_from(file.size()).unwrap_or_default();
+  fn read_page(&mut self, page: &str) -> Result<Vec<u8>> {
+    let mut page = self.file.by_name(page)?;
+    let size = usize::try_from(page.size()).unwrap_or_default();
     let mut buf = Vec::with_capacity(size);
-    file.read_to_end(&mut buf)?;
+    page.read_to_end(&mut buf)?;
 
     Ok(buf)
   }
 
-  pub async fn delete_page_by_name(&self, path: impl AsRef<Path>, name: &str) -> Result<()> {
-    let name = name.to_owned();
-    let handle = Arc::clone(&self.handle);
+  fn delete_page(&mut self, path: impl AsRef<Path>, page: &str) -> Result<()> {
+    let parent = path.try_parent()?;
+    let temp = parent.join(format!("{}.kotori", Uuid::now_v7()));
 
-    let join = async_runtime::spawn_blocking(move || {
-      let mut temp = NamedTempFile::new()?;
-      let mut writer = ZipWriter::new(&mut temp);
+    let mut file = File::create(&temp)?;
+    let mut writer = ZipWriter::new(&mut file);
 
-      // We shouldn't skip files that aren't pages here.
-      let mut handle = async_runtime::block_on(handle.lock());
-      let names = handle
-        .file_names()
-        .filter(|it| *it != name)
-        .map(ToOwned::to_owned)
-        .collect_vec();
+    let names = self
+      .file
+      .file_names()
+      .filter(|it| *it != page)
+      .map(ToOwned::to_owned)
+      .collect_vec();
 
-      for name in names {
-        let file = handle.by_name(&name)?;
-        writer.raw_copy_file(file)?;
-      }
+    for name in names {
+      let file = self.file.by_name(&name)?;
+      writer.raw_copy_file(file)?;
+    }
 
-      if let Err(err) = writer.finish() {
-        temp.into_temp_path().close()?;
-        return Err(err);
-      }
+    if let Err(err) = writer.finish() {
+      std::fs::remove_file(&temp)?;
+      return Err(Into::into(err));
+    }
 
-      Ok(temp)
-    });
-
-    let temp = join.await??;
-    fs::remove_file(&path).await?;
-    temp.into_temp_path().persist(path).ok();
+    std::fs::rename(temp, path)?;
 
     Ok(())
   }

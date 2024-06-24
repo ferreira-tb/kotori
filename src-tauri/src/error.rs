@@ -2,11 +2,9 @@ use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::ser::Serializer;
 use serde::Serialize;
-use tauri::async_runtime::JoinHandle;
 
 pub type Result<T> = std::result::Result<T, Error>;
 pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-pub type JoinResult<T> = JoinHandle<Result<T>>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

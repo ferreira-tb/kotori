@@ -1,6 +1,6 @@
 mod active;
 pub mod cover;
-mod handle;
+pub mod handle;
 mod structs;
 mod title;
 
@@ -28,7 +28,7 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
     .await?
     .unwrap_or_default()
     .into_iter()
-    .filter_map(|it| ActiveBook::new(it.path).ok())
+    .filter_map(|it| ActiveBook::new(app, it.path).ok())
     .collect_vec();
 
   if !books.is_empty() {

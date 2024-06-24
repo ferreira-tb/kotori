@@ -14,7 +14,7 @@ pub async fn add(app: &AppHandle, folders: &[impl AsRef<Path>]) -> Result<()> {
     let mut books = Vec::new();
 
     for folder in folders {
-      for entry in WalkDir::new(&folder).into_iter().flatten() {
+      for entry in WalkDir::new(folder).into_iter().flatten() {
         let path = entry.into_path();
         if path.is_file() && globset.is_match(&path) {
           books.push(path);
@@ -62,9 +62,9 @@ pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   let payload = LibraryBook::from_model(&app, &book).await?;
   Event::BookAdded(&payload).emit(&app)?;
 
-  let active_book = ActiveBook::with_model(&book)?;
+  let active_book = ActiveBook::from_model(&app, &book)?;
   let cover = cover::path(&app, book.id)?;
-  active_book.extract_cover(&app, cover);
+  active_book.extract_cover(&app, cover).await?;
 
   Ok(())
 }
@@ -114,9 +114,9 @@ async fn to_library_book(app: AppHandle, model: book::Model) -> Option<LibraryBo
   let book = LibraryBook::from_model(&app, &model).await;
   if matches!(book, Ok(ref it) if it.cover.is_none()) {
     let result: Result<()> = try {
-      let book = ActiveBook::with_model(&model)?;
+      let book = ActiveBook::from_model(&app, &model)?;
       let path = cover::path(&app, model.id)?;
-      book.extract_cover(&app, path);
+      book.extract_cover(&app, path).await?;
     };
 
     result.into_log(&app);

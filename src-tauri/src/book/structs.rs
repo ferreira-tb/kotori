@@ -15,12 +15,12 @@ pub struct ReaderBook {
 
 impl ReaderBook {
   pub async fn from_active(app: &AppHandle, book: &ActiveBook) -> Result<Self> {
-    let id = book.id_or_try_init(app).await.ok();
+    let id = book.try_id(app).await.ok();
     let title = book.title.clone();
     let path = book.path.clone();
 
     let pages = book
-      .pages_or_try_init()
+      .pages()
       .await?
       .keys()
       .copied()
@@ -54,7 +54,7 @@ pub struct LibraryBook {
 
 impl LibraryBook {
   pub async fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
-    let book = ActiveBook::with_model(model)?;
+    let book = ActiveBook::from_model(app, model)?;
     let title = Title::try_from(model.path.as_str())?;
     let rating = u8::try_from(model.rating).unwrap_or(0);
 

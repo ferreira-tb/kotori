@@ -35,7 +35,7 @@ pub async fn show_reader_page_context_menu(
     return Ok(());
   };
 
-  let book_id = reader_window.book.id_or_try_init(app).await.ok();
+  let book_id = reader_window.book.try_id(app).await.ok();
   let ctx = Context { window_id, book_id, page };
 
   if let Some(state) = window.try_state::<ReaderPageContextMenu>() {
@@ -62,7 +62,7 @@ pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
 pub async fn open_book(app: AppHandle, book_id: i32) -> Result<()> {
   debug!(command = "open_book", book_id);
   let book = ActiveBook::from_id(&app, book_id).await?;
-  book.open(&app).await
+  reader::open_book(&app, book).await
 }
 
 #[tauri::command]

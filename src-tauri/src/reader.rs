@@ -154,12 +154,9 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, page: usize) -> Result
   let mut windows = windows.write().await;
 
   if let Some(window) = windows.get_mut(&window_id) {
-    let book = window.book.clone();
-    book.delete_page(app, page).await?;
-
-    let pages = window.book.reload_pages().await?;
-    if pages.is_empty() {
-      info!("book \"{}\" is empty, closing window", window.book.title);
+    window.book.delete_page(app, page).await?;
+    
+    if window.book.pages().await?.is_empty() {
       return window.webview.close().map_err(Into::into);
     }
 

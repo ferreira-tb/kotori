@@ -30,7 +30,8 @@
         "fullscreen": false,
         "resizable": true,
         "maximizable": true,
-        "minimizable": true
+        "minimizable": true,
+        "maximized": true
       }
     ],
     "security": {

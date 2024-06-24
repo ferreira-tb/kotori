@@ -1,10 +1,10 @@
 use super::cover::{self, Cover};
-use super::handle::Handle;
+use super::handle::BookHandle;
 use super::title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::utils::collections::OrderedMap;
-use crate::{library, prelude::*, reader};
+use crate::{library, prelude::*};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
@@ -16,41 +16,41 @@ pub struct ActiveBook {
   pub title: Title,
 
   id: OnceCell<i32>,
-  handle: OnceCell<Handle>,
+  handle: BookHandle,
   pages: OnceCell<OrderedMap<usize, String>>,
 }
 
 impl ActiveBook {
-  pub fn new(path: impl AsRef<Path>) -> Result<Self> {
+  pub fn new(app: &AppHandle, path: impl AsRef<Path>) -> Result<Self> {
     let path = path.as_ref();
     let book = Self {
       path: path.to_owned(),
       title: Title::try_from(path)?,
 
       id: OnceCell::new(),
-      handle: OnceCell::new(),
+      handle: app.book_handle().clone(),
       pages: OnceCell::new(),
     };
 
     Ok(book)
   }
 
-  pub fn with_model(model: &book::Model) -> Result<Self> {
-    let book = Self::new(&model.path)?;
-    let _ = book.id.set(model.id);
-    Ok(book)
-  }
-
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
     Book::get_by_id(app, id)
       .await
-      .and_then(|model| Self::with_model(&model))
+      .and_then(|model| Self::from_model(app, &model))
+  }
+
+  pub fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
+    let book = Self::new(app, &model.path)?;
+    let _ = book.id.set(model.id);
+    Ok(book)
   }
 
   pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
     let book = Book::get_random(app).await?;
     if let Some(book) = book {
-      Self::with_model(&book).map(Some)
+      Self::from_model(app, &book).map(Some)
     } else {
       Ok(None)
     }
@@ -60,78 +60,68 @@ impl ActiveBook {
     self.id.get().copied()
   }
 
-  pub async fn id_or_try_init(&self, app: &AppHandle) -> Result<i32> {
+  pub async fn try_id(&self, app: &AppHandle) -> Result<i32> {
     let id = self.id.get_or_try_init(|| async {
-      let model = Book::get_by_path(app, &self.path).await?;
-      Ok::<i32, Error>(model.id)
+      Book::get_by_path(app, &self.path)
+        .await
+        .map(|model| model.id)
+        .map_err(Into::into)
     });
 
     id.await.copied()
   }
 
-  async fn handle_or_try_init(&self) -> Result<&Handle> {
-    let handle = self.handle.get_or_try_init(|| async {
-      let handle = Handle::new(&self.path).await?;
-      Ok::<Handle, Error>(handle)
-    });
-
-    handle.await
-  }
-
-  pub async fn pages_or_try_init(&self) -> Result<&OrderedMap<usize, String>> {
+  pub async fn pages(&self) -> Result<&OrderedMap<usize, String>> {
     let pages = self.pages.get_or_try_init(|| async {
-      let handle = self.handle_or_try_init().await?;
-      let pages = handle.pages().await;
-      Ok::<OrderedMap<usize, String>, Error>(pages)
+      self
+        .handle
+        .get_pages(&self.path)
+        .await
+        .map_err(Into::into)
     });
 
     pages.await
   }
 
-  pub async fn reload_pages(&mut self) -> Result<&OrderedMap<usize, String>> {
-    self.handle.take();
-    self.pages.take();
-    self.pages_or_try_init().await
-  }
-
   async fn model(&self, app: &AppHandle) -> Result<book::Model> {
-    let id = self.id_or_try_init(app).await?;
+    let id = self.try_id(app).await?;
     Book::get_by_id(app, id).await
   }
 
-  pub async fn open(self, app: &AppHandle) -> Result<()> {
-    reader::open_book(app, self).await
+  pub async fn has_page(&self, name: &str) -> Result<bool> {
+    let yes = self.pages().await?.values().any(|it| it == name);
+    Ok(yes)
   }
 
   async fn get_page_name(&self, page: usize) -> Result<&str> {
-    let name = self
-      .pages_or_try_init()
+    self
+      .pages()
       .await?
       .get(&page)
-      .ok_or_else(|| err!(PageNotFound))?;
-
-    Ok(name)
+      .map(String::as_str)
+      .ok_or_else(|| err!(PageNotFound))
   }
 
   async fn get_first_page_name(&self) -> Result<&str> {
-    let name = self
-      .pages_or_try_init()
+    self
+      .pages()
       .await?
       .first()
-      .map(|(_, name)| name)
-      .ok_or_else(|| err!(PageNotFound))?;
-
-    Ok(name)
+      .map(|(_, name)| name.as_str())
+      .ok_or_else(|| err!(PageNotFound))
   }
 
   pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
     let name = self.get_page_name(page).await?;
-    let handle = self.handle_or_try_init().await?;
-    handle.get_page_by_name(name).await
+    self.get_page_as_bytes_by_name(name).await
+  }
+
+  pub async fn get_page_as_bytes_by_name(&self, name: &str) -> Result<Vec<u8>> {
+    self.handle.read_page(&self.path, name).await
   }
 
   pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
-    let id = self.id_or_try_init(app).await?;
+    let id = self.try_id(app).await?;
     let path = cover::path(app, id)?;
     if fs::try_exists(&path).await? {
       return Ok(path.into());
@@ -143,13 +133,12 @@ impl ActiveBook {
   pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
     let mut model = self.model(app).await?;
     if let Some(cover) = model.cover.take() {
-      let handle = self.handle_or_try_init().await?;
-      if handle.has_page(&cover).await {
+      if self.has_page(&cover).await? {
         return Ok(cover);
       }
     };
 
-    let id = self.id_or_try_init(app).await?;
+    let id = self.try_id(app).await?;
     let name = self.get_first_page_name().await?;
     Book::update_cover(app, id, name).await?;
 
@@ -158,82 +147,76 @@ impl ActiveBook {
 
   pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
     let name = self.get_cover_name(app).await?;
-    let handle = self.handle_or_try_init().await?;
-    handle.get_page_by_name(&name).await
+    self.handle.read_page(&self.path, name).await
   }
 
-  pub fn extract_cover(self, app: &AppHandle, path: PathBuf) {
-    let app = app.clone();
-    async_runtime::spawn(async move {
-      let result: Result<_> = try {
-        let name = self.get_cover_name(&app).await?;
-        let handle = self.handle_or_try_init().await?;
-        let page = handle.get_page_by_name(&name).await?;
+  pub async fn extract_cover(&self, app: &AppHandle, path: PathBuf) -> Result<()> {
+    let name = self.get_cover_name(app).await?;
+    let page = self.get_page_as_bytes_by_name(&name).await?;
 
-        let parent = path.try_parent()?;
-        fs::create_dir_all(parent).await?;
+    let format = match image::guess_format(&page) {
+      Ok(it) => it,
+      Err(_) => ImageFormat::from_path(name)?,
+    };
 
-        let format = ImageFormat::from_path(name)?;
-        cover::resize(page, format, &path).await?;
+    let parent = path.try_parent()?;
+    fs::create_dir_all(parent).await?;
+    cover::resize(page, format, &path).await?;
 
-        let id = self.id_or_try_init(&app).await?;
-        let path = path.as_ref();
-        Event::CoverExtracted { id, path }.emit(&app)?;
-      };
-
-      result.into_log(&app);
-    });
+    let id = self.try_id(app).await?;
+    let path = path.as_ref();
+    Event::CoverExtracted { id, path }.emit(app)
   }
 
   /// Set the specified page as the book cover.
-  pub async fn update_cover(self, app: &AppHandle, page: usize) -> Result<()> {
-    let id = self.id_or_try_init(app).await?;
+  pub async fn update_cover(&self, app: &AppHandle, page: usize) -> Result<()> {
+    let id = self.try_id(app).await?;
     let name = self.get_page_name(page).await?;
     Book::update_cover(app, id, name).await?;
 
     if let Ok(cover) = cover::path(app, id) {
-      self.extract_cover(app, cover);
+      self.extract_cover(app, cover).await?;
     }
 
     Ok(())
   }
 
-  pub async fn delete_page(mut self, app: &AppHandle, page: usize) -> Result<()> {
-    let handle = self.handle_or_try_init().await?;
-    let mut pages = handle.pages().await;
-    let name = pages
-      .swap_remove(&page)
-      .ok_or_else(|| err!(PageNotFound))?;
+  pub async fn delete_page(&mut self, app: &AppHandle, page: usize) -> Result<()> {
+    let name = self.get_page_name(page).await?.to_owned();
+    self.handle.delete_page(&self.path, &name).await?;
 
-    handle
-      .delete_page_by_name(&self.path, &name)
-      .await?;
+    self.reload().await;
 
     // Next steps are exclusive to books in the library.
-    if let Ok(id) = self.id_or_try_init(app).await {
-      info!("page {page} deleted from book {id}");
-
-      if pages.is_empty() {
-        info!("book {id} is empty, removing from library");
+    if let Ok(id) = self.try_id(app).await {
+      if self.pages().await?.is_empty() {
         return library::remove(app, id).await;
       }
-
-      drop(pages);
 
       // Reset the cover if it was the deleted page.
       let cover = self.get_cover_name(app).await?;
       if cover == name {
-        info!("book {id} had its cover deleted, resetting");
         Book::update_cover(app, id, None).await?;
-
         if let Ok(cover) = cover::path(app, id) {
-          self.reload_pages().await?;
-          self.extract_cover(app, cover);
+          self.extract_cover(app, cover).await?;
         }
       }
     }
 
     Ok(())
+  }
+
+  async fn reload(&mut self) {
+    self.handle.close(&self.path).await;
+    self.pages.take();
+  }
+}
+
+impl Drop for ActiveBook {
+  fn drop(&mut self) {
+    let path = self.path.clone();
+    let handle = self.handle.clone();
+    async_runtime::spawn(async move { handle.close(path).await });
   }
 }
 
@@ -254,21 +237,5 @@ impl PartialOrd for ActiveBook {
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
     compare_ignore_case(&self.title.0, &other.title.0)
-  }
-}
-
-impl TryFrom<&Path> for ActiveBook {
-  type Error = crate::error::Error;
-
-  fn try_from(path: &Path) -> Result<Self> {
-    Self::new(path)
-  }
-}
-
-impl TryFrom<book::Model> for ActiveBook {
-  type Error = crate::error::Error;
-
-  fn try_from(model: book::Model) -> Result<Self> {
-    Self::with_model(&model)
   }
 }

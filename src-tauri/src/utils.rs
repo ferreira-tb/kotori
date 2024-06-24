@@ -1,4 +1,5 @@
 pub mod app {
+  use crate::book::handle::BookHandle;
   use crate::reader::WindowMap;
   use crate::Kotori;
   use tauri::{AppHandle, Manager, State, WebviewWindow, Wry};
@@ -6,6 +7,10 @@ pub mod app {
   pub trait AppHandleExt: Manager<Wry> {
     fn kotori(&self) -> State<Kotori> {
       self.state::<Kotori>()
+    }
+
+    fn book_handle(&self) -> BookHandle {
+      self.kotori().book_handle.clone()
     }
 
     fn main_window(&self) -> WebviewWindow {
@@ -160,6 +165,7 @@ pub mod result {
   use std::error::Error;
   use tauri::{async_runtime, AppHandle};
   use tauri_plugin_manatsu::Log;
+  use tracing::error;
 
   pub trait ResultExt<T, E: Error> {
     /// Saves an error log, consuming `self`, and discarding the success value, if any.
@@ -171,23 +177,21 @@ pub mod result {
 
   impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
     fn into_log(self, app: &AppHandle) {
-      if let Err(error) = self {
-        tracing::error!(%error);
-
+      if let Err(err) = self {
         let app = app.clone();
-        let message = error.to_string();
+        let message = err.to_string();
         async_runtime::spawn(async move {
           let _ = Log::new("Error", message)
             .save(&app)
             .await
-            .inspect_err(|error| tracing::error!(%error));
+            .inspect_err(|error| error!(%error));
         });
       }
     }
 
     fn into_dialog(self, app: &AppHandle) {
-      if let Err(error) = &self {
-        dialog::show_error(app, error);
+      if let Err(err) = &self {
+        dialog::show_error(app, err);
         self.into_log(app);
       }
     }

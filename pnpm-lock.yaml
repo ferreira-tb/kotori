@@ -69,8 +69,8 @@ importers:
         specifier: ^2.1.7
         version: 2.1.7(typescript@5.5.2)(vue@3.4.30(typescript@5.5.2))
       radix-vue:
-        specifier: ^1.8.4
-        version: 1.8.4(vue@3.4.30(typescript@5.5.2))
+        specifier: ^1.8.5
+        version: 1.8.5(vue@3.4.30(typescript@5.5.2))
       tailwind-merge:
         specifier: ^2.3.0
         version: 2.3.0
@@ -2052,8 +2052,8 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
-  radix-vue@1.8.4:
-    resolution: {integrity: sha512-Pc8BKFQouARED1Lb7/s18Fxny3ZodET5fyXLorW5zf/BiUDQv9gk7NZEYv9sU3uldSvpO3JLLChd0q2repBdGw==}
+  radix-vue@1.8.5:
+    resolution: {integrity: sha512-aWRa/tc5EHS2U4h8YTovRtwSMt+Sbk4QRekNTpkshCWlq353mpGBsp0ME/4seOxWn7JKze8NA3pDx/AQuH2tMw==}
     peerDependencies:
       vue: '>= 3.2.0'
 
@@ -4432,7 +4432,7 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
-  radix-vue@1.8.4(vue@3.4.30(typescript@5.5.2)):
+  radix-vue@1.8.5(vue@3.4.30(typescript@5.5.2)):
     dependencies:
       '@floating-ui/dom': 1.6.5
       '@floating-ui/vue': 1.0.6(vue@3.4.30(typescript@5.5.2))
