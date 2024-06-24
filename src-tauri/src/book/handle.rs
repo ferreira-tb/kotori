@@ -48,7 +48,7 @@ impl Actor {
         .filter_map(|it| it.try_str().ok())
         .collect_vec();
 
-      debug!(%message, ?books);
+      trace!(%message, ?books);
     }
 
     match message {

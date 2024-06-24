@@ -109,7 +109,7 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
       let windows = app.reader_windows();
       let windows = windows.read().await;
       if let Some(window) = windows.get(&window_id) {
-        window.set_menu_item_enabled(&Item::AddBookToLibrary, false)?;
+        window.set_menu_item_enabled(app, &Item::AddBookToLibrary, false)?;
       }
     };
 

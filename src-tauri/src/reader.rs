@@ -30,15 +30,20 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
   {
     let windows = app.reader_windows();
     let windows = windows.read().await;
-    if let Some(window) = windows.values().find(|w| w.book == book) {
-      return window.webview.set_focus().map_err(Into::into);
+    let webview = windows
+      .values()
+      .find(|w| w.book == book)
+      .and_then(|it| it.webview(app));
+
+    if let Some(webview) = webview {
+      return webview.set_focus().map_err(Into::into);
     }
   }
 
-  let (id, window) = ReaderWindow::open(app, book).await?;
+  let window = ReaderWindow::open(app, book).await?;
   let windows = app.reader_windows();
   let mut windows = windows.write().await;
-  windows.insert(id, window);
+  windows.insert(window.id, window);
 
   Ok(())
 }
@@ -57,7 +62,9 @@ where
 pub async fn close_all(app: &AppHandle) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
-    window.webview.close().into_log(app);
+    if let Some(webview) = window.webview(app) {
+      webview.close().into_log(app);
+    }
   }
 
   Ok(())
@@ -67,7 +74,9 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
     if window.id != window_id {
-      window.webview.close().into_log(app);
+      if let Some(webview) = window.webview(app) {
+        webview.close().into_log(app);
+      }
     }
   }
 
@@ -97,7 +106,12 @@ async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {
   let windows = app.reader_windows();
   let windows = windows.read().await;
   for window in windows.values() {
-    if window.webview.is_focused().unwrap_or(false) {
+    let is_focused = window
+      .webview(app)
+      .and_then(|it| it.is_focused().ok())
+      .unwrap_or(false);
+
+    if is_focused {
       return Some(window.id);
     }
   }
@@ -110,7 +124,11 @@ pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16>
   let windows = windows.read().await;
   windows
     .iter()
-    .find(|(_, window)| window.webview.label() == label)
+    .find(|(_, window)| {
+      window
+        .webview(app)
+        .is_some_and(|it| it.label() == label)
+    })
     .map(|(_, window)| window.id)
 }
 
@@ -119,8 +137,13 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
   if main_window.is_focused().unwrap_or(false) {
     let windows = app.reader_windows();
     let windows = windows.read().await;
-    if let Some((_, window)) = windows.first() {
-      return window.webview.set_focus().map_err(Into::into);
+
+    let webview = windows
+      .first()
+      .and_then(|(_, window)| window.webview(app));
+
+    if let Some(webview) = webview {
+      return webview.set_focus().map_err(Into::into);
     }
   }
 
@@ -134,17 +157,17 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
     return Ok(());
   }
 
-  let window = windows
+  let webview = windows
     .values()
     .cycle()
     .skip_while(|window| window.id != focused)
     .skip(1)
-    .find(|window| windows.contains_key(&window.id));
+    .find(|window| windows.contains_key(&window.id))
+    .and_then(|window| windows.get(&window.id))
+    .and_then(|window| window.webview(app));
 
-  if let Some(window) = window {
-    if let Some(window) = windows.get(&window.id) {
-      return window.webview.set_focus().map_err(Into::into);
-    }
+  if let Some(webview) = webview {
+    return webview.set_focus().map_err(Into::into);
   };
 
   Ok(())
@@ -158,7 +181,9 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, page: usize) -> Result
     window.book.delete_page(app, page).await?;
 
     if window.book.pages().await?.is_empty() {
-      return window.webview.close().map_err(Into::into);
+      if let Some(webview) = window.webview(app) {
+        return webview.close().map_err(Into::into);
+      }
     }
 
     Event::PageDeleted { window_id }.emit(app)?;
