@@ -18,7 +18,7 @@ features = []
 
 [dependencies]
 ahash = "0.8.11"
-anyhow = "1.0.83"
+anyhow = "1.0.86"
 axum = "0.7.5"
 chrono = "0.4.38"
 futures = "0.3.30"
@@ -26,7 +26,7 @@ globset = "0.4.14"
 image = "0.25.1"
 indexmap = "2.2.6"
 indoc = "2.0.5"
-itertools = "0.12.1"
+itertools = "0.13.0"
 natord = "1.0.9"
 rand = "0.8.5"
 serde_json = "1.0.117"
@@ -37,12 +37,12 @@ tauri-plugin-persisted-scope = "2.0.0-beta.7"
 tauri-plugin-shell = "2.0.0-beta.5"
 tauri-plugin-store = "2.0.0-beta.6"
 tempfile = "3.10.1"
-thiserror = "1.0.60"
+thiserror = "1.0.61"
 walkdir = "2.5.0"
 zip = "1.2.3"
 
 [dependencies.console-subscriber]
-version = "0.2.0"
+version = "0.3.0"
 features = ["parking_lot"]
 optional = true
 
@@ -51,7 +51,7 @@ version = "*"
 path = "../migration"
 
 [dependencies.open]
-version = "5.1.2"
+version = "5.1.4"
 features = ["shellexecute-on-windows"]
 
 [dependencies.sea-orm]
@@ -64,11 +64,11 @@ default-features = false
 features = ["backend-sqlite", "thread-safe"]
 
 [dependencies.serde]
-version = "1.0.202"
+version = "1.0.203"
 features = ["derive"]
 
 [dependencies.strum]
-version = "0.26.2"
+version = "0.26.3"
 features = ["derive"]
 
 [dependencies.tauri]
@@ -80,7 +80,7 @@ version = "2.0.0-beta.7"
 features = ["rustls-tls"]
 
 [dependencies.tokio]
-version = "1.37.0"
+version = "1.38.0"
 features = ["full"]
 
 [dependencies.tracing]
