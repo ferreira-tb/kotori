@@ -3,6 +3,7 @@ use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::window::ReaderWindow;
+use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tokio::sync::{oneshot, RwLock};
 
@@ -155,7 +156,7 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, page: usize) -> Result
 
   if let Some(window) = windows.get_mut(&window_id) {
     window.book.delete_page(app, page).await?;
-    
+
     if window.book.pages().await?.is_empty() {
       return window.webview.close().map_err(Into::into);
     }

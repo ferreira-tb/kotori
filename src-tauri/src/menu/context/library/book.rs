@@ -1,8 +1,8 @@
 use crate::book::ActiveBook;
 use crate::menu::prelude::*;
+use crate::reader;
 use crate::{library, menu_item_or_bail, prelude::*};
 use std::sync::Mutex;
-use crate::reader;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
@@ -50,7 +50,9 @@ pub async fn open_book(app: &AppHandle) {
   let id = state.ctx.lock().unwrap().book_id;
 
   if let Ok(book) = ActiveBook::from_id(app, id).await {
-    reader::open_book(app, book).await.into_dialog(app);
+    reader::open_book(app, book)
+      .await
+      .into_dialog(app);
   }
 }
 
