@@ -90,7 +90,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   let app = app.clone();
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
-      trace!(?event, window_id);
+      info!("close requested, window_id: {window_id}");
       reader::remove_window(&app, window_id);
     }
   });

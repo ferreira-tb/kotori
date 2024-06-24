@@ -53,7 +53,7 @@
   },
   "devDependencies": {
     "@tb-dev/auto-import-config": "^2.2.5",
-    "@tb-dev/eslint-config": "^3.8.3",
+    "@tb-dev/eslint-config": "^3.8.4",
     "@types/node": "^20.14.8",
     "@vitejs/plugin-vue": "^5.0.5",
     "autoprefixer": "^10.4.19",
