@@ -5,13 +5,15 @@ use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
 use axum::routing::get;
 use axum::Router;
+use indoc::formatdoc;
 use std::thread;
 use tokio::net::TcpListener;
 
+/// This depends on state managed by Tauri.
 pub fn serve(app: &AppHandle) {
   let app = app.clone();
   thread::spawn(move || {
-    block_on(async move {
+    async_runtime::block_on(async move {
       let router = Router::new()
         .route("/library/:book_id/cover", get(book_cover))
         .route("/reader", get(reader_root))

@@ -15,10 +15,11 @@ mod server;
 mod utils;
 mod window;
 
-use error::BoxResult;
+use book::handle::BookHandle;
+use error::{BoxResult, Result};
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use tauri::{App, Manager};
+use tauri::{App, AppHandle, Manager};
 use utils::app::AppHandleExt;
 use window::app::{on_menu_event, on_window_event};
 
@@ -26,6 +27,7 @@ const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
   pub db: DatabaseConnection,
+  pub book_handle: BookHandle,
   pub reader: Reader,
 }
 
@@ -36,17 +38,18 @@ fn main() {
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    .plugin(tauri_plugin_single_instance::init(single_instance))
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_store::Builder::new().build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
       command::focus_main_window,
-      command::maximize_window,
+      command::notify_config_update,
       command::show_window,
       command::toggle_fullscreen,
       command::collection::get_collections,
-      command::library::add_to_library_from_dialog,
+      command::library::add_to_library_with_dialog,
       command::library::get_library_books,
       command::library::remove_book,
       command::library::remove_book_with_dialog,
@@ -72,6 +75,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(Kotori {
     db: database::connect(app)?,
+    book_handle: BookHandle::new(app),
     reader: Reader::new(),
   });
 
@@ -83,8 +87,18 @@ fn setup(app: &mut App) -> BoxResult<()> {
   #[cfg(debug_assertions)]
   main_window.open_devtools();
 
-  // This depends on state managed by Tauri, so it MUST be called after `app.manage`.
   server::serve(app);
 
   Ok(())
+}
+
+fn single_instance(app: &AppHandle, _: Vec<String>, _: String) {
+  let _: Result<()> = try {
+    let window = app.main_window();
+    if window.is_minimized()? {
+      window.unminimize()?;
+    }
+
+    window.set_focus()?;
+  };
 }

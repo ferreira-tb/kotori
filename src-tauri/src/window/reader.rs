@@ -3,11 +3,8 @@ use crate::book::ActiveBook;
 use crate::menu::reader::{build as build_menu, Item};
 use crate::menu::MenuExt;
 use crate::{prelude::*, reader};
-use std::sync::atomic::{self, AtomicU16};
 use tauri::menu::MenuEvent;
 use tauri::{WebviewWindowBuilder, WindowEvent};
-
-static WINDOW_ID: AtomicU16 = AtomicU16::new(0);
 
 pub struct ReaderWindow {
   pub id: u16,
@@ -21,9 +18,7 @@ impl ReaderWindow {
   }
 
   pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<(u16, Self)> {
-    trace!(?book, "opening reader window");
-    let window_id = WINDOW_ID.fetch_add(1, atomic::Ordering::SeqCst);
-
+    let window_id = get_available_id(app);
     let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
     trace!(%script);
 
@@ -35,6 +30,7 @@ impl ReaderWindow {
       .resizable(true)
       .maximizable(true)
       .minimizable(true)
+      .maximized(true)
       .visible(false)
       .build()
       .map(|webview| Self::new(window_id, book, webview))?;
@@ -43,7 +39,7 @@ impl ReaderWindow {
 
     let menu = build_menu(app, window_id)?;
 
-    let book_id = window.book.id_or_try_init(app).await.ok();
+    let book_id = window.book.try_id(app).await.ok();
     menu.set_item_enabled(
       &Item::AddBookToLibrary.to_menu_id(window_id),
       book_id.is_none(),
@@ -69,6 +65,19 @@ impl ReaderWindow {
   }
 }
 
+fn get_available_id(app: &AppHandle) -> u16 {
+  let mut id = 0;
+  while get_reader_window(app, id).is_some() {
+    id += 1;
+  }
+
+  id
+}
+
+fn get_reader_window(app: &AppHandle, id: u16) -> Option<WebviewWindow> {
+  app.get_webview_window(&format!("reader-{id}"))
+}
+
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
   use crate::menu::{self, context, Listener};
   move |window, event| {
@@ -81,7 +90,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   let app = app.clone();
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
-      info!("close requested for reader window {window_id}");
+      info!("close requested, window_id: {window_id}");
       reader::remove_window(&app, window_id);
     }
   });

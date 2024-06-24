@@ -22,7 +22,7 @@ impl Cover {
 
 pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>) -> Result<()> {
   let path = path.as_ref().to_owned();
-  let join = spawn_blocking(move || {
+  let join = async_runtime::spawn_blocking(move || {
     let cursor = Cursor::new(cover);
     let reader = ImageReader::with_format(cursor, format).decode()?;
     let cover = reader.thumbnail(400, 400);

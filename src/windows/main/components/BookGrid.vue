@@ -1,42 +1,32 @@
 <script setup lang="ts">
 import { contains } from '@/lib/string';
-import { useLibraryStore } from '../stores';
-import { openBook, showLibraryBookContextMenu } from '@/lib/commands';
+import type { LibraryBookImpl } from '../lib/library';
+import { showLibraryBookContextMenu } from '@/lib/commands';
 
-defineEmits<(e: 'select', book: LibraryBook) => void>();
+defineProps<{
+  books: Iterable<LibraryBookImpl>;
+  filter: string;
+}>();
 
-const store = useLibraryStore();
-const { books, filter } = storeToRefs(store);
-
-async function open(id: number) {
-  try {
-    await openBook(id);
-  } catch (err) {
-    handleError(err, { dialog: true });
-  }
-}
+defineEmits<(e: 'select', book: LibraryBookImpl) => void>();
 </script>
 
 <template>
-  <div id="kt-book-grid">
+  <div class="grid gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10">
     <template v-for="book of books" :key="book.id">
       <div
         v-if="book.cover && contains(filter, book.title)"
-        class="cursor-pointer overflow-hidden rounded-sm"
+        class="cursor-pointer overflow-hidden rounded-md border border-solid shadow-md"
         @click="$emit('select', book)"
-        @dblclick="open(book.id)"
+        @dblclick="book.open()"
         @contextmenu="showLibraryBookContextMenu(book.id)"
       >
-        <img :src="book.cover" class="size-full object-cover" />
+        <img
+          :src="book.cover"
+          :alt="book.title"
+          class="h-auto w-auto object-cover transition-all hover:scale-110"
+        />
       </div>
     </template>
   </div>
 </template>
-
-<style scoped>
-#kt-book-grid {
-  display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
-  gap: 1rem;
-}
-</style>

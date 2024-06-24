@@ -1,5 +1,5 @@
 import {
-  addToLibraryFromDialog,
+  addToLibraryWithDialog,
   openBookFromDialog,
   switchReaderFocus,
   toggleFullscreen
@@ -20,5 +20,5 @@ export function setGlobalSensors() {
   onKeyDown('F11', toggleFullscreen);
 
   onCtrlKeyDown('o', openBookFromDialog);
-  onCtrlShiftKeyDown(['a', 'A'], addToLibraryFromDialog);
+  onCtrlShiftKeyDown(['a', 'A'], addToLibraryWithDialog);
 }

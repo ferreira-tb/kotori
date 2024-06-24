@@ -1,5 +1,6 @@
 import { RouteName } from './routes';
-import { createMemoryHistory, createRouter } from 'vue-router';
+import { LibraryMode } from './query';
+import { type LocationQueryRaw, createMemoryHistory, createRouter } from 'vue-router';
 
 const router = createRouter({
   history: createMemoryHistory(),
@@ -15,11 +16,23 @@ const router = createRouter({
       component: () => import('../views/Collection.vue')
     },
     {
-      path: '/book-tag',
+      path: '/tag',
       name: RouteName.BookTag,
       component: () => import('../views/BookTag.vue')
     }
   ]
 });
 
-export { RouteName, router };
+function navigate(name: RouteName, query?: LocationQueryRaw) {
+  void router.push({ name, query });
+}
+
+function navigateToLibrary(query?: LocationQueryRaw) {
+  navigate(RouteName.Library, query);
+}
+
+function navigateToTags() {
+  navigate(RouteName.BookTag);
+}
+
+export { LibraryMode, RouteName, navigate, navigateToLibrary, navigateToTags, router };

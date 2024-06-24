@@ -1,13 +1,10 @@
-pub use crate::error::{Error, JoinResult, Result};
-pub use crate::utils::app::AppHandleExt;
-pub use crate::utils::path::PathExt;
-pub use crate::utils::result::ResultExt;
+pub use crate::error::Result;
+pub use crate::utils::app::AppHandleExt as _;
+pub use crate::utils::path::PathExt as _;
+pub use crate::utils::result::ResultExt as _;
 pub use crate::{bail, err};
 pub use futures::{FutureExt, TryFutureExt};
-pub use indoc::formatdoc;
 pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};
-pub use std::sync::Arc;
-pub use tauri::async_runtime::{self, block_on, spawn_blocking};
-pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
+pub use tauri::{async_runtime, AppHandle, Manager, WebviewWindow, Window, Wry};
 pub use tracing::{debug, info, trace, warn};

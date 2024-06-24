@@ -1,5 +1,5 @@
 interface LibraryBook {
-  cover?: string;
+  cover?: Nullish<string>;
   readonly id: number;
   readonly path: string;
   rating: number;

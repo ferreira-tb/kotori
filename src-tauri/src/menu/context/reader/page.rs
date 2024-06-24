@@ -71,7 +71,7 @@ async fn set_as_cover(app: &AppHandle) {
     let book = Book::get_by_id(app, book_id)
       .await
       .ok()
-      .and_then(|model| ActiveBook::with_model(&model).ok());
+      .and_then(|model| ActiveBook::from_model(app, &model).ok());
 
     if let Some(book) = book {
       book

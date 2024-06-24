@@ -1,63 +1,48 @@
-import { Page } from './page';
-import { READER_WINDOW_ID } from './global';
-import { getCurrentReaderBook } from '@/lib/commands';
+import { BookPage, BookPageStatus, isNotStarted } from './page';
 
-export class Book {
-  readonly #book = ref<ReaderBook | null>(null);
-  readonly #ready = ref(false);
-  readonly #currentIndex = ref(0);
+export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
+  public readonly id?: number;
+  public readonly title: string;
+  public readonly path: string;
 
-  public readonly ready = readonly(this.#ready);
-  public readonly pages = ref<Page[]>([]);
-  public readonly current = computed<Nullish<Page>>(() => {
-    return this.pages.value.at(this.#currentIndex.value);
-  });
+  readonly #pages = new Map<number, BookPage>();
+  readonly #stack: number[] = [0];
 
-  constructor() {
-    watch(this.#book, (value) => {
-      this.pages.value = value?.pages.map((id) => new Page(id)) ?? [];
-    });
+  constructor(book: ReaderBook) {
+    this.id = book.id;
+    this.title = book.title;
+    this.path = book.path;
 
-    watchImmediate(this.current, (value) => value?.eagerFetch());
-
-    this.load().catch(handleErrorWithDialog);
+    for (const page of book.pages) {
+      this.#pages.set(page, new BookPage(page));
+    }
   }
 
-  public go(page: number) {
-    const len = this.pages.value.length;
-    this.#currentIndex.value = ((page % len) + len) % len;
+  public get(index: number) {
+    const page = this.#pages.get(index);
+    if (page?.status === BookPageStatus.NotStarted) {
+      this.#stack.push(index);
+    }
+
+    return page;
   }
 
-  public next() {
-    this.go(this.#currentIndex.value + 1);
+  public async *fetch() {
+    while (this.#pages.values().some(isNotStarted)) {
+      if (this.#stack.length > 0) {
+        const index = this.#stack.pop();
+        if (typeof index === 'number') {
+          const page = this.#pages.get(index);
+          if (page) yield page.fetch();
+        }
+      }
+
+      const page = this.#pages.values().find(isNotStarted);
+      if (page) yield page.fetch();
+    }
   }
 
-  public previous() {
-    this.go(this.#currentIndex.value - 1);
-  }
-
-  public first() {
-    this.go(0);
-  }
-
-  public last() {
-    this.go(this.lastIndex());
-  }
-
-  public lastIndex() {
-    const index = this.pages.value.length - 1;
-    return index >= 0 ? index : 0;
-  }
-
-  public peek(page: number, offset = 0): Page | null {
-    const index = this.pages.value.findIndex(({ id }) => id === page);
-    if (index === -1) return null;
-    return this.pages.value.at(index + offset) ?? null;
-  }
-
-  public async load() {
-    this.#ready.value &&= false;
-    this.#book.value = await getCurrentReaderBook(READER_WINDOW_ID);
-    this.#ready.value ||= true;
+  get size() {
+    return this.#pages.size;
   }
 }

@@ -1,4 +1,5 @@
 use crate::book::{cover, ActiveBook, LibraryBook};
+use crate::database::entities::book;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
@@ -7,7 +8,29 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, Me
 use tokio::{fs, sync::oneshot, task::JoinSet};
 use walkdir::WalkDir;
 
-pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
+pub async fn add(app: &AppHandle, folders: &[impl AsRef<Path>]) -> Result<()> {
+  if !folders.is_empty() {
+    let globset = glob::book();
+    let mut books = Vec::new();
+
+    for folder in folders {
+      for entry in WalkDir::new(folder).into_iter().flatten() {
+        let path = entry.into_path();
+        if path.is_file() && globset.is_match(&path) {
+          books.push(path);
+        }
+      }
+    }
+
+    if !books.is_empty() {
+      save_many(app, books).await?;
+    }
+  }
+
+  Ok(())
+}
+
+pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 
@@ -16,24 +39,47 @@ pub async fn add_from_dialog(app: &AppHandle) -> Result<()> {
   });
 
   let folders = rx.await?;
-  if folders.is_empty() {
-    return Ok(());
-  }
+  add(app, &folders).await
+}
 
-  let globset = glob::book();
-  let mut books = Vec::new();
+pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
+  let path = path.try_string()?;
+  let model = book::ActiveModel {
+    path: Set(path),
+    ..Default::default()
+  };
 
-  for folder in folders {
-    for entry in WalkDir::new(&folder).into_iter().flatten() {
-      let path = entry.into_path();
-      if path.is_file() && globset.is_match(&path) {
-        books.push(path);
-      }
-    }
-  }
+  let kotori = app.kotori();
+  let book = Book::insert(model)
+    .on_conflict(
+      OnConflict::column(book::Column::Path)
+        .do_nothing()
+        .to_owned(),
+    )
+    .exec_with_returning(&kotori.db)
+    .await?;
 
-  if !books.is_empty() {
-    save_many(app, books).await?;
+  let payload = LibraryBook::from_model(&app, &book).await?;
+  Event::BookAdded(&payload).emit(&app)?;
+
+  let active_book = ActiveBook::from_model(&app, &book)?;
+  let cover = cover::path(&app, book.id)?;
+  active_book.extract_cover(&app, cover).await?;
+
+  Ok(())
+}
+
+async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
+where
+  I: IntoIterator<Item = PathBuf>,
+{
+  let mut tasks = books
+    .into_iter()
+    .map(|path| save(app.clone(), path))
+    .collect::<JoinSet<_>>();
+
+  while let Some(result) = tasks.join_next().await {
+    result?.into_log(app);
   }
 
   Ok(())
@@ -58,7 +104,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   Ok(books)
 }
 
-async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook> {
+async fn to_library_book(app: AppHandle, model: book::Model) -> Option<LibraryBook> {
   // Remove the book if the file is missing.
   if let Ok(false) = fs::try_exists(&model.path).await {
     remove(&app, model.id).await.into_log(&app);
@@ -68,9 +114,9 @@ async fn to_library_book(app: AppHandle, model: BookModel) -> Option<LibraryBook
   let book = LibraryBook::from_model(&app, &model).await;
   if matches!(book, Ok(ref it) if it.cover.is_none()) {
     let result: Result<()> = try {
-      let book = ActiveBook::with_model(&model)?;
+      let book = ActiveBook::from_model(&app, &model)?;
       let path = cover::path(&app, model.id)?;
-      book.extract_cover(&app, path);
+      book.extract_cover(&app, path).await?;
     };
 
     result.into_log(&app);
@@ -125,47 +171,4 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 
   let path = cover::base_path(app)?;
   fs::remove_dir_all(path).await.map_err(Into::into)
-}
-
-pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
-  let path = path.try_to_string()?;
-  let model = BookActiveModel {
-    path: Set(path),
-    ..Default::default()
-  };
-
-  let kotori = app.kotori();
-  let book = Book::insert(model)
-    .on_conflict(
-      OnConflict::column(BookColumn::Path)
-        .do_nothing()
-        .to_owned(),
-    )
-    .exec_with_returning(&kotori.db)
-    .await?;
-
-  let payload = LibraryBook::from_model(&app, &book).await?;
-  Event::BookAdded(&payload).emit(&app)?;
-
-  let active_book = ActiveBook::with_model(&book)?;
-  let cover = cover::path(&app, book.id)?;
-  active_book.extract_cover(&app, cover);
-
-  Ok(())
-}
-
-async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
-where
-  I: IntoIterator<Item = PathBuf>,
-{
-  let mut tasks = books
-    .into_iter()
-    .map(|path| save(app.clone(), path))
-    .collect::<JoinSet<_>>();
-
-  while let Some(result) = tasks.join_next().await {
-    result?.into_log(app);
-  }
-
-  Ok(())
 }

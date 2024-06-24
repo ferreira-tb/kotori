@@ -25,34 +25,38 @@ export function setupEventListeners() {
 function onBookAdded() {
   return listen<BookAddedPayload>(Event.BookAdded, ({ payload }) => {
     const store = useLibraryStore();
-    store.addBook(payload);
+    store.library.add(payload);
   });
 }
 
 function onBookRemoved() {
   return listen<BookRemovedPayload>(Event.BookRemoved, ({ payload }) => {
     const store = useLibraryStore();
-    store.removeBook(payload.id);
+    store.library.remove(payload.id);
+    if (store.selected?.id === payload.id) {
+      store.selected = null;
+    }
   });
 }
 
 function onCoverExtracted() {
   return listen<CoverExtractedPayload>(Event.CoverExtracted, ({ payload }) => {
     const store = useLibraryStore();
-    store.updateBookCover(payload.id, payload.path);
+    store.library.setBookCover(payload.id, payload.path);
   });
 }
 
 function onLibraryCleared() {
   return listen(Event.LibraryCleared, () => {
     const store = useLibraryStore();
-    store.load().catch((err: unknown) => handleError(err, { dialog: true }));
+    store.library.load().catch(handleError);
+    store.selected = null;
   });
 }
 
 function onRatingUpdated() {
   return listen<RatingUpdatedPayload>(Event.RatingUpdated, ({ payload }) => {
     const store = useLibraryStore();
-    store.updateBookRating(payload.id, payload.rating);
+    store.library.setBookRating(payload.id, payload.rating);
   });
 }

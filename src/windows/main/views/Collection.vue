@@ -1,18 +1,7 @@
-<script setup lang="ts">
-import { useCollectionStore } from '../stores';
-
-const store = useCollectionStore();
-const { collections } = storeToRefs(store);
-
-onMounted(() => {
-  store.load().catch(handleErrorWithDialog);
-});
-</script>
+<script setup lang="ts"></script>
 
 <template>
-  <div>
-    <span v-for="collection of collections" :key="collection.id">
-      {{ collection.name }}
-    </span>
-  </div>
+  <section>
+    <div>TODO: Collection</div>
+  </section>
 </template>

@@ -1,5 +1,5 @@
 export enum RouteName {
-  BookTag = 'book-tag',
+  BookTag = 'tag',
   Collection = 'collection',
   Library = 'library'
 }

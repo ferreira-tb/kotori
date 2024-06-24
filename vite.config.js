@@ -1,26 +1,30 @@
+import tailwind from 'tailwindcss';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
+import autoprefixer from 'autoprefixer';
 import dev from 'vite-plugin-vue-devtools';
 import { URL, fileURLToPath } from 'node:url';
-import autoImport from 'unplugin-auto-import/vite';
-import components from 'unplugin-vue-components/vite';
-import componentsConfig from '@tb-dev/vue-import-config';
-import autoImportConfig from '@tb-dev/auto-import-config';
-
-const autoImportOptions = autoImportConfig({
-  presets: {
-    manatsu: true,
-    tauri: true,
-    vueuseRouter: true
-  }
-});
-
-const componentsOptions = componentsConfig({ primevue: true });
+import autoImport from '@tb-dev/auto-import-config';
 
 export default defineConfig({
-  plugins: [vue(), dev(), autoImport(autoImportOptions), components(componentsOptions)],
   clearScreen: false,
+  plugins: [
+    vue(),
+    dev(),
+    autoImport({
+      presets: {
+        manatsu: true,
+        tauri: true,
+        vueuseRouter: true
+      }
+    })
+  ],
+  css: {
+    postcss: {
+      plugins: [tailwind(), autoprefixer()]
+    }
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('src', import.meta.url))

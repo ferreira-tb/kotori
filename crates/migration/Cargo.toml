@@ -1,9 +1,25 @@
 [package]
-name = "migration"
+name = "kotori-migration"
 version = "0.1.0"
-edition.workspace = true
-rust-version.workspace = true
 publish = false
+
+[package.homepage]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.authors]
+workspace = true
+
+[package.license]
+workspace = true
+
+[package.edition]
+workspace = true
+
+[package.rust-version]
+workspace = true
 
 [lints]
 workspace = true

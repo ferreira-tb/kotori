@@ -1,12 +1,11 @@
 export enum Command {
-  AddToLibraryFromDialog = 'add_to_library_from_dialog',
+  AddToLibraryWithDialog = 'add_to_library_with_dialog',
   CloseWindow = 'close_window',
   DeletePageWithDialog = 'delete_page_with_dialog',
   FocusMainWindow = 'focus_main_window',
   GetCollections = 'get_collections',
   GetCurrentReaderBook = 'get_current_reader_book',
   GetLibraryBooks = 'get_library_books',
-  MaximizeWindow = 'maximize_window',
   OpenBook = 'open_book',
   OpenBookFromDialog = 'open_book_from_dialog',
   RemoveBook = 'remove_book',
@@ -20,8 +19,8 @@ export enum Command {
   UpdateBookRating = 'update_book_rating'
 }
 
-export async function addToLibraryFromDialog() {
-  await invoke(Command.AddToLibraryFromDialog);
+export async function addToLibraryWithDialog() {
+  await invoke(Command.AddToLibraryWithDialog);
 }
 
 export function closeWindow() {
@@ -40,8 +39,8 @@ export function getCurrentReaderBook(windowId: number) {
   return invoke<ReaderBook>(Command.GetCurrentReaderBook, { windowId });
 }
 
-export function maximizeWindow() {
-  invoke(Command.MaximizeWindow).catch(handleErrorWithDialog);
+export function getLibraryBooks() {
+  return invoke<LibraryBook[]>(Command.GetLibraryBooks);
 }
 
 export async function removeBook(id: number) {
@@ -54,13 +53,11 @@ export async function removeBookWithDialog(id: Nullish<number>) {
 }
 
 export function showLibraryBookContextMenu(bookId: number) {
-  invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleErrorWithDialog);
+  invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleError);
 }
 
-export function showReaderPageContextMenu(windowId: number, page: Nullish<number>) {
-  if (typeof page === 'number') {
-    invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleErrorWithDialog);
-  }
+export function showReaderPageContextMenu(windowId: number, page: number) {
+  invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
 }
 
 export async function showWindow() {
@@ -80,11 +77,11 @@ export async function openBookFromDialog() {
 }
 
 export function toggleFullscreen() {
-  invoke(Command.ToggleFullscreen).catch(handleErrorWithDialog);
+  invoke(Command.ToggleFullscreen).catch(handleError);
 }
 
 export function toggleReaderMenu() {
-  invoke(Command.ToggleReaderMenu).catch(handleErrorWithDialog);
+  invoke(Command.ToggleReaderMenu).catch(handleError);
 }
 
 export function updateBookRating(bookId: number, rating: number) {

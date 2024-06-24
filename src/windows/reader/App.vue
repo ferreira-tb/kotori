@@ -1,24 +1,20 @@
 <script setup lang="ts">
 import Reader from './views/Reader.vue';
+import { useConfigStore } from '@/stores';
 import { useReaderStore } from './stores';
 import { setSensors } from './lib/sensors';
-import { maximizeWindow, showWindow } from '@/lib/commands';
-
-const store = useReaderStore();
-const { ready } = storeToRefs(store);
+import { showWindow } from '@/lib/commands';
 
 setSensors();
 
 onMounted(() => {
-  until(ready)
-    .toBeTruthy()
-    .then(flushPromises)
-    .then(maximizeWindow)
-    .then(showWindow)
-    .catch(handleError);
+  useReaderStore().reader.load().catch(handleError);
+  useConfigStore().load().then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 
 <template>
-  <reader />
+  <main class="fixed inset-0 select-none">
+    <Reader />
+  </main>
 </template>
