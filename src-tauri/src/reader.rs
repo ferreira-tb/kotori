@@ -32,7 +32,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     let windows = windows.read().await;
     let webview = windows
       .values()
-      .find(|w| w.book == book)
+      .find(|it| it.book == book)
       .and_then(|it| it.webview(app));
 
     if let Some(webview) = webview {
