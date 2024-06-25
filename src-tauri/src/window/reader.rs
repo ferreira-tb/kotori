@@ -2,7 +2,7 @@ use super::WindowKind;
 use crate::book::ActiveBook;
 use crate::menu::reader::{build as build_menu, Item};
 use crate::menu::MenuExt;
-use crate::{prelude::*, reader};
+use crate::prelude::*;
 use tauri::menu::MenuEvent;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -92,8 +92,32 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   let app = app.clone();
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
-      info!("close requested, window_id: {window_id}");
-      reader::remove_window(&app, window_id);
+      let app = app.clone();
+      async_runtime::spawn(async move {
+        info!("close requested, {}", WindowKind::Reader(window_id).label());
+        let reader_arc = app.reader_windows();
+        let mut windows = reader_arc.write().await;
+
+        let previous = windows
+          .get_index_of(&window_id)
+          .and_then(|id| id.checked_sub(1))
+          .unwrap_or(0);
+
+        windows.shift_remove(&window_id);
+
+        // No need to hold a write lock from now on.
+        drop(windows);
+
+        reader_arc
+          .read()
+          .await
+          .get_index(previous)
+          .and_then(|(_, window)| window.webview(&app))
+          .or_else(|| Some(app.main_window()))
+          .map(|webview| webview.set_focus())
+          .transpose()
+          .into_log(&app);
+      });
     }
   });
 }
