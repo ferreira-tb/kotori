@@ -3,7 +3,7 @@ pub mod library;
 pub mod reader;
 
 use crate::event::Event;
-use crate::prelude::*;
+use crate::{prelude::*, server};
 
 #[tauri::command]
 pub async fn close_window(window: WebviewWindow) -> Result<()> {
@@ -22,6 +22,11 @@ pub async fn notify_config_update(app: AppHandle, window: WebviewWindow) -> Resu
   let label = window.label();
   debug!(command = "notify_config_update", window = label);
   Event::ConfigUpdated(label).emit(&app)
+}
+
+#[tauri::command]
+pub fn server_port() -> u16 {
+  server::port()
 }
 
 #[tauri::command]

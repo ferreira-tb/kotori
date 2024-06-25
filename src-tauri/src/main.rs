@@ -46,6 +46,7 @@ fn main() {
       command::close_window,
       command::focus_main_window,
       command::notify_config_update,
+      command::server_port,
       command::show_window,
       command::toggle_fullscreen,
       command::collection::get_collections,

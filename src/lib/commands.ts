@@ -10,6 +10,7 @@ export enum Command {
   OpenBookFromDialog = 'open_book_from_dialog',
   RemoveBook = 'remove_book',
   RemoveBookWithDialog = 'remove_book_with_dialog',
+  ServerPort = 'server_port',
   ShowLibraryBookContextMenu = 'show_library_book_context_menu',
   ShowReaderPageContextMenu = 'show_reader_page_context_menu',
   ShowWindow = 'show_window',
@@ -41,6 +42,10 @@ export function getCurrentReaderBook(windowId: number) {
 
 export function getLibraryBooks() {
   return invoke<LibraryBook[]>(Command.GetLibraryBooks);
+}
+
+export function getServerPort() {
+  return invoke<number>(Command.ServerPort);
 }
 
 export async function removeBook(id: number) {

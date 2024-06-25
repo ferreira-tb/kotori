@@ -8,22 +8,42 @@ use axum::Router;
 use indoc::formatdoc;
 use std::thread;
 use tokio::net::TcpListener;
+use tokio::sync::{oneshot, OnceCell};
+
+static PORT: OnceCell<u16> = OnceCell::const_new();
 
 /// This depends on state managed by Tauri.
 pub fn serve(app: &AppHandle) {
   let app = app.clone();
+  let (tx, rx) = oneshot::channel();
+
   thread::spawn(move || {
     async_runtime::block_on(async move {
       let router = Router::new()
-        .route("/library/:book_id/cover", get(book_cover))
-        .route("/reader", get(reader_root))
-        .route("/reader/:window_id/:page", get(book_page))
+        .route("/kotori/library/:book_id/cover", get(book_cover))
+        .route("/kotori/reader", get(reader_root))
+        .route("/kotori/reader/:window_id/:page", get(book_page))
         .with_state(app);
 
-      let listener = TcpListener::bind("0.0.0.0:3000").await.unwrap();
+      let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+      let local_addr = listener
+        .local_addr()
+        .inspect(|it| info!(local_addr = %it))
+        .unwrap();
+
+      tx.send(local_addr.port()).unwrap();
+
       axum::serve(listener, router).await.unwrap();
     });
   });
+
+  async_runtime::block_on(rx)
+    .map(|port| PORT.set(port).unwrap())
+    .unwrap();
+}
+
+pub fn port() -> u16 {
+  *PORT.get().unwrap()
 }
 
 async fn reader_root(State(app): State<AppHandle>) -> Html<String> {
