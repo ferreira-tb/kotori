@@ -45,7 +45,7 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   add_folders(app, &folders).await
 }
 
-pub async fn save(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
+pub async fn save(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
   let path = path.try_string()?;
   let model = book::ActiveModel {
     path: Set(path),
@@ -66,16 +66,34 @@ pub async fn save(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
     .await
     .and_then(|it| Event::BookAdded(&it).emit(app))?;
 
-  extract_book_cover(app, model).await
+  Ok(model)
 }
 
 async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
 {
-  for book in books {
-    save(app, book).await?;
+  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
+  let mut set = books
+    .into_iter()
+    .map(|path| {
+      let app = app.clone();
+      let semaphore = Arc::clone(&semaphore);
+      async move {
+        let _permit = semaphore.acquire_owned().await?;
+        save(&app, path).await
+      }
+    })
+    .collect::<JoinSet<_>>();
+
+  let mut models = Vec::with_capacity(set.len());
+  while let Some(result) = set.join_next().await {
+    if let Ok(model) = result? {
+      models.push(model);
+    }
   }
+
+  schedule_cover_extraction(app, models);
 
   Ok(())
 }
@@ -89,7 +107,8 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
       let app = app.clone();
       let semaphore = Arc::clone(&semaphore);
       async move {
-        let _permit = semaphore.acquire().await.ok()?;
+        let _permit = semaphore.acquire_owned().await.ok()?;
+
         // Remove the book if the file is missing.
         if let Ok(false) = fs::try_exists(&model.path).await {
           let _ = remove(&app, model.id).await;
@@ -103,36 +122,35 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
     .collect::<JoinSet<_>>();
 
   let mut books = Vec::with_capacity(set.len());
-  let mut futures = Vec::new();
+  let mut pending = Vec::new();
 
   while let Some(result) = set.join_next().await {
     if let Some((book, model)) = result? {
-      // Prepare the futures so we can spawn them later.
-      // This way we can return the books, then extract the covers sometime after that.
       if book.cover.is_none() {
-        let app = app.clone();
-        let semaphore = Arc::clone(&semaphore);
-        futures.push(Box::pin(async move {
-          let _permit = semaphore.acquire().await?;
-          extract_book_cover(&app, model).await
-        }));
+        pending.push(model);
       }
 
       books.push(book);
     }
   }
 
-  for future in futures {
-    async_runtime::spawn(future);
-  }
+  schedule_cover_extraction(app, pending);
 
   Ok(books)
 }
 
-async fn extract_book_cover(app: &AppHandle, model: book::Model) -> Result<()> {
-  let book = ActiveBook::from_model(app, &model)?;
-  let path = cover::path(app, model.id)?;
-  book.extract_cover(app, path).await
+fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
+  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
+  for model in models {
+    let app = app.clone();
+    let semaphore = Arc::clone(&semaphore);
+    async_runtime::spawn(async move {
+      let _permit = semaphore.acquire_owned().await?;
+      let book = ActiveBook::from_model(&app, &model)?;
+      let path = cover::path(&app, model.id)?;
+      book.extract_cover(&app, path).await
+    });
+  }
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
