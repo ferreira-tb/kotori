@@ -6219,6 +6219,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-window-state"
 version = "2.0.0-beta.9"
+source = "git+https://github.com/ferreira-tb/plugins-workspace?branch=v2#9ae9671b591596508fa15fc87194923226924b12"
 dependencies = [
  "bitflags 2.6.0",
  "log",

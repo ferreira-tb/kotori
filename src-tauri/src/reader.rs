@@ -67,7 +67,7 @@ pub async fn close_all(app: &AppHandle) -> Result<()> {
     }
   }
 
-  Ok(())
+  app.main_window().set_focus().map_err(Into::into)
 }
 
 pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
