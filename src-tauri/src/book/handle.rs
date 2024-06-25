@@ -8,11 +8,14 @@ use std::io::Read;
 use std::sync::{Arc, Mutex};
 use std::{fmt, thread};
 use strum::Display;
-use tokio::sync::{mpsc, oneshot};
+use tokio::sync::{mpsc, oneshot, Semaphore, SemaphorePermit};
 use uuid::Uuid;
 use zip::{ZipArchive, ZipWriter};
 
 type TxResult<T> = oneshot::Sender<Result<T>>;
+
+pub const MAX_FILE_PERMITS: usize = 50;
+static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
 
 pub struct Actor {
   app: AppHandle,
@@ -40,17 +43,7 @@ impl Actor {
   }
 
   async fn handle_message(&mut self, message: Message) -> Result<()> {
-    #[cfg(debug_assertions)]
-    {
-      let books = self
-        .books
-        .keys()
-        .filter_map(|it| it.try_str().ok())
-        .collect_vec();
-
-      trace!(%message, ?books);
-    }
-
+    trace!(%message, books = self.books.len());
     match message {
       Message::GetPages { path, tx } => {
         let result = self
@@ -107,7 +100,7 @@ pub struct BookHandle {
 
 impl BookHandle {
   pub fn new(app: &AppHandle) -> Self {
-    let (sender, receiver) = mpsc::channel(8);
+    let (sender, receiver) = mpsc::channel(20);
     let mut actor = Actor::new(app, receiver);
 
     thread::spawn(move || {
@@ -197,10 +190,14 @@ enum Message {
 struct BookFile {
   file: Arc<Mutex<ZipArchive<File>>>,
   pages: OrderedMap<usize, String>,
+  _permit: SemaphorePermit<'static>,
 }
 
 impl BookFile {
   async fn open(path: impl AsRef<Path>) -> Result<Self> {
+    debug!(available_file_permits = FILE_SEMAPHORE.available_permits());
+    let permit = FILE_SEMAPHORE.acquire().await?;
+
     let path = path.as_ref().to_owned();
     let join = async_runtime::spawn_blocking(move || {
       let reader = File::open(&path)?;
@@ -218,6 +215,7 @@ impl BookFile {
       let file = BookFile {
         file: Arc::new(Mutex::new(zip)),
         pages,
+        _permit: permit,
       };
 
       Ok(file)

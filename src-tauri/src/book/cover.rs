@@ -4,6 +4,7 @@ use image::io::Reader as ImageReader;
 use image::ImageFormat;
 use std::fs::File;
 use std::io::Cursor;
+use tokio::fs;
 
 #[derive(Clone)]
 pub enum Cover {
@@ -22,6 +23,9 @@ impl Cover {
 
 pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>) -> Result<()> {
   let path = path.as_ref().to_owned();
+  let parent = path.try_parent()?;
+  fs::create_dir_all(parent).await?;
+
   let join = async_runtime::spawn_blocking(move || {
     let cursor = Cursor::new(cover);
     let reader = ImageReader::with_format(cursor, format).decode()?;
@@ -37,7 +41,7 @@ pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>)
   join.await?
 }
 
-pub fn base_path(app: &AppHandle) -> Result<PathBuf> {
+pub fn dir(app: &AppHandle) -> Result<PathBuf> {
   app
     .path()
     .app_cache_dir()
@@ -46,7 +50,7 @@ pub fn base_path(app: &AppHandle) -> Result<PathBuf> {
 }
 
 pub fn path(app: &AppHandle, book_id: i32) -> Result<PathBuf> {
-  base_path(app).map(|it| it.join(book_id.to_string()))
+  dir(app).map(|it| it.join(book_id.to_string()))
 }
 
 impl From<PathBuf> for Cover {

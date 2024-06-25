@@ -103,7 +103,7 @@ fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
     let result: Result<()> = try {
-      library::save(app.clone(), path).await?;
+      library::save(app, path).await?;
 
       // Disable the menu item after adding the book to the library.
       let windows = app.reader_windows();

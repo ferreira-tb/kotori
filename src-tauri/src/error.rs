@@ -24,6 +24,8 @@ pub enum Error {
   WindowNotFound(String),
 
   #[error(transparent)]
+  ChronoParse(#[from] chrono::ParseError),
+  #[error(transparent)]
   Database(#[from] sea_orm::error::DbErr),
   #[error(transparent)]
   Glob(#[from] globset::Error),
@@ -34,11 +36,17 @@ pub enum Error {
   #[error(transparent)]
   Json(#[from] serde_json::Error),
   #[error(transparent)]
+  Manatsu(#[from] tauri_plugin_manatsu::Error),
+  #[error(transparent)]
   Tauri(#[from] tauri::Error),
+  #[error(transparent)]
+  TokioAcquire(#[from] tokio::sync::AcquireError),
   #[error(transparent)]
   TokioJoin(#[from] tokio::task::JoinError),
   #[error(transparent)]
   TokioRecv(#[from] tokio::sync::oneshot::error::RecvError),
+  #[error(transparent)]
+  TryFromInt(#[from] std::num::TryFromIntError),
   #[error(transparent)]
   WalkDir(#[from] walkdir::Error),
   #[error(transparent)]

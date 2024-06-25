@@ -4,14 +4,16 @@ pub mod handle;
 mod structs;
 mod title;
 
-pub use active::ActiveBook;
-pub use structs::{LibraryBook, ReaderBook};
-pub use title::Title;
-
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::{prelude::*, reader};
+pub use active::ActiveBook;
+pub use cover::Cover;
+pub use handle::MAX_FILE_PERMITS;
+pub use structs::{LibraryBook, ReaderBook};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
+pub use title::Title;
+use tokio::fs;
 use tokio::sync::oneshot;
 
 pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
@@ -38,6 +40,15 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
   }
 
   Ok(())
+}
+
+pub async fn get_cover(app: &AppHandle, id: i32) -> Result<Cover> {
+  let path = cover::path(app, id)?;
+  if fs::try_exists(&path).await? {
+    return Ok(path.into());
+  }
+
+  Ok(Cover::NotExtracted)
 }
 
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {

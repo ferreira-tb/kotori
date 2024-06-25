@@ -1,4 +1,5 @@
 use super::active::ActiveBook;
+use super::get_cover;
 use super::title::Title;
 use crate::database::prelude::*;
 use crate::prelude::*;
@@ -54,12 +55,9 @@ pub struct LibraryBook {
 
 impl LibraryBook {
   pub async fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
-    let book = ActiveBook::from_model(app, model)?;
     let title = Title::try_from(model.path.as_str())?;
-    let rating = u8::try_from(model.rating).unwrap_or(0);
-
-    let cover = book
-      .get_cover(app)
+    let rating = u8::try_from(model.rating)?;
+    let cover = get_cover(app, model.id)
       .await?
       .as_path()
       .map(Path::to_path_buf);

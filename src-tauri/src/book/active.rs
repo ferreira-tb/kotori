@@ -1,4 +1,4 @@
-use super::cover::{self, Cover};
+use super::cover;
 use super::handle::BookHandle;
 use super::title::Title;
 use crate::database::prelude::*;
@@ -8,7 +8,7 @@ use crate::{library, prelude::*};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
-use tokio::{fs, sync::OnceCell};
+use tokio::sync::OnceCell;
 
 #[derive(Clone, Debug)]
 pub struct ActiveBook {
@@ -120,16 +120,6 @@ impl ActiveBook {
     self.handle.read_page(&self.path, name).await
   }
 
-  pub async fn get_cover(&self, app: &AppHandle) -> Result<Cover> {
-    let id = self.try_id(app).await?;
-    let path = cover::path(app, id)?;
-    if fs::try_exists(&path).await? {
-      return Ok(path.into());
-    }
-
-    Ok(Cover::NotExtracted)
-  }
-
   pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
     let mut model = self.model(app).await?;
     if let Some(cover) = model.cover.take() {
@@ -159,8 +149,6 @@ impl ActiveBook {
       Err(_) => ImageFormat::from_path(name)?,
     };
 
-    let parent = path.try_parent()?;
-    fs::create_dir_all(parent).await?;
     cover::resize(page, format, &path).await?;
 
     let id = self.try_id(app).await?;
@@ -217,6 +205,8 @@ impl Drop for ActiveBook {
     let path = self.path.clone();
     let handle = self.handle.clone();
     async_runtime::spawn(async move { handle.close(path).await });
+
+    trace!(dropped = %self.path.display());
   }
 }
 

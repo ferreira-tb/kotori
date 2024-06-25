@@ -1,14 +1,17 @@
-use crate::book::{cover, ActiveBook, LibraryBook};
+use crate::book::{cover, ActiveBook, LibraryBook, MAX_FILE_PERMITS};
 use crate::database::entities::book;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
+use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::{fs, sync::oneshot, task::JoinSet};
+use tokio::fs;
+use tokio::sync::{oneshot, Semaphore};
+use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
-pub async fn add(app: &AppHandle, folders: &[impl AsRef<Path>]) -> Result<()> {
+pub async fn add_folders(app: &AppHandle, folders: &[impl AsRef<Path>]) -> Result<()> {
   if !folders.is_empty() {
     let globset = glob::book();
     let mut books = Vec::new();
@@ -39,10 +42,10 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   });
 
   let folders = rx.await?;
-  add(app, &folders).await
+  add_folders(app, &folders).await
 }
 
-pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
+pub async fn save(app: &AppHandle, path: impl AsRef<Path>) -> Result<()> {
   let path = path.try_string()?;
   let model = book::ActiveModel {
     path: Set(path),
@@ -50,7 +53,7 @@ pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
   };
 
   let kotori = app.kotori();
-  let book = Book::insert(model)
+  let model = Book::insert(model)
     .on_conflict(
       OnConflict::column(book::Column::Path)
         .do_nothing()
@@ -59,70 +62,77 @@ pub async fn save(app: AppHandle, path: impl AsRef<Path>) -> Result<()> {
     .exec_with_returning(&kotori.db)
     .await?;
 
-  let payload = LibraryBook::from_model(&app, &book).await?;
-  Event::BookAdded(&payload).emit(&app)?;
+  LibraryBook::from_model(app, &model)
+    .await
+    .and_then(|it| Event::BookAdded(&it).emit(app))?;
 
-  let active_book = ActiveBook::from_model(&app, &book)?;
-  let cover = cover::path(&app, book.id)?;
-  active_book.extract_cover(&app, cover).await?;
-
-  Ok(())
+  extract_book_cover(app, model).await
 }
 
 async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
 {
-  let mut tasks = books
-    .into_iter()
-    .map(|path| save(app.clone(), path))
-    .collect::<JoinSet<_>>();
-
-  while let Some(result) = tasks.join_next().await {
-    result?.into_log(app);
+  for book in books {
+    save(app, book).await?;
   }
 
   Ok(())
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
+  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
   let mut set = Book::get_all(app)
     .await?
     .into_iter()
-    .map(|model| to_library_book(app.clone(), model))
+    .map(|model| {
+      let app = app.clone();
+      let semaphore = Arc::clone(&semaphore);
+      async move {
+        let _permit = semaphore.acquire().await.ok()?;
+        // Remove the book if the file is missing.
+        if let Ok(false) = fs::try_exists(&model.path).await {
+          let _ = remove(&app, model.id).await;
+          return None;
+        }
+
+        let book = LibraryBook::from_model(&app, &model).await.ok()?;
+        Some((book, model))
+      }
+    })
     .collect::<JoinSet<_>>();
 
   let mut books = Vec::with_capacity(set.len());
-  while let Some(book) = set.join_next().await {
-    match book {
-      Ok(Some(book)) => books.push(book),
-      Err(error) => warn!(%error),
-      _ => {}
+  let mut futures = Vec::new();
+
+  while let Some(result) = set.join_next().await {
+    if let Some((book, model)) = result? {
+      // Prepare the futures so we can spawn them later.
+      // This way we can return the books, then extract the covers sometime after that.
+      if book.cover.is_none() {
+        let app = app.clone();
+        let semaphore = Arc::clone(&semaphore);
+        futures.push(Box::pin(async move {
+          let _permit = semaphore.acquire().await?;
+          extract_book_cover(&app, model).await
+        }));
+      }
+
+      books.push(book);
     }
+  }
+
+  for future in futures {
+    async_runtime::spawn(future);
   }
 
   Ok(books)
 }
 
-async fn to_library_book(app: AppHandle, model: book::Model) -> Option<LibraryBook> {
-  // Remove the book if the file is missing.
-  if let Ok(false) = fs::try_exists(&model.path).await {
-    remove(&app, model.id).await.into_log(&app);
-    return None;
-  }
-
-  let book = LibraryBook::from_model(&app, &model).await;
-  if matches!(book, Ok(ref it) if it.cover.is_none()) {
-    let result: Result<()> = try {
-      let book = ActiveBook::from_model(&app, &model)?;
-      let path = cover::path(&app, model.id)?;
-      book.extract_cover(&app, path).await?;
-    };
-
-    result.into_log(&app);
-  }
-
-  book.ok()
+async fn extract_book_cover(app: &AppHandle, model: book::Model) -> Result<()> {
+  let book = ActiveBook::from_model(app, &model)?;
+  let path = cover::path(app, model.id)?;
+  book.extract_cover(app, path).await
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
@@ -131,7 +141,9 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   Event::BookRemoved(id).emit(app)?;
 
   if let Ok(cover) = cover::path(app, id) {
-    fs::remove_file(cover).await?;
+    if fs::try_exists(&cover).await? {
+      fs::remove_file(cover).await?;
+    }
   }
 
   Ok(())
@@ -169,6 +181,6 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
   kotori.db.execute(builder.build(&stmt)).await?;
   Event::LibraryCleared.emit(app)?;
 
-  let path = cover::base_path(app)?;
+  let path = cover::dir(app)?;
   fs::remove_dir_all(path).await.map_err(Into::into)
 }

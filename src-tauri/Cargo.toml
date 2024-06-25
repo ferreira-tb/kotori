@@ -103,7 +103,7 @@ version = "0.3.18"
 features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [dependencies.uuid]
-version = "1.9.0"
+version = "1.9.1"
 features = ["v7", "fast-rng"]
 
 [features]
