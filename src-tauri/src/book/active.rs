@@ -143,11 +143,9 @@ impl ActiveBook {
   pub async fn extract_cover(&self, app: &AppHandle, path: PathBuf) -> Result<()> {
     let name = self.get_cover_name(app).await?;
     let page = self.get_page_as_bytes_by_name(&name).await?;
-
-    let format = match image::guess_format(&page) {
-      Ok(it) => it,
-      Err(_) => ImageFormat::from_path(name)?,
-    };
+    let format = image::guess_format(&page)
+      .inspect_err(|error| warn!(%error))
+      .or_else(|_| ImageFormat::from_path(name))?;
 
     cover::resize(page, format, &path).await?;
 
@@ -162,7 +160,7 @@ impl ActiveBook {
     let name = self.get_page_name(page).await?;
     Book::update_cover(app, id, name).await?;
 
-    if let Ok(cover) = cover::path(app, id) {
+    if let Ok(cover) = app.path().cover(id) {
       self.extract_cover(app, cover).await?;
     }
 
@@ -185,7 +183,7 @@ impl ActiveBook {
       let cover = self.get_cover_name(app).await?;
       if cover == name {
         Book::update_cover(app, id, None).await?;
-        if let Ok(cover) = cover::path(app, id) {
+        if let Ok(cover) = app.path().cover(id) {
           self.extract_cover(app, cover).await?;
         }
       }

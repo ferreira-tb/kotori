@@ -59,7 +59,7 @@ impl LibraryBook {
     let rating = u8::try_from(model.rating)?;
     let cover = get_cover(app, model.id)
       .await?
-      .as_path()
+      .path()
       .map(Path::to_path_buf);
 
     let book = Self {

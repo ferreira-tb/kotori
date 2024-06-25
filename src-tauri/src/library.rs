@@ -1,4 +1,4 @@
-use crate::book::{cover, ActiveBook, LibraryBook, MAX_FILE_PERMITS};
+use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
 use crate::database::entities::book;
 use crate::database::prelude::*;
 use crate::event::Event;
@@ -147,7 +147,7 @@ fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
     async_runtime::spawn(async move {
       let _permit = semaphore.acquire_owned().await?;
       let book = ActiveBook::from_model(&app, &model)?;
-      let path = cover::path(&app, model.id)?;
+      let path = app.path().cover(model.id)?;
       book.extract_cover(&app, path).await
     });
   }
@@ -158,7 +158,7 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   Book::delete_by_id(id).exec(&kotori.db).await?;
   Event::BookRemoved(id).emit(app)?;
 
-  if let Ok(cover) = cover::path(app, id) {
+  if let Ok(cover) = app.path().cover(id) {
     if fs::try_exists(&cover).await? {
       fs::remove_file(cover).await?;
     }
@@ -199,6 +199,6 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
   kotori.db.execute(builder.build(&stmt)).await?;
   Event::LibraryCleared.emit(app)?;
 
-  let path = cover::dir(app)?;
+  let path = app.path().cover_dir()?;
   fs::remove_dir_all(path).await.map_err(Into::into)
 }

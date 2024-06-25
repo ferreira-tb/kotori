@@ -131,7 +131,29 @@ pub mod log {
 pub mod path {
   use crate::err;
   use crate::error::Result;
-  use std::path::Path;
+  use std::path::{Path, PathBuf};
+  use tauri::path::PathResolver;
+  use tauri::Wry;
+
+  pub trait PathResolverExt {
+    fn cover_dir(&self) -> Result<PathBuf>;
+    fn cover(&self, book_id: i32) -> Result<PathBuf>;
+  }
+
+  impl PathResolverExt for PathResolver<Wry> {
+    fn cover_dir(&self) -> Result<PathBuf> {
+      self
+        .app_cache_dir()
+        .map(|it| it.join("covers"))
+        .map_err(Into::into)
+    }
+
+    fn cover(&self, book_id: i32) -> Result<PathBuf> {
+      self
+        .cover_dir()
+        .map(|it| it.join(book_id.to_string()))
+    }
+  }
 
   pub trait PathExt {
     fn try_parent(&self) -> Result<&Path>;

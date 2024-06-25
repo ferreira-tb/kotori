@@ -13,7 +13,7 @@ pub enum Cover {
 }
 
 impl Cover {
-  pub fn as_path(&self) -> Option<&Path> {
+  pub fn path(&self) -> Option<&Path> {
     match self {
       Self::Extracted(path) => Some(path),
       Self::NotExtracted => None,
@@ -39,18 +39,6 @@ pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>)
   });
 
   join.await?
-}
-
-pub fn dir(app: &AppHandle) -> Result<PathBuf> {
-  app
-    .path()
-    .app_cache_dir()
-    .map(|it| it.join("covers"))
-    .map_err(Into::into)
-}
-
-pub fn path(app: &AppHandle, book_id: i32) -> Result<PathBuf> {
-  dir(app).map(|it| it.join(book_id.to_string()))
 }
 
 impl From<PathBuf> for Cover {

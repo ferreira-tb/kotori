@@ -43,7 +43,7 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn get_cover(app: &AppHandle, id: i32) -> Result<Cover> {
-  let path = cover::path(app, id)?;
+  let path = app.path().cover(id)?;
   if fs::try_exists(&path).await? {
     return Ok(path.into());
   }
