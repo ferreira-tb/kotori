@@ -26,12 +26,13 @@ pub fn serve(app: &AppHandle) {
         .with_state(app);
 
       let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-      let local_addr = listener
+      let port = listener
         .local_addr()
         .inspect(|it| info!(local_addr = %it))
-        .unwrap();
+        .unwrap()
+        .port();
 
-      tx.send(local_addr.port()).unwrap();
+      tx.send(port).unwrap();
 
       axum::serve(listener, router).await.unwrap();
     });

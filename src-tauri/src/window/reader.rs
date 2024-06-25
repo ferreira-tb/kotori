@@ -29,7 +29,6 @@ impl ReaderWindow {
       .resizable(true)
       .maximizable(true)
       .minimizable(true)
-      .maximized(true)
       .visible(false)
       .build()?;
 

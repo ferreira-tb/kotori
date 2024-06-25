@@ -20,6 +20,7 @@ use error::{BoxResult, Result};
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::{App, AppHandle, Manager};
+use tauri_plugin_window_state::StateFlags;
 use utils::app::AppHandleExt;
 use window::app::{on_menu_event, on_window_event};
 
@@ -32,6 +33,16 @@ pub struct Kotori {
 }
 
 fn main() {
+  let window_state = tauri_plugin_window_state::Builder::new()
+    .with_state_flags(StateFlags::MAXIMIZED | StateFlags::POSITION | StateFlags::SIZE)
+    .map_label(|label| {
+      if label.starts_with("reader") {
+        "reader"
+      } else {
+        label
+      }
+    });
+
   tauri::Builder::default()
     .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
@@ -41,6 +52,7 @@ fn main() {
     .plugin(tauri_plugin_single_instance::init(single_instance))
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_store::Builder::new().build())
+    .plugin(window_state.build())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
