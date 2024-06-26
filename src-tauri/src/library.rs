@@ -11,23 +11,28 @@ use tokio::sync::{oneshot, Semaphore};
 use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
-pub async fn add_folders(app: &AppHandle, folders: &[impl AsRef<Path>]) -> Result<()> {
+pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
+where
+  F: AsRef<Path>,
+{
   if !folders.is_empty() {
-    let globset = glob::book();
-    let mut books = Vec::new();
+    return Ok(());
+  }
 
-    for folder in folders {
-      for entry in WalkDir::new(folder).into_iter().flatten() {
-        let path = entry.into_path();
-        if path.is_file() && globset.is_match(&path) {
-          books.push(path);
-        }
+  let globset = glob::book();
+  let mut books = Vec::new();
+
+  for folder in folders {
+    for entry in WalkDir::new(folder).into_iter().flatten() {
+      let path = entry.into_path();
+      if path.is_file() && globset.is_match(&path) {
+        books.push(path);
       }
     }
+  }
 
-    if !books.is_empty() {
-      save_many(app, books).await?;
-    }
+  if !books.is_empty() {
+    save_many(app, books).await?;
   }
 
   Ok(())
@@ -45,7 +50,10 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   add_folders(app, &folders).await
 }
 
-pub async fn save(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
+pub async fn save<P>(app: &AppHandle, path: P) -> Result<book::Model>
+where
+  P: AsRef<Path>,
+{
   let path = path.try_string()?;
   let model = book::ActiveModel {
     path: Set(path),

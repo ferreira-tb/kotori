@@ -16,9 +16,7 @@ pub struct Reader {
 
 impl Reader {
   pub fn new() -> Self {
-    let windows = OrderedMap::<u16, ReaderWindow>::default();
-    let windows = Arc::new(RwLock::new(windows));
-    Self { windows }
+    Self::default()
   }
 
   pub fn windows(&self) -> WindowMap {

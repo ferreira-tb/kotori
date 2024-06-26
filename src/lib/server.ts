@@ -7,13 +7,13 @@ interface Server {
 
 const server: Server = {};
 
-async function toUrl(path: string) {
+async function toUrl(endpoint: string) {
   server.port ||= await getServerPort();
-  return `http://127.0.0.1:${server.port}/kotori/${path}`;
+  return `http://127.0.0.1:${server.port}/kotori/${endpoint}`;
 }
 
-async function fetch(path: string, init?: RequestInit) {
-  const url = await toUrl(path);
+async function fetch(endpoint: string, init?: RequestInit) {
+  const url = await toUrl(endpoint);
   const response = await f(url, init);
   return response.blob();
 }

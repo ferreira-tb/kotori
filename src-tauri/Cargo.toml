@@ -87,7 +87,7 @@ version = "2.0.0-beta.10"
 features = ["rustls-tls"]
 
 [dependencies.tauri-plugin-window-state]
-git = "https://github.com/ferreira-tb/plugins-workspace"
+git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "v2"
 
 [dependencies.tokio]
