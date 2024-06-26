@@ -17,82 +17,6 @@ type TxResult<T> = oneshot::Sender<Result<T>>;
 pub const MAX_FILE_PERMITS: usize = 50;
 static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
 
-pub struct Actor {
-  app: AppHandle,
-  books: HashMap<PathBuf, BookFile>,
-  receiver: mpsc::Receiver<Message>,
-}
-
-impl Actor {
-  fn new(app: &AppHandle, receiver: mpsc::Receiver<Message>) -> Self {
-    Self {
-      app: app.clone(),
-      books: HashMap::new(),
-      receiver,
-    }
-  }
-
-  pub async fn run(&mut self) {
-    while let Some(message) = self.receiver.recv().await {
-      debug!(queued_messages = self.receiver.len());
-      self
-        .handle_message(message)
-        .await
-        .into_log(&self.app);
-    }
-  }
-
-  async fn handle_message(&mut self, message: Message) -> Result<()> {
-    trace!(%message, books = self.books.len());
-    match message {
-      Message::GetPages { path, tx } => {
-        let result = self
-          .get_book(&path)
-          .await
-          .map(|it| &it.pages)
-          .cloned();
-
-        let _ = tx.send(result);
-      }
-      Message::ReadPage { path, page, tx } => {
-        let result = self
-          .get_book(&path)
-          .and_then(|it| it.read_page(&page))
-          .await;
-
-        let _ = tx.send(result);
-      }
-      Message::DeletePage { path, page, tx } => {
-        let result = self
-          .get_book(&path)
-          .and_then(|it| it.delete_page(&path, &page))
-          .await;
-
-        let _ = tx.send(result);
-      }
-      Message::Close { path } => {
-        self.books.remove(&path);
-      }
-    };
-
-    Ok(())
-  }
-
-  async fn get_book(&mut self, path: impl AsRef<Path>) -> Result<&mut BookFile> {
-    let path = path.as_ref();
-    if !self.books.contains_key(path) {
-      let book = BookFile::open(&path).await?;
-      self.books.insert(path.to_owned(), book);
-    }
-
-    self
-      .books
-      .get_mut(path)
-      .map(Ok)
-      .expect("book was just added to the map")
-  }
-}
-
 #[derive(Clone)]
 pub struct BookHandle {
   sender: mpsc::Sender<Message>,
@@ -187,10 +111,88 @@ enum Message {
   },
 }
 
+pub struct Actor {
+  app: AppHandle,
+  books: HashMap<PathBuf, BookFile>,
+  receiver: mpsc::Receiver<Message>,
+}
+
+impl Actor {
+  fn new(app: &AppHandle, receiver: mpsc::Receiver<Message>) -> Self {
+    Self {
+      app: app.clone(),
+      books: HashMap::new(),
+      receiver,
+    }
+  }
+
+  pub async fn run(&mut self) {
+    while let Some(message) = self.receiver.recv().await {
+      debug!(queued_messages = self.receiver.len());
+      self
+        .handle_message(message)
+        .await
+        .into_log(&self.app);
+    }
+  }
+
+  async fn handle_message(&mut self, message: Message) -> Result<()> {
+    trace!(%message, books = self.books.len());
+    match message {
+      Message::GetPages { path, tx } => {
+        let result = self
+          .get_book(&path)
+          .await
+          .map(|it| &it.pages)
+          .cloned();
+
+        let _ = tx.send(result);
+      }
+      Message::ReadPage { path, page, tx } => {
+        let result = self
+          .get_book(&path)
+          .and_then(|it| it.read_page(&page))
+          .await;
+
+        let _ = tx.send(result);
+      }
+      Message::DeletePage { path, page, tx } => {
+        let result = self
+          .get_book(&path)
+          .and_then(|it| it.delete_page(&path, &page))
+          .await;
+
+        let _ = tx.send(result);
+      }
+      Message::Close { path } => {
+        self.books.remove(&path);
+      }
+    };
+
+    Ok(())
+  }
+
+  async fn get_book(&mut self, path: impl AsRef<Path>) -> Result<&BookFile> {
+    let path = path.as_ref();
+    if !self.books.contains_key(path) {
+      let book = BookFile::open(&path).await?;
+      self.books.insert(path.to_owned(), book);
+    }
+
+    self
+      .books
+      .get(path)
+      .map(Ok)
+      .expect("book was just added to the map")
+  }
+}
+
 struct BookFile {
   file: Arc<Mutex<ZipArchive<File>>>,
   pages: OrderedMap<usize, String>,
-  _permit: SemaphorePermit<'static>,
+
+  #[allow(dead_code)]
+  permit: SemaphorePermit<'static>,
 }
 
 impl BookFile {
@@ -215,7 +217,7 @@ impl BookFile {
       let file = BookFile {
         file: Arc::new(Mutex::new(zip)),
         pages,
-        _permit: permit,
+        permit,
       };
 
       Ok(file)
@@ -224,7 +226,7 @@ impl BookFile {
     join.await?
   }
 
-  async fn read_page(&mut self, page: impl AsRef<str>) -> Result<Vec<u8>> {
+  async fn read_page(&self, page: impl AsRef<str>) -> Result<Vec<u8>> {
     let zip = Arc::clone(&self.file);
     let page = page.as_ref().to_owned();
 
@@ -241,7 +243,7 @@ impl BookFile {
     join.await?
   }
 
-  async fn delete_page<P, S>(&mut self, path: P, page: S) -> Result<()>
+  async fn delete_page<P, S>(&self, path: P, page: S) -> Result<()>
   where
     P: AsRef<Path>,
     S: AsRef<str>,

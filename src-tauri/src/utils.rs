@@ -100,7 +100,8 @@ pub mod log {
   const TIMESTAMP: &str = "%F %T%.3f %:z";
 
   struct TracingGuard {
-    _guard: WorkerGuard,
+    #[allow(dead_code)]
+    guard: WorkerGuard,
   }
 
   pub fn setup_tracing(app: &AppHandle) {
@@ -112,7 +113,7 @@ pub mod log {
 
     let appender = rolling::never("../", "kotori.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
-    app.manage(TracingGuard { _guard: guard });
+    app.manage(TracingGuard { guard });
 
     let file = Layer::default()
       .with_ansi(false)

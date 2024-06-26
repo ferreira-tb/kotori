@@ -60,8 +60,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       lucide-vue-next:
-        specifier: ^0.396.0
-        version: 0.396.0(vue@3.4.30(typescript@5.5.2))
+        specifier: ^0.397.0
+        version: 0.397.0(vue@3.4.30(typescript@5.5.2))
       manatsu:
         specifier: ^0.11.7
         version: 0.11.7(@tauri-apps/api@2.0.0-beta.13)(@vueuse/core@10.11.0(vue@3.4.30(typescript@5.5.2)))(vue-router@4.4.0(vue@3.4.30(typescript@5.5.2)))(vue@3.4.30(typescript@5.5.2))
@@ -1712,8 +1712,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-vue-next@0.396.0:
-    resolution: {integrity: sha512-fY2FbKWVlAH6KyGHLWQvjPmDAbAh5UH6eqakDYB815UG5wPLtDQmhSYQlZvDLvhkahLdUZt5f+IWKwSANaS0Zw==}
+  lucide-vue-next@0.397.0:
+    resolution: {integrity: sha512-EyyAyOow+/tWDQiNmUmCoO4ehpZBbYvCUyGnxCBTEatsNrfU2QiWYHdvz6CNQdxmfTvRCDKzlrPexdyvQupfZQ==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -4221,7 +4221,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-vue-next@0.396.0(vue@3.4.30(typescript@5.5.2)):
+  lucide-vue-next@0.397.0(vue@3.4.30(typescript@5.5.2)):
     dependencies:
       vue: 3.4.30(typescript@5.5.2)
 

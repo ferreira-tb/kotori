@@ -14,7 +14,7 @@ pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
 where
   F: AsRef<Path>,
 {
-  if !folders.is_empty() {
+  if folders.is_empty() {
     return Ok(());
   }
 
