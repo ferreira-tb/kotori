@@ -1839,6 +1839,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "future-iter"
+version = "0.1.0"
+source = "git+https://github.com/ferreira-tb/future-iter?branch=master#e00e92b80f196076c603e10b2c32dce90d7160ff"
+dependencies = [
+ "tokio",
+]
+
+[[package]]
 name = "futures"
 version = "0.3.30"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2927,6 +2935,7 @@ dependencies = [
  "anyhow",
  "axum",
  "chrono",
+ "future-iter",
  "futures",
  "globset",
  "image 0.25.1",
@@ -6134,8 +6143,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-manatsu"
 version = "0.11.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c1e8c0ede421a82460f25438ba961dc13a31e25137ec73975d85719490030cbb"
+source = "git+https://github.com/ferreira-tb/manatsu?branch=main#3a6d31df50132a6ef7e1209086792d8bf48189b3"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6219,7 +6227,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-window-state"
 version = "2.0.0-beta.9"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#f1372adc9d4dc5c0ed16f7281da0d45e0d8765da"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#469c27740777009bc0efdcd2ce1739157f1c05ea"
 dependencies = [
  "bitflags 2.6.0",
  "log",

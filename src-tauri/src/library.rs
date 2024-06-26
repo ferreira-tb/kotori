@@ -8,7 +8,6 @@ use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
-use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
 pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
@@ -23,12 +22,15 @@ where
   let mut books = Vec::new();
 
   for folder in folders {
-    for entry in WalkDir::new(folder).into_iter().flatten() {
-      let path = entry.into_path();
-      if path.is_file() && globset.is_match(&path) {
-        books.push(path);
-      }
-    }
+    WalkDir::new(folder)
+      .into_iter()
+      .flatten()
+      .for_each(|entry| {
+        let path = entry.into_path();
+        if path.is_file() && globset.is_match(&path) {
+          books.push(path);
+        }
+      });
   }
 
   if !books.is_empty() {
@@ -82,17 +84,14 @@ where
   I: IntoIterator<Item = PathBuf>,
 {
   let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
-  let mut set = books
-    .into_iter()
-    .map(|path| {
-      let app = app.clone();
-      let semaphore = Arc::clone(&semaphore);
-      async move {
-        let _permit = semaphore.acquire_owned().await?;
-        save(&app, path).await
-      }
-    })
-    .collect::<JoinSet<_>>();
+  let mut set = books.into_iter().into_join_set_by(|path| {
+    let app = app.clone();
+    let semaphore = Arc::clone(&semaphore);
+    async move {
+      let _permit = semaphore.acquire_owned().await?;
+      save(&app, path).await
+    }
+  });
 
   let mut models = Vec::with_capacity(set.len());
   while let Some(result) = set.join_next().await {
@@ -111,7 +110,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   let mut set = Book::get_all(app)
     .await?
     .into_iter()
-    .map(|model| {
+    .into_join_set_by(|model| {
       let app = app.clone();
       let semaphore = Arc::clone(&semaphore);
       async move {
@@ -126,8 +125,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
         let book = LibraryBook::from_model(&app, &model).await.ok()?;
         Some((book, model))
       }
-    })
-    .collect::<JoinSet<_>>();
+    });
 
   let mut books = Vec::with_capacity(set.len());
   let mut pending = Vec::new();

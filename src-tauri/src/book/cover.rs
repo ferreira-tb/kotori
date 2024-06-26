@@ -19,6 +19,10 @@ impl Cover {
       Self::NotExtracted => None,
     }
   }
+
+  pub fn path_buf(&self) -> Option<PathBuf> {
+    self.path().map(ToOwned::to_owned)
+  }
 }
 
 pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>) -> Result<()> {

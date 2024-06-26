@@ -114,7 +114,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
 
     if let Some(webview) = webview {
       webview.set_focus()?;
-        
+
       if main_window.is_fullscreen()? {
         webview.set_fullscreen(true)?;
       }

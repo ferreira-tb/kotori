@@ -2,7 +2,6 @@ use super::prelude::*;
 use crate::{library, prelude::*, reader};
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
-use tokio::fs;
 
 #[derive(Debug, Display, EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -148,9 +147,7 @@ async fn open_book_folder(app: &AppHandle, window_id: u16) {
     .await
     .and_then(|it| it.parent().map(ToOwned::to_owned));
 
-  if let Some(dir) = dir {
-    if let Ok(true) = fs::try_exists(&dir).await {
-      open::that_detached(dir).into_dialog(app);
-    }
+  if matches!(dir, Some(ref it) if it.is_dir()) {
+    open::that_detached(dir.unwrap()).into_dialog(app);
   }
 }

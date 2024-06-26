@@ -55,19 +55,12 @@ pub struct LibraryBook {
 
 impl LibraryBook {
   pub async fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
-    let title = Title::try_from(model.path.as_str())?;
-    let rating = u8::try_from(model.rating)?;
-    let cover = get_cover(app, model.id)
-      .await?
-      .path()
-      .map(Path::to_path_buf);
-
     let book = Self {
       id: model.id,
       path: PathBuf::from(&model.path),
-      title,
-      rating,
-      cover,
+      title: Title::try_from(model.path.as_str())?,
+      rating: u8::try_from(model.rating)?,
+      cover: get_cover(app, model.id).await?.path_buf(),
     };
 
     Ok(book)

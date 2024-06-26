@@ -9,9 +9,10 @@
     "*.{?(c|m)@(j|t)s,css,vue,md,json,yaml}": "prettier --write"
   },
   "scripts": {
-    "build": "cargo tauri build",
+    "build": "cargo tauri build --no-bundle",
     "build:dev": "cargo tauri build --no-bundle --features devtools",
     "build:ephemeral": "cargo tauri build --no-bundle --features ephemeral",
+    "bundle": "cargo tauri build",
     "clippy": "cargo clippy",
     "dev": "cargo tauri dev",
     "format": "prettier . --write && cargo fmt --all",

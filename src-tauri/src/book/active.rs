@@ -48,8 +48,7 @@ impl ActiveBook {
   }
 
   pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
-    let book = Book::get_random(app).await?;
-    if let Some(book) = book {
+    if let Some(book) = Book::get_random(app).await? {
       Self::from_model(app, &book).map(Some)
     } else {
       Ok(None)
@@ -89,8 +88,10 @@ impl ActiveBook {
   }
 
   pub async fn has_page(&self, name: &str) -> Result<bool> {
-    let yes = self.pages().await?.values().any(|it| it == name);
-    Ok(yes)
+    self
+      .pages()
+      .await
+      .map(|it| it.values().any(|it| it == name))
   }
 
   async fn get_page_name(&self, page: usize) -> Result<&str> {
