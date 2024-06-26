@@ -115,11 +115,13 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
       .and_then(|(_, window)| window.webview(app));
 
     if let Some(webview) = webview {
-      return webview
-        .set_focus()
-        .and_then(|()| main_window.is_fullscreen())
-        .and_then(|fullscreen| webview.set_fullscreen(fullscreen))
-        .map_err(Into::into);
+      webview.set_focus()?;
+        
+      if main_window.is_fullscreen()? {
+        webview.set_fullscreen(true)?;
+      }
+
+      return Ok(());
     }
   }
 
@@ -130,7 +132,11 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
   {
     let windows = app.reader_windows();
     let windows = windows.read().await;
-    if windows.len() >= 2 {
+
+    // Having the id of the focused window should be enough indication that it exists on the map.
+    // That said, it isn't possible to know at what point in time we will acquire the read lock.
+    // Therefore, it's safer to check the existence of the id before continuing.
+    if windows.len() >= 2 && windows.contains_key(&focused_id) {
       let webview = windows
         .values()
         .cycle()
@@ -141,11 +147,11 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
         .and_then(|window| window.webview(app));
 
       if let Some(webview) = webview {
-        return webview
-          .set_focus()
-          .and_then(|()| focused.is_fullscreen())
-          .and_then(|fullscreen| webview.set_fullscreen(fullscreen))
-          .map_err(Into::into);
+        webview.set_focus()?;
+
+        if focused.is_fullscreen()? {
+          webview.set_fullscreen(true)?;
+        }
       };
     }
   }
