@@ -13,6 +13,13 @@ pub mod app {
       self.kotori().book_handle.clone()
     }
 
+    fn get_focused_window(&self) -> Option<WebviewWindow> {
+      self
+        .webview_windows()
+        .into_values()
+        .find(|it| it.is_focused().unwrap_or(false))
+    }
+
     fn main_window(&self) -> WebviewWindow {
       self.get_webview_window("main").unwrap()
     }

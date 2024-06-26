@@ -1,6 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-#![feature(try_blocks)]
+#![feature(let_chains, try_blocks)]
 
 mod book;
 mod command;

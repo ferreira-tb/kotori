@@ -24,6 +24,8 @@ defineEmits<(e: 'select', book: LibraryBookImpl) => void>();
         <img
           :src="book.cover"
           :alt="book.title"
+          decoding="async"
+          loading="lazy"
           class="h-auto w-auto object-cover transition-all hover:scale-110"
         />
       </div>

@@ -91,23 +91,6 @@ pub async fn get_book_path(app: &AppHandle, window_id: u16) -> Option<PathBuf> {
     .map(|window| window.book.path.clone())
 }
 
-async fn get_focused_window_id(app: &AppHandle) -> Option<u16> {
-  let windows = app.reader_windows();
-  let windows = windows.read().await;
-  for window in windows.values() {
-    let is_focused = window
-      .webview(app)
-      .and_then(|it| it.is_focused().ok())
-      .unwrap_or(false);
-
-    if is_focused {
-      return Some(window.id);
-    }
-  }
-
-  None
-}
-
 pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16> {
   let windows = app.reader_windows();
   let windows = windows.read().await;
@@ -123,7 +106,7 @@ pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16>
 
 pub async fn switch_focus(app: &AppHandle) -> Result<()> {
   let main_window = app.main_window();
-  if main_window.is_focused().unwrap_or(false) {
+  if main_window.is_focused()? {
     let windows = app.reader_windows();
     let windows = windows.read().await;
 
@@ -132,32 +115,40 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
       .and_then(|(_, window)| window.webview(app));
 
     if let Some(webview) = webview {
-      return webview.set_focus().map_err(Into::into);
+      return webview
+        .set_focus()
+        .and_then(|()| main_window.is_fullscreen())
+        .and_then(|fullscreen| webview.set_fullscreen(fullscreen))
+        .map_err(Into::into);
     }
   }
 
-  let Some(focused) = get_focused_window_id(app).await else {
-    return Ok(());
-  };
+  drop(main_window);
 
-  let windows = app.reader_windows();
-  let windows = windows.read().await;
-  if windows.len() < 2 || !windows.contains_key(&focused) {
-    return Ok(());
+  if let Some(focused) = app.get_focused_window()
+    && let Some(focused_id) = get_window_id_by_label(app, focused.label()).await
+  {
+    let windows = app.reader_windows();
+    let windows = windows.read().await;
+    if windows.len() >= 2 {
+      let webview = windows
+        .values()
+        .cycle()
+        .skip_while(|window| window.id != focused_id)
+        .skip(1)
+        .find(|window| windows.contains_key(&window.id))
+        .and_then(|window| windows.get(&window.id))
+        .and_then(|window| window.webview(app));
+
+      if let Some(webview) = webview {
+        return webview
+          .set_focus()
+          .and_then(|()| focused.is_fullscreen())
+          .and_then(|fullscreen| webview.set_fullscreen(fullscreen))
+          .map_err(Into::into);
+      };
+    }
   }
-
-  let webview = windows
-    .values()
-    .cycle()
-    .skip_while(|window| window.id != focused)
-    .skip(1)
-    .find(|window| windows.contains_key(&window.id))
-    .and_then(|window| windows.get(&window.id))
-    .and_then(|window| window.webview(app));
-
-  if let Some(webview) = webview {
-    return webview.set_focus().map_err(Into::into);
-  };
 
   Ok(())
 }
