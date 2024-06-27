@@ -3,7 +3,7 @@ mod payload;
 use crate::book::LibraryBook;
 use crate::prelude::*;
 use crate::window::WindowKind;
-use payload::{BookRemoved, CoverExtracted, RatingUpdated};
+use payload::{BookRemoved, CoverExtracted, PageDeleted, RatingUpdated};
 use serde::Serialize;
 use std::fmt;
 use strum::{AsRefStr, Display};
@@ -18,7 +18,7 @@ pub enum Event<'a> {
   ConfigUpdated(&'a str),
   CoverExtracted { id: i32, path: &'a Path },
   LibraryCleared,
-  PageDeleted { window_id: u16 },
+  PageDeleted { window_id: u16, name: &'a str },
   RatingUpdated { id: i32, rating: u8 },
 }
 
@@ -44,7 +44,7 @@ impl<'a> Event<'a> {
       Event::ConfigUpdated(label) => emit_filter(app, event, (), label),
       Event::CoverExtracted { id, path } => to_main!(CoverExtracted::new(id, path)?),
       Event::LibraryCleared => to_main!(()),
-      Event::PageDeleted { window_id, .. } => to_reader!(window_id, ()),
+      Event::PageDeleted { window_id, name } => to_reader!(window_id, PageDeleted::new(name)),
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated { id, rating }),
     }
   }

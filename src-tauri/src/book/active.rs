@@ -1,13 +1,13 @@
 use super::cover;
-use super::handle::BookHandle;
+use super::handle::{BookHandle, PageMap};
 use super::title::Title;
 use crate::database::prelude::*;
 use crate::event::Event;
-use crate::utils::collections::OrderedMap;
 use crate::{library, prelude::*};
 use image::ImageFormat;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
+use std::sync::Arc;
 use tokio::sync::OnceCell;
 
 #[derive(Clone, Debug)]
@@ -17,7 +17,7 @@ pub struct ActiveBook {
 
   id: OnceCell<i32>,
   handle: BookHandle,
-  pages: OnceCell<OrderedMap<usize, String>>,
+  pages: OnceCell<Arc<PageMap>>,
 }
 
 impl ActiveBook {
@@ -70,7 +70,7 @@ impl ActiveBook {
     id.await.copied()
   }
 
-  pub async fn pages(&self) -> Result<&OrderedMap<usize, String>> {
+  pub async fn pages(&self) -> Result<Arc<PageMap>> {
     let pages = self.pages.get_or_try_init(|| async {
       self
         .handle
@@ -79,7 +79,7 @@ impl ActiveBook {
         .map_err(Into::into)
     });
 
-    pages.await
+    pages.await.map(Arc::clone)
   }
 
   async fn model(&self, app: &AppHandle) -> Result<book::Model> {
@@ -94,30 +94,16 @@ impl ActiveBook {
       .map(|it| it.values().any(|it| it == name))
   }
 
-  async fn get_page_name(&self, page: usize) -> Result<&str> {
-    self
-      .pages()
-      .await?
-      .get(&page)
-      .map(String::as_str)
-      .ok_or_else(|| err!(PageNotFound))
-  }
-
-  async fn get_first_page_name(&self) -> Result<&str> {
+  async fn get_first_page(&self) -> Result<String> {
     self
       .pages()
       .await?
       .first()
-      .map(|(_, name)| name.as_str())
+      .map(|(_, name)| name.to_owned())
       .ok_or_else(|| err!(PageNotFound))
   }
 
-  pub async fn get_page_as_bytes(&self, page: usize) -> Result<Vec<u8>> {
-    let name = self.get_page_name(page).await?;
-    self.get_page_as_bytes_by_name(name).await
-  }
-
-  pub async fn get_page_as_bytes_by_name(&self, name: &str) -> Result<Vec<u8>> {
+  pub async fn get_page_as_bytes(&self, name: &str) -> Result<Vec<u8>> {
     self.handle.read_page(&self.path, name).await
   }
 
@@ -130,10 +116,10 @@ impl ActiveBook {
     };
 
     let id = self.try_id(app).await?;
-    let name = self.get_first_page_name().await?;
-    Book::update_cover(app, id, name).await?;
+    let name = self.get_first_page().await?;
+    Book::update_cover(app, id, name.as_str()).await?;
 
-    Ok(name.to_owned())
+    Ok(name)
   }
 
   pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
@@ -143,7 +129,7 @@ impl ActiveBook {
 
   pub async fn extract_cover(&self, app: &AppHandle, path: PathBuf) -> Result<()> {
     let name = self.get_cover_name(app).await?;
-    let page = self.get_page_as_bytes_by_name(&name).await?;
+    let page = self.get_page_as_bytes(&name).await?;
     let format = image::guess_format(&page)
       .inspect_err(|error| warn!(%error))
       .or_else(|_| ImageFormat::from_path(name))?;
@@ -156,9 +142,8 @@ impl ActiveBook {
   }
 
   /// Set the specified page as the book cover.
-  pub async fn update_cover(&self, app: &AppHandle, page: usize) -> Result<()> {
+  pub async fn update_cover(&self, app: &AppHandle, name: &str) -> Result<()> {
     let id = self.try_id(app).await?;
-    let name = self.get_page_name(page).await?;
     Book::update_cover(app, id, name).await?;
 
     if let Ok(cover) = app.path().cover(id) {
@@ -168,11 +153,11 @@ impl ActiveBook {
     Ok(())
   }
 
-  pub async fn delete_page(&mut self, app: &AppHandle, page: usize) -> Result<()> {
-    let name = self.get_page_name(page).await?.to_owned();
-    self.handle.delete_page(&self.path, &name).await?;
+  pub async fn delete_page(&mut self, app: &AppHandle, name: &str) -> Result<()> {
+    self.handle.delete_page(&self.path, name).await?;
 
-    self.reload().await;
+    // As the page has been removed, we need to reset the cell.
+    self.pages.take();
 
     // Next steps are exclusive to books in the library.
     if let Ok(id) = self.try_id(app).await {
@@ -191,11 +176,6 @@ impl ActiveBook {
     }
 
     Ok(())
-  }
-
-  async fn reload(&mut self) {
-    self.handle.close(&self.path).await;
-    self.pages.take();
   }
 }
 

@@ -1,4 +1,4 @@
-type BookAddedPayload = LibraryBook;
+type BookAddedPayload = Readonly<LibraryBook>;
 
 interface BookRemovedPayload {
   readonly id: number;
@@ -7,6 +7,10 @@ interface BookRemovedPayload {
 interface CoverExtractedPayload {
   readonly id: number;
   readonly path: string;
+}
+
+interface PageDeletedPayload {
+  readonly name: string;
 }
 
 interface RatingUpdatedPayload {

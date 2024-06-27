@@ -28,8 +28,8 @@ export function closeWindow() {
   invoke(Command.CloseWindow).catch(handleError);
 }
 
-export async function deletePageWithDialog(windowId: number, page: number) {
-  await invoke(Command.DeletePageWithDialog, { windowId, page });
+export async function deletePageWithDialog(windowId: number, name: string) {
+  await invoke(Command.DeletePageWithDialog, { windowId, name });
 }
 
 export function focusMainWindow() {
@@ -61,8 +61,8 @@ export function showLibraryBookContextMenu(bookId: number) {
   invoke(Command.ShowLibraryBookContextMenu, { bookId }).catch(handleError);
 }
 
-export function showReaderPageContextMenu(windowId: number, page: number) {
-  invoke(Command.ShowReaderPageContextMenu, { windowId, page }).catch(handleError);
+export function showReaderPageContextMenu(windowId: number, name: string) {
+  invoke(Command.ShowReaderPageContextMenu, { windowId, name }).catch(handleError);
 }
 
 export async function showWindow() {

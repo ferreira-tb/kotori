@@ -22,6 +22,10 @@ export async function getBookCover(bookId: number) {
   return fetch(`library/${bookId}/cover`);
 }
 
-export async function getBookPage(windowId: number, pageId: number) {
-  return fetch(`reader/${windowId}/${pageId}`);
+export async function getBookPage(windowId: number, name: string) {
+  return fetch(`reader/${windowId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name })
+  });
 }

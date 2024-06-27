@@ -16,35 +16,80 @@ export class Reader {
     this.#book = new ReaderBookImpl(book);
     this.#trigger();
 
-    for await (const _ of this.#book.fetch()) {
-      this.#trigger();
+    for await (const index of this.#book.fetch()) {
+      if (this.#book.has(index)) {
+        this.#trigger();
+      }
     }
   }
 
-  public go(page: number) {
+  private go(page: number) {
     if (this.#book) {
       const size = this.#book.size;
       this.#current = ((page % size) + size) % size;
-      this.#trigger();
+
+      // The page might have been deleted.
+      if (this.#book.has(this.#current)) {
+        this.#trigger();
+        return true;
+      }
     }
+
+    return false;
   }
 
   public next() {
-    this.go(this.#current + 1);
+    if (this.#book) {
+      let ok = false;
+      while (!ok && this.#book.size > 0) {
+        ok = this.go(this.#current + 1);
+      }
+    }
   }
 
   public previous() {
-    this.go(this.#current - 1);
+    if (this.#book) {
+      let ok = false;
+      while (!ok && this.#book.size > 0) {
+        ok = this.go(this.#current - 1);
+      }
+    }
   }
 
   public first() {
-    this.go(0);
+    if (this.#book) {
+      let ok = this.go(0);
+      if (!ok) {
+        const indices = this.#book.indices();
+        while (!ok && this.#book.size > 0 && indices.length > 0) {
+          const index = indices.shift();
+          if (typeof index === 'number') {
+            ok = this.go(index);
+          }
+        }
+      }
+    }
   }
 
   public last() {
     if (this.#book) {
       const last = this.#book.size - 1;
-      this.go(last >= 0 ? last : 0);
+      let ok = this.go(last >= 0 ? last : 0);
+      if (!ok) {
+        const indices = this.#book.indices();
+        while (!ok && this.#book.size > 0 && indices.length > 0) {
+          const index = indices.pop();
+          if (typeof index === 'number') {
+            ok = this.go(index);
+          }
+        }
+      }
+    }
+  }
+
+  public removePage(name: string) {
+    if (this.#book?.removePage(name)) {
+      this.next();
     }
   }
 

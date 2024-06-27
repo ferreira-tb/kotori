@@ -30,9 +30,9 @@ useEventListener(window, 'wheel', (event: WheelEvent) => {
 });
 
 function showContextMenu() {
-  const pageId = reader.value.current?.id;
-  if (typeof pageId === 'number') {
-    showReaderPageContextMenu(Reader.windowId, pageId);
+  const name = reader.value.current?.name;
+  if (name) {
+    showReaderPageContextMenu(Reader.windowId, name);
   }
 }
 </script>

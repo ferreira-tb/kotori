@@ -1,11 +1,12 @@
-import { BookPage, BookPageStatus, isNotStarted } from './page';
+import { pull } from 'lodash-es';
+import { BookPageStatus, ReaderBookPageImpl, isNotStarted } from './page';
 
 export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
   public readonly id?: number;
   public readonly title: string;
   public readonly path: string;
 
-  readonly #pages = new Map<number, BookPage>();
+  readonly #pages = new Map<number, ReaderBookPageImpl>();
   readonly #stack: number[] = [0];
 
   constructor(book: ReaderBook) {
@@ -14,8 +15,18 @@ export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
     this.path = book.path;
 
     for (const page of book.pages) {
-      this.#pages.set(page, new BookPage(page));
+      this.#pages.set(page.index, new ReaderBookPageImpl(page));
     }
+  }
+
+  public indices() {
+    const indices = Array.from(this.#pages.keys());
+    indices.sort((a, b) => a - b);
+    return indices;
+  }
+
+  public has(index: number) {
+    return this.#pages.has(index);
   }
 
   public get(index: number) {
@@ -25,6 +36,16 @@ export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
     }
 
     return page;
+  }
+
+  public removePage(name: string) {
+    const page = this.#pages.values().find((it) => it.name === name);
+    if (page) {
+      pull(this.#stack, page.index);
+      return this.#pages.delete(page.index);
+    }
+
+    return false;
   }
 
   public async *fetch() {

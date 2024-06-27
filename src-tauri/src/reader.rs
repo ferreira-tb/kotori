@@ -157,12 +157,12 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
   Ok(())
 }
 
-pub async fn delete_page(app: &AppHandle, window_id: u16, page: usize) -> Result<()> {
+pub async fn delete_page(app: &AppHandle, window_id: u16, name: &str) -> Result<()> {
   let windows = app.reader_windows();
   let mut windows = windows.write().await;
 
   if let Some(window) = windows.get_mut(&window_id) {
-    window.book.delete_page(app, page).await?;
+    window.book.delete_page(app, name).await?;
 
     if window.book.pages().await?.is_empty() {
       if let Some(webview) = window.webview(app) {
@@ -170,13 +170,13 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, page: usize) -> Result
       }
     }
 
-    Event::PageDeleted { window_id }.emit(app)?;
+    Event::PageDeleted { window_id, name }.emit(app)?;
   }
 
   Ok(())
 }
 
-pub async fn delete_page_with_dialog(app: &AppHandle, window_id: u16, page: usize) -> Result<()> {
+pub async fn delete_page_with_dialog(app: &AppHandle, window_id: u16, name: &str) -> Result<()> {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 
@@ -190,7 +190,7 @@ pub async fn delete_page_with_dialog(app: &AppHandle, window_id: u16, page: usiz
     });
 
   if let Ok(true) = rx.await {
-    delete_page(app, window_id, page).await?;
+    delete_page(app, window_id, name).await?;
   }
 
   Ok(())

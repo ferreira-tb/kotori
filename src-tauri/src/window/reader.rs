@@ -12,10 +12,6 @@ pub struct ReaderWindow {
 }
 
 impl ReaderWindow {
-  fn new(id: u16, book: ActiveBook) -> Self {
-    Self { id, book }
-  }
-
   pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<Self> {
     let window_id = get_available_id(app);
     let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
@@ -49,7 +45,7 @@ impl ReaderWindow {
     // The user may toggle it visible, however.
     webview.hide_menu()?;
 
-    Ok(ReaderWindow::new(window_id, book))
+    Ok(ReaderWindow { id: window_id, book })
   }
 
   pub fn webview(&self, app: &AppHandle) -> Option<WebviewWindow> {
@@ -77,7 +73,7 @@ fn get_available_id(app: &AppHandle) -> u16 {
 }
 
 fn get_reader_window(app: &AppHandle, id: u16) -> Option<WebviewWindow> {
-  app.get_webview_window(&format!("reader-{id}"))
+  app.get_webview_window(&WindowKind::Reader(id).label())
 }
 
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {

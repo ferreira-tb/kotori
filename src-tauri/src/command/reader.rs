@@ -2,9 +2,9 @@ use crate::book::{self, ActiveBook, ReaderBook};
 use crate::{prelude::*, reader};
 
 #[tauri::command]
-pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, page: usize) -> Result<()> {
-  debug!(command = "delete_page", window_id, page);
-  reader::delete_page_with_dialog(&app, window_id, page).await
+pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, name: String) -> Result<()> {
+  debug!(command = "delete_page", window_id, name);
+  reader::delete_page_with_dialog(&app, window_id, &name).await
 }
 
 #[tauri::command]
@@ -17,7 +17,7 @@ pub async fn get_current_reader_book(app: AppHandle, window_id: u16) -> Result<R
 pub async fn show_reader_page_context_menu(
   window: Window,
   window_id: u16,
-  page: usize,
+  name: String,
 ) -> Result<()> {
   use crate::menu::context::reader::page::{self, Context, ReaderPageContextMenu};
 
@@ -25,7 +25,7 @@ pub async fn show_reader_page_context_menu(
     command = "show_reader_page_context_menu",
     window = window.label(),
     window_id,
-    page
+    name
   );
 
   let app = window.app_handle();
@@ -36,7 +36,7 @@ pub async fn show_reader_page_context_menu(
   };
 
   let book_id = reader_window.book.try_id(app).await.ok();
-  let ctx = Context { window_id, book_id, page };
+  let ctx = Context { window_id, book_id, name };
 
   if let Some(state) = window.try_state::<ReaderPageContextMenu>() {
     *state.ctx.lock().unwrap() = ctx;

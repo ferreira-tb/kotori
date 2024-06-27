@@ -1,10 +1,10 @@
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
-use natord::compare_ignore_case;
+use futures::future::{self, BoxFuture};
 use std::collections::HashMap;
 use std::fs::{self, File};
-use std::io::Read;
+use std::io::{Read, Seek};
 use std::sync::{Arc, Mutex};
 use std::{fmt, thread};
 use strum::Display;
@@ -13,6 +13,8 @@ use uuid::Uuid;
 use zip::{ZipArchive, ZipWriter};
 
 type TxResult<T> = oneshot::Sender<Result<T>>;
+
+pub type PageMap = OrderedMap<usize, String>;
 
 pub const MAX_FILE_PERMITS: usize = 50;
 static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
@@ -34,7 +36,7 @@ impl BookHandle {
     Self { sender }
   }
 
-  pub async fn get_pages(&self, path: impl AsRef<Path>) -> Result<OrderedMap<usize, String>> {
+  pub async fn get_pages(&self, path: impl AsRef<Path>) -> Result<Arc<PageMap>> {
     let path = path.as_ref().to_owned();
     let (tx, rx) = oneshot::channel();
     let _ = self
@@ -94,7 +96,7 @@ impl fmt::Debug for BookHandle {
 enum Message {
   GetPages {
     path: PathBuf,
-    tx: TxResult<OrderedMap<usize, String>>,
+    tx: TxResult<Arc<PageMap>>,
   },
   ReadPage {
     path: PathBuf,
@@ -143,8 +145,7 @@ impl Actor {
         let result = self
           .get_book(&path)
           .await
-          .map(|it| &it.pages)
-          .cloned();
+          .map(|it| Arc::clone(&it.pages));
 
         let _ = tx.send(result);
       }
@@ -158,8 +159,13 @@ impl Actor {
       }
       Message::DeletePage { path, page, tx } => {
         let result = self
-          .get_book(&path)
-          .and_then(|it| it.delete_page(&path, &page))
+          .books
+          .remove(&path)
+          .map_or_else(
+            || Box::pin(BookFile::open(&path)) as BoxFuture<Result<BookFile>>,
+            |book| Box::pin(future::ok(book)),
+          )
+          .and_then(|it| it.delete_page(&path, page))
           .await;
 
         let _ = tx.send(result);
@@ -172,7 +178,10 @@ impl Actor {
     Ok(())
   }
 
-  async fn get_book(&mut self, path: impl AsRef<Path>) -> Result<&BookFile> {
+  async fn get_book<P>(&mut self, path: P) -> Result<&BookFile>
+  where
+    P: AsRef<Path>,
+  {
     let path = path.as_ref();
     if !self.books.contains_key(path) {
       let book = BookFile::open(&path).await?;
@@ -189,7 +198,7 @@ impl Actor {
 
 struct BookFile {
   file: Arc<Mutex<ZipArchive<File>>>,
-  pages: OrderedMap<usize, String>,
+  pages: Arc<PageMap>,
 
   #[allow(dead_code)]
   permit: SemaphorePermit<'static>,
@@ -204,19 +213,11 @@ impl BookFile {
     let join = async_runtime::spawn_blocking(move || {
       let reader = File::open(&path)?;
       let zip = ZipArchive::new(reader)?;
-
-      let globset = glob::book_page();
-      let pages = zip
-        .file_names()
-        .filter(|name| globset.is_match(name))
-        .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
-        .enumerate()
-        .map(|(idx, name)| (idx, name.to_owned()))
-        .collect();
+      let pages = zip.pages();
 
       let file = BookFile {
         file: Arc::new(Mutex::new(zip)),
-        pages,
+        pages: Arc::new(pages),
         permit,
       };
 
@@ -243,7 +244,7 @@ impl BookFile {
     join.await?
   }
 
-  async fn delete_page<P, S>(&self, path: P, page: S) -> Result<()>
+  async fn delete_page<P, S>(self, path: P, page: S) -> Result<()>
   where
     P: AsRef<Path>,
     S: AsRef<str>,
@@ -276,11 +277,34 @@ impl BookFile {
         return Err(Into::into(err));
       }
 
+      fs::remove_file(&path)?;
       fs::rename(temp, path)?;
 
       Ok(())
     });
 
     join.await?
+  }
+}
+
+trait ZipArchiveExt {
+  fn pages(&self) -> PageMap;
+}
+
+impl<T> ZipArchiveExt for ZipArchive<T>
+where
+  T: Read + Seek,
+{
+  fn pages(&self) -> PageMap {
+    use natord::compare_ignore_case;
+
+    let globset = glob::book_page();
+    self
+      .file_names()
+      .filter(|name| globset.is_match(name))
+      .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
+      .enumerate()
+      .map(|(idx, name)| (idx, name.to_owned()))
+      .collect()
   }
 }

@@ -1,18 +1,19 @@
 mod active;
-pub mod cover;
-pub mod handle;
+mod cover;
+mod handle;
 mod structs;
 mod title;
+
+pub use active::ActiveBook;
+pub use cover::Cover;
+pub use handle::{BookHandle, MAX_FILE_PERMITS};
+pub use structs::{LibraryBook, ReaderBook};
+pub use title::Title;
 
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::{prelude::*, reader};
-pub use active::ActiveBook;
-pub use cover::Cover;
-pub use handle::MAX_FILE_PERMITS;
-pub use structs::{LibraryBook, ReaderBook};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
-pub use title::Title;
 use tokio::fs;
 use tokio::sync::oneshot;
 

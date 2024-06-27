@@ -10,17 +10,20 @@ export enum BookPageStatus {
   Error = 4
 }
 
-export class BookPage {
+export class ReaderBookPageImpl implements ReaderBookPage {
+  readonly #page: ReaderBookPage;
   #status = BookPageStatus.NotStarted;
   #url: string | null = null;
 
-  constructor(public readonly id: number) {}
+  constructor(page: ReaderBookPage) {
+    this.#page = page;
+  }
 
   public async fetch() {
     if (this.#status === BookPageStatus.NotStarted) {
       try {
         this.#status = BookPageStatus.Pending;
-        const blob = await getBookPage(Reader.windowId, this.id);
+        const blob = await getBookPage(Reader.windowId, this.name);
         this.#url = URL.createObjectURL(blob);
         this.#status = BookPageStatus.Done;
       } catch (err) {
@@ -28,14 +31,20 @@ export class BookPage {
         handleError(err);
       }
     }
+
+    return this.#page.index;
   }
 
-  public async delete() {
-    try {
-      await deletePageWithDialog(Reader.windowId, this.id);
-    } catch (err) {
-      handleError(err);
-    }
+  public delete() {
+    return deletePageWithDialog(Reader.windowId, this.name);
+  }
+
+  get index() {
+    return this.#page.index;
+  }
+
+  get name() {
+    return this.#page.name;
   }
 
   get status() {
@@ -47,6 +56,6 @@ export class BookPage {
   }
 }
 
-export function isNotStarted(page: BookPage) {
+export function isNotStarted(page: ReaderBookPageImpl) {
   return page.status === BookPageStatus.NotStarted;
 }

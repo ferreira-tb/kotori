@@ -1,5 +1,5 @@
 pub mod app {
-  use crate::book::handle::BookHandle;
+  use crate::book::BookHandle;
   use crate::reader::WindowMap;
   use crate::Kotori;
   use tauri::{AppHandle, Manager, State, WebviewWindow, Wry};

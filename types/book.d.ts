@@ -8,9 +8,14 @@ interface LibraryBook {
 
 interface ReaderBook {
   readonly id?: number;
-  readonly pages: number[];
+  readonly pages: ReaderBookPage[];
   readonly path: string;
   readonly title: string;
+}
+
+interface ReaderBookPage {
+  readonly index: number;
+  readonly name: string;
 }
 
 type ReaderBookStatus = 'not started' | 'pending' | 'done' | 'error';

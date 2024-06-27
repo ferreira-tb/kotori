@@ -34,7 +34,7 @@ pub struct ReaderPageContextMenu {
 pub struct Context {
   pub window_id: u16,
   pub book_id: Option<i32>,
-  pub page: usize,
+  pub name: String,
 }
 
 pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
@@ -50,21 +50,21 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
 
 async fn delete_page(app: &AppHandle) {
   let state = app.state::<ReaderPageContextMenu>();
-  let (window_id, page) = {
+  let (window_id, name) = {
     let ctx = state.ctx.lock().unwrap();
-    (ctx.window_id, ctx.page)
+    (ctx.window_id, ctx.name.clone())
   };
 
-  reader::delete_page_with_dialog(app, window_id, page)
+  reader::delete_page_with_dialog(app, window_id, &name)
     .await
     .into_dialog(app);
 }
 
 async fn set_as_cover(app: &AppHandle) {
-  let (book_id, page) = {
+  let (book_id, name) = {
     let state = app.state::<ReaderPageContextMenu>();
     let ctx = state.ctx.lock().unwrap();
-    (ctx.book_id, ctx.page)
+    (ctx.book_id, ctx.name.clone())
   };
 
   if let Some(book_id) = book_id {
@@ -75,7 +75,7 @@ async fn set_as_cover(app: &AppHandle) {
 
     if let Some(book) = book {
       book
-        .update_cover(app, page)
+        .update_cover(app, &name)
         .await
         .into_dialog(app);
     }

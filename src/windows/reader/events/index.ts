@@ -1,4 +1,5 @@
 import { handleError } from 'manatsu';
+import { useReaderStore } from '../stores';
 import { listen } from '@tauri-apps/api/event';
 
 export enum Event {
@@ -10,7 +11,8 @@ export function setupEventListeners() {
 }
 
 function onPageDeleted() {
-  return listen(Event.PageDeleted, () => {
-    unimplemented();
+  return listen<PageDeletedPayload>(Event.PageDeleted, ({ payload }) => {
+    const store = useReaderStore();
+    store.reader.removePage(payload.name);
   });
 }

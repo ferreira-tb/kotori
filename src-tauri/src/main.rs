@@ -15,7 +15,7 @@ mod server;
 mod utils;
 mod window;
 
-use book::handle::BookHandle;
+use book::BookHandle;
 use error::{BoxResult, Result};
 use reader::Reader;
 use sea_orm::DatabaseConnection;

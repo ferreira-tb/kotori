@@ -1,16 +1,18 @@
 use crate::book::ActiveBook;
 use crate::{prelude::*, VERSION};
-use axum::extract::{Path, State};
+use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse, Response};
-use axum::routing::get;
+use axum::routing::{get, post};
 use axum::Router;
 use indoc::formatdoc;
+use serde::Deserialize;
+use std::sync::OnceLock;
 use std::thread;
 use tokio::net::TcpListener;
-use tokio::sync::{oneshot, OnceCell};
+use tokio::sync::oneshot;
 
-static PORT: OnceCell<u16> = OnceCell::const_new();
+static PORT: OnceLock<u16> = OnceLock::new();
 
 /// This depends on state managed by Tauri.
 pub fn serve(app: &AppHandle) {
@@ -22,7 +24,7 @@ pub fn serve(app: &AppHandle) {
       let router = Router::new()
         .route("/kotori/library/:book_id/cover", get(book_cover))
         .route("/kotori/reader", get(reader_root))
-        .route("/kotori/reader/:window_id/:page", get(book_page))
+        .route("/kotori/reader/:window_id", post(book_page))
         .with_state(app);
 
       let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
@@ -93,14 +95,20 @@ async fn book_cover(State(app): State<AppHandle>, Path(book_id): Path<i32>) -> R
   err!(BookNotFound).into_response()
 }
 
+#[derive(Deserialize)]
+struct BookPage {
+  name: String,
+}
+
 async fn book_page(
   State(app): State<AppHandle>,
-  Path((window_id, page)): Path<(u16, usize)>,
+  Path(window_id): Path<u16>,
+  Json(page): Json<BookPage>,
 ) -> Response {
   let windows = app.reader_windows();
   let windows = windows.read().await;
   if let Some(window) = windows.get(&window_id) {
-    return match window.book.get_page_as_bytes(page).await {
+    return match window.book.get_page_as_bytes(&page.name).await {
       Ok(bytes) => (StatusCode::OK, bytes).into_response(),
       Err(err) => err.into_response(),
     };

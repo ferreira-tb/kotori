@@ -11,7 +11,7 @@ pub struct ReaderBook {
   pub id: Option<i32>,
   pub path: PathBuf,
   pub title: Title,
-  pub pages: Vec<usize>,
+  pub pages: Vec<ReaderBookPage>,
 }
 
 impl ReaderBook {
@@ -23,9 +23,9 @@ impl ReaderBook {
     let pages = book
       .pages()
       .await?
-      .keys()
-      .copied()
-      .sorted_unstable()
+      .iter()
+      .map(ReaderBookPage::new)
+      .sorted_unstable_by_key(|it| it.index)
       .collect_vec();
 
     Ok(Self { id, path, title, pages })
@@ -40,6 +40,20 @@ impl ReaderBook {
       .map(|it| &it.book)?;
 
     Self::from_active(app, book).await
+  }
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all(serialize = "camelCase"))]
+pub struct ReaderBookPage {
+  pub index: usize,
+  pub name: String,
+}
+
+impl ReaderBookPage {
+  fn new((index, name): (&usize, impl AsRef<str>)) -> Self {
+    let name = name.as_ref().to_owned();
+    ReaderBookPage { index: *index, name }
   }
 }
 
