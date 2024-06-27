@@ -21,18 +21,6 @@
   },
   "app": {
     "withGlobalTauri": false,
-    "windows": [
-      {
-        "label": "main",
-        "title": "Kotori",
-        "url": "src/windows/main/index.html",
-        "visible": false,
-        "fullscreen": false,
-        "resizable": true,
-        "maximizable": true,
-        "minimizable": true
-      }
-    ],
     "security": {
       "assetProtocol": {
         "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"],

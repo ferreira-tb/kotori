@@ -23,7 +23,6 @@ use sea_orm::DatabaseConnection;
 use tauri::{App, AppHandle, Manager};
 use tauri_plugin_window_state::StateFlags;
 use utils::app::AppHandleExt;
-use window::app::{on_menu_event, on_window_event};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -93,15 +92,8 @@ fn setup(app: &mut App) -> BoxResult<()> {
     reader: Reader::new(),
   });
 
-  let main_window = app.main_window();
-  main_window.set_menu(menu::app::build(app)?)?;
-  main_window.on_menu_event(on_menu_event());
-  main_window.on_window_event(on_window_event(app));
-
-  #[cfg(debug_assertions)]
-  main_window.open_devtools();
-
   server::serve(app);
+  window::app::create(app)?;
 
   Ok(())
 }

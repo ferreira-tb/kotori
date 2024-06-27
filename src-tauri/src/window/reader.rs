@@ -1,8 +1,8 @@
-use super::WindowKind;
 use crate::book::ActiveBook;
 use crate::menu::reader::{build as build_menu, Item};
 use crate::menu::MenuExt;
 use crate::prelude::*;
+use crate::window::WindowKind;
 use tauri::menu::MenuEvent;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -14,11 +14,15 @@ pub struct ReaderWindow {
 impl ReaderWindow {
   pub async fn open(app: &AppHandle, book: ActiveBook) -> Result<Self> {
     let window_id = get_available_id(app);
-    let script = format!("window.KOTORI = {{ readerWindowId: {window_id} }}");
+    let kind = WindowKind::Reader(window_id);
+    let label = kind.label();
+    let url = kind.url();
+    let script = initialization_script(window_id);
+
+    trace!(?kind, ?url);
     trace!(%script);
 
-    let kind = WindowKind::Reader(window_id);
-    let webview = WebviewWindowBuilder::new(app, kind.label(), kind.url())
+    let webview = WebviewWindowBuilder::new(app, label, url)
       .initialization_script(&script)
       .data_directory(kind.data_dir(app)?)
       .title(book.title.to_string())
@@ -76,6 +80,10 @@ fn get_reader_window(app: &AppHandle, id: u16) -> Option<WebviewWindow> {
   app.get_webview_window(&WindowKind::Reader(id).label())
 }
 
+fn initialization_script(id: u16) -> String {
+  format!("window.KOTORI = {{ readerWindowId: {id} }}")
+}
+
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
   use crate::menu::{self, context, Listener};
   move |window, event| {
@@ -112,7 +120,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
           .or_else(|| Some(app.main_window()))
           .map(|webview| webview.set_focus())
           .transpose()
-          .into_log(&app);
+          .log(&app);
       });
     }
   });

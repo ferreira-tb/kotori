@@ -175,13 +175,11 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
 async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
   library::add_mock_books(app, 15, 20, orientation)
     .await
-    .into_dialog(app);
+    .dialog(app);
 }
 
 async fn add_to_library_with_dialog(app: &AppHandle) {
-  library::add_with_dialog(app)
-    .await
-    .into_dialog(app);
+  library::add_with_dialog(app).await.dialog(app);
 }
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -199,27 +197,24 @@ async fn clear_library(app: &AppHandle) {
     });
 
   if let Ok(true) = rx.await {
-    library::remove_all(app).await.into_dialog(app);
+    library::remove_all(app).await.dialog(app);
   }
 }
 
 async fn open_file(app: &AppHandle) {
-  book::open_from_dialog(app).await.into_dialog(app);
+  book::open_from_dialog(app).await.dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {
   app
     .shell()
     .open("https://discord.gg/aAje8qb49f", None)
-    .into_dialog(app);
+    .dialog(app);
 }
 
 fn open_repository(app: &AppHandle) {
   const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
-  app
-    .shell()
-    .open(REPOSITORY, None)
-    .into_dialog(app);
+  app.shell().open(REPOSITORY, None).dialog(app);
 }
 
 async fn open_random_book(app: &AppHandle) {
@@ -229,5 +224,5 @@ async fn open_random_book(app: &AppHandle) {
     }
   };
 
-  result.into_dialog(app);
+  result.dialog(app);
 }

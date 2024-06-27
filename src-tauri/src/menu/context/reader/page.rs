@@ -57,7 +57,7 @@ async fn delete_page(app: &AppHandle) {
 
   reader::delete_page_with_dialog(app, window_id, &name)
     .await
-    .into_dialog(app);
+    .dialog(app);
 }
 
 async fn set_as_cover(app: &AppHandle) {
@@ -77,7 +77,7 @@ async fn set_as_cover(app: &AppHandle) {
       book
         .update_cover(app, &name)
         .await
-        .into_dialog(app);
+        .dialog(app);
     }
   };
 }

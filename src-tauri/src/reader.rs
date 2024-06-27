@@ -61,7 +61,7 @@ pub async fn close_all(app: &AppHandle) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
     if let Some(webview) = window.webview(app) {
-      webview.close().into_log(app);
+      webview.close().log(app);
     }
   }
 
@@ -73,7 +73,7 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   for window in windows.read().await.values() {
     if window.id != window_id {
       if let Some(webview) = window.webview(app) {
-        webview.close().into_log(app);
+        webview.close().log(app);
       }
     }
   }

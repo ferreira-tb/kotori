@@ -4,20 +4,20 @@ mod reader;
 pub use reader::ReaderWindow;
 
 use crate::prelude::*;
+use strum::{Display, EnumIs};
 use tauri::{EventTarget, WebviewUrl};
 
-#[derive(Debug)]
+#[derive(Debug, Display, EnumIs)]
+#[strum(serialize_all = "kebab-case")]
 pub enum WindowKind {
   Main,
+  #[strum(to_string = "reader-{0}")]
   Reader(u16),
 }
 
 impl WindowKind {
   pub fn label(&self) -> String {
-    match self {
-      Self::Main => "main".into(),
-      Self::Reader(id) => format!("reader-{id}"),
-    }
+    self.to_string()
   }
 
   fn data_dir(&self, app: &AppHandle) -> Result<PathBuf> {

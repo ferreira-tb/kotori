@@ -52,7 +52,7 @@ pub async fn open_book(app: &AppHandle) {
   if let Ok(book) = ActiveBook::from_id(app, id).await {
     reader::open_book(app, book)
       .await
-      .into_dialog(app);
+      .dialog(app);
   }
 }
 
@@ -62,5 +62,5 @@ pub async fn remove_book(app: &AppHandle) {
 
   library::remove_with_dialog(app, id)
     .await
-    .into_dialog(app);
+    .dialog(app);
 }

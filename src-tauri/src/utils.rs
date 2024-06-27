@@ -169,7 +169,7 @@ pub mod path {
     fn dev_cache_dir(&self) -> Result<PathBuf> {
       self
         .app_cache_dir()
-        .map(|it| it.join("kotori-dev"))
+        .map(|it| it.join("dev-cache"))
         .map_err(Into::into)
     }
   }
@@ -210,14 +210,14 @@ pub mod result {
 
   pub trait ResultExt<T, E: Error> {
     /// Saves an error log, consuming `self`, and discarding the success value, if any.
-    fn into_log(self, app: &AppHandle);
+    fn log(self, app: &AppHandle);
 
     /// Shows an error dialog, consuming `self`, and discarding the success value, if any.
-    fn into_dialog(self, app: &AppHandle);
+    fn dialog(self, app: &AppHandle);
   }
 
   impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
-    fn into_log(self, app: &AppHandle) {
+    fn log(self, app: &AppHandle) {
       if let Err(err) = self {
         let app = app.clone();
         let message = err.to_string();
@@ -230,10 +230,10 @@ pub mod result {
       }
     }
 
-    fn into_dialog(self, app: &AppHandle) {
+    fn dialog(self, app: &AppHandle) {
       if let Err(err) = &self {
         dialog::show_error(app, err);
-        self.into_log(app);
+        self.log(app);
       }
     }
   }

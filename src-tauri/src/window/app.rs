@@ -1,17 +1,40 @@
 use crate::book::ActiveBook;
-use crate::reader;
+use crate::error::Result;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
+use crate::window::WindowKind;
+use crate::{menu, reader};
 use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::menu::MenuEvent;
 use tauri::DragDropEvent::Dropped;
-use tauri::{async_runtime, AppHandle, Window, WindowEvent};
+use tauri::{async_runtime, AppHandle, WebviewWindowBuilder, Window, WindowEvent};
 use tracing::{info, trace};
 
-// Calling `on_menu_event` on a window will override previously registered event listeners.
-// For this reason, all listeners must be registered inside a single call.
-pub fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
+pub fn create(app: &AppHandle) -> Result<()> {
+  let kind = WindowKind::Main;
+  let window = WebviewWindowBuilder::new(app, kind.label(), kind.url())
+    .data_directory(kind.data_dir(app)?)
+    .title("Kotori")
+    .resizable(true)
+    .maximizable(true)
+    .minimizable(true)
+    .visible(false)
+    .build()?;
+
+  window.set_menu(menu::app::build(app)?)?;
+  window.on_menu_event(on_menu_event());
+  window.on_window_event(on_window_event(app));
+
+  #[cfg(debug_assertions)]
+  window.open_devtools();
+
+  Ok(())
+}
+
+/// Calling `on_menu_event` on a window will override previously registered event listeners.
+/// For this reason, all listeners must be registered inside a single call.
+fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
   use crate::menu::{self, context, Listener};
   move |window, event| {
     menu::app::Item::execute(window, &event);
@@ -19,7 +42,7 @@ pub fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
   }
 }
 
-pub fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
+fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
   let app = app.clone();
   move |event| match event {
     WindowEvent::Destroyed => {
@@ -45,9 +68,7 @@ fn handle_drop_event(app: &AppHandle, paths: &[PathBuf]) {
   if !books.is_empty() {
     let app = app.clone();
     async_runtime::spawn(async move {
-      reader::open_many(&app, books)
-        .await
-        .into_dialog(&app);
+      reader::open_many(&app, books).await.dialog(&app);
     });
   }
 }
