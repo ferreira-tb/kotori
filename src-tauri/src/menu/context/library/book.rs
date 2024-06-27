@@ -50,9 +50,7 @@ pub async fn open_book(app: &AppHandle) {
   let id = state.ctx.lock().unwrap().book_id;
 
   if let Ok(book) = ActiveBook::from_id(app, id).await {
-    reader::open_book(app, book)
-      .await
-      .dialog(app);
+    reader::open_book(app, book).await.dialog(app);
   }
 }
 
