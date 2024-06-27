@@ -3,8 +3,7 @@ use image::codecs::webp::WebPEncoder;
 use image::io::Reader as ImageReader;
 use image::{ImageFormat, Rgb, RgbImage};
 use std::fs::File;
-use std::io::Cursor;
-use tokio::fs;
+use std::io::{Cursor, Write};
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 #[derive(Copy, Clone, Debug)]
@@ -21,7 +20,7 @@ where
 {
   let path = path.as_ref().to_owned();
   let parent = path.try_parent()?;
-  fs::create_dir_all(parent).await?;
+  tokio::fs::create_dir_all(parent).await?;
 
   let join = spawn_blocking(move || {
     let cursor = Cursor::new(buf);
@@ -45,7 +44,6 @@ pub async fn create_mock_book(
   orientation: Orientation,
 ) -> Result<PathBuf> {
   use rand::Rng;
-  use std::{fs::File, io::Write};
   use uuid::Uuid;
   use zip::{write::SimpleFileOptions, ZipWriter};
 
@@ -54,7 +52,7 @@ pub async fn create_mock_book(
     .dev_cache_dir()
     .map(|it| it.join("mocks"))?;
 
-  fs::create_dir_all(&path).await?;
+  tokio::fs::create_dir_all(&path).await?;
 
   let name = format!("{}.zip", Uuid::new_v4());
   let path = path.join(name);
@@ -85,7 +83,10 @@ pub async fn create_mock_book(
       writer.write_all(&image)?;
     }
 
-    writer.finish()?;
+    if let Err(err) = writer.finish() {
+      std::fs::remove_file(&path)?;
+      return Err(Into::into(err));
+    }
 
     Ok(path)
   });

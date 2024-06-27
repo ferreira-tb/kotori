@@ -213,7 +213,7 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
   fs::remove_dir_all(path).await.map_err(Into::into)
 }
 
-/// Adds mock bocks to the library.
+/// Adds mock books to the library.
 /// This should only be used for testing purposes.
 #[cfg(any(debug_assertions, feature = "devtools"))]
 pub async fn add_mock_books(
