@@ -1,8 +1,8 @@
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
+use ahash::{HashMap, HashMapExt};
 use futures::future::{self, BoxFuture};
-use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::{Read, Seek};
 use std::sync::{Arc, Mutex};
@@ -25,12 +25,12 @@ pub struct BookHandle {
 }
 
 impl BookHandle {
-  pub fn new(app: &AppHandle) -> Self {
+  pub fn new() -> Self {
     let (sender, receiver) = mpsc::channel(20);
-    let mut actor = Actor::new(app, receiver);
+    let mut actor = Actor::new(receiver);
 
     thread::spawn(move || {
-      async_runtime::block_on(async move { actor.run().await });
+      block_on(async move { actor.run().await });
     });
 
     Self { sender }
@@ -114,31 +114,23 @@ enum Message {
 }
 
 pub struct Actor {
-  app: AppHandle,
   books: HashMap<PathBuf, BookFile>,
   receiver: mpsc::Receiver<Message>,
 }
 
 impl Actor {
-  fn new(app: &AppHandle, receiver: mpsc::Receiver<Message>) -> Self {
-    Self {
-      app: app.clone(),
-      books: HashMap::new(),
-      receiver,
-    }
+  fn new(receiver: mpsc::Receiver<Message>) -> Self {
+    Self { books: HashMap::new(), receiver }
   }
 
   pub async fn run(&mut self) {
     while let Some(message) = self.receiver.recv().await {
       debug!(queued_messages = self.receiver.len());
-      self
-        .handle_message(message)
-        .await
-        .into_log(&self.app);
+      self.handle_message(message).await;
     }
   }
 
-  async fn handle_message(&mut self, message: Message) -> Result<()> {
+  async fn handle_message(&mut self, message: Message) {
     trace!(%message, books = self.books.len());
     match message {
       Message::GetPages { path, tx } => {
@@ -174,8 +166,6 @@ impl Actor {
         self.books.remove(&path);
       }
     };
-
-    Ok(())
   }
 
   async fn get_book<P>(&mut self, path: P) -> Result<&BookFile>
@@ -210,7 +200,7 @@ impl BookFile {
     let permit = FILE_SEMAPHORE.acquire().await?;
 
     let path = path.as_ref().to_owned();
-    let join = async_runtime::spawn_blocking(move || {
+    let join = spawn_blocking(move || {
       let reader = File::open(&path)?;
       let zip = ZipArchive::new(reader)?;
       let pages = zip.pages();
@@ -231,7 +221,7 @@ impl BookFile {
     let zip = Arc::clone(&self.file);
     let page = page.as_ref().to_owned();
 
-    let join = async_runtime::spawn_blocking(move || {
+    let join = spawn_blocking(move || {
       let mut file = zip.lock().unwrap();
       let mut page = file.by_name(&page)?;
       let size = usize::try_from(page.size()).unwrap_or_default();
@@ -256,7 +246,7 @@ impl BookFile {
     let path = path.as_ref().to_owned();
     let page = page.as_ref().to_owned();
 
-    let join = async_runtime::spawn_blocking(move || {
+    let join = spawn_blocking(move || {
       let mut file = File::create(&temp)?;
       let mut writer = ZipWriter::new(&mut file);
 

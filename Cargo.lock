@@ -3405,9 +3405,9 @@ dependencies = [
 
 [[package]]
 name = "num-bigint"
-version = "0.4.5"
+version = "0.4.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c165a9ab64cf766f73521c0dd2cfdff64f488b8f0b3e621face3462d3db536d7"
+checksum = "a5e44f723f1133c9deac646763579fdb3ac745e418f2a7af9cd0c431da1f20b9"
 dependencies = [
  "num-integer",
  "num-traits",
@@ -6143,7 +6143,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-manatsu"
 version = "0.11.7"
-source = "git+https://github.com/ferreira-tb/manatsu?branch=main#3a6d31df50132a6ef7e1209086792d8bf48189b3"
+source = "git+https://github.com/ferreira-tb/manatsu?branch=main#ed72957cf7571f82673daa988e225acfb79a2cc4"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6227,7 +6227,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-window-state"
 version = "2.0.0-beta.9"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#469c27740777009bc0efdcd2ce1739157f1c05ea"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#03d3cc3677bbebd3a8a4f1ab07f9a3bec671b7f5"
 dependencies = [
  "bitflags 2.6.0",
  "log",

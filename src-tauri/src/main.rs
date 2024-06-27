@@ -7,6 +7,7 @@ mod command;
 mod database;
 mod error;
 mod event;
+mod image;
 mod library;
 mod menu;
 mod prelude;
@@ -88,7 +89,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 
   app.manage(Kotori {
     db: database::connect(app)?,
-    book_handle: BookHandle::new(app),
+    book_handle: BookHandle::new(),
     reader: Reader::new(),
   });
 

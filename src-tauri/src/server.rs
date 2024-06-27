@@ -20,7 +20,7 @@ pub fn serve(app: &AppHandle) {
   let (tx, rx) = oneshot::channel();
 
   thread::spawn(move || {
-    async_runtime::block_on(async move {
+    block_on(async move {
       let router = Router::new()
         .route("/kotori/library/:book_id/cover", get(book_cover))
         .route("/kotori/reader", get(reader_root))
@@ -40,7 +40,7 @@ pub fn serve(app: &AppHandle) {
     });
   });
 
-  async_runtime::block_on(rx)
+  block_on(rx)
     .map(|port| PORT.set(port).unwrap())
     .unwrap();
 }

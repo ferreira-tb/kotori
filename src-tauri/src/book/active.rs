@@ -1,6 +1,6 @@
-use super::cover;
 use super::handle::{BookHandle, PageMap};
 use super::title::Title;
+use super::Cover;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::{library, prelude::*};
@@ -134,7 +134,7 @@ impl ActiveBook {
       .inspect_err(|error| warn!(%error))
       .or_else(|_| ImageFormat::from_path(name))?;
 
-    cover::resize(page, format, &path).await?;
+    Cover::extract(&path, page, format).await?;
 
     let id = self.try_id(app).await?;
     let path = path.as_ref();
@@ -183,7 +183,7 @@ impl Drop for ActiveBook {
   fn drop(&mut self) {
     let path = self.path.clone();
     let handle = self.handle.clone();
-    async_runtime::spawn(async move { handle.close(path).await });
+    spawn(async move { handle.close(path).await });
 
     trace!(dropped = %self.path.display());
   }

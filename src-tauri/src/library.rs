@@ -8,7 +8,11 @@ use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
+use tokio::task::JoinSet;
 use walkdir::WalkDir;
+
+#[cfg(any(debug_assertions, feature = "devtools"))]
+use crate::image::Orientation;
 
 pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
 where
@@ -150,7 +154,7 @@ fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
   for model in models {
     let app = app.clone();
     let semaphore = Arc::clone(&semaphore);
-    async_runtime::spawn(async move {
+    spawn(async move {
       let _permit = semaphore.acquire_owned().await?;
       let book = ActiveBook::from_model(&app, &model)?;
       let path = app.path().cover(model.id)?;
@@ -207,4 +211,33 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 
   let path = app.path().cover_dir()?;
   fs::remove_dir_all(path).await.map_err(Into::into)
+}
+
+/// Adds mock bocks to the library.
+/// This should only be used for testing purposes.
+#[cfg(any(debug_assertions, feature = "devtools"))]
+pub async fn add_mock_books(
+  app: &AppHandle,
+  amount: u8,
+  size: usize,
+  orientation: Orientation,
+) -> Result<()> {
+  use crate::image::create_mock_book;
+
+  let mut set = JoinSet::new();
+  for _ in 0..amount {
+    let app = app.clone();
+    set.spawn(async move { create_mock_book(&app, size, orientation).await });
+  }
+
+  let mut books = Vec::with_capacity(amount.into());
+  while let Some(book) = set.join_next().await {
+    books.push(book??);
+  }
+
+  if !books.is_empty() {
+    save_many(app, books).await?;
+  }
+
+  Ok(())
 }

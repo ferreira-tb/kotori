@@ -16,7 +16,7 @@ impl Listener for Item {
   fn execute(window: &Window, event: &MenuEvent) {
     let item = menu_item_or_bail!(event);
     let app = window.app_handle().clone();
-    async_runtime::spawn(async move {
+    spawn(async move {
       match item {
         Item::DeletePage => delete_page(&app).await,
         Item::SetAsCover => set_as_cover(&app).await,

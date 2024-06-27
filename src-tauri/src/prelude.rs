@@ -7,5 +7,6 @@ pub use future_iter::prelude::*;
 pub use futures::{FutureExt, TryFutureExt};
 pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};
-pub use tauri::{async_runtime, AppHandle, Manager, WebviewWindow, Window, Wry};
+pub use tauri::async_runtime::{block_on, spawn, spawn_blocking};
+pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
 pub use tracing::{debug, info, trace, warn};

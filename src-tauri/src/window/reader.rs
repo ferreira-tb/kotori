@@ -89,7 +89,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
   webview.on_window_event(move |event| {
     if matches!(event, WindowEvent::CloseRequested { .. }) {
       let app = app.clone();
-      async_runtime::spawn(async move {
+      spawn(async move {
         info!("close requested, {}", WindowKind::Reader(window_id).label());
         let reader_arc = app.reader_windows();
         let mut windows = reader_arc.write().await;

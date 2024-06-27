@@ -114,7 +114,7 @@ features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [dependencies.uuid]
 version = "1.9.1"
-features = ["v7", "fast-rng"]
+features = ["v4", "v7", "fast-rng"]
 
 [features]
 devtools = ["tauri/devtools"]

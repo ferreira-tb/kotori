@@ -42,7 +42,7 @@ impl Listener for Item {
     let app = window.app_handle().clone();
     let label = window.label().to_owned();
     let menu_id = event.id().to_owned();
-    async_runtime::spawn(async move {
+    spawn(async move {
       let Some(window_id) = reader::get_window_id_by_label(&app, &label).await else {
         return;
       };

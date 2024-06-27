@@ -1,18 +1,22 @@
+use crate::image::create_thumbnail;
 use crate::prelude::*;
-use image::codecs::webp::WebPEncoder;
-use image::io::Reader as ImageReader;
 use image::ImageFormat;
-use std::fs::File;
-use std::io::Cursor;
-use tokio::fs;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum Cover {
   Extracted(PathBuf),
   NotExtracted,
 }
 
 impl Cover {
+  pub async fn extract<P>(path: P, buf: Vec<u8>, format: ImageFormat) -> Result<Self>
+  where
+    P: AsRef<Path>,
+  {
+    create_thumbnail(buf, format, &path).await?;
+    Ok(path.into())
+  }
+
   pub fn path(&self) -> Option<&Path> {
     match self {
       Self::Extracted(path) => Some(path),
@@ -25,28 +29,9 @@ impl Cover {
   }
 }
 
-pub async fn resize(cover: Vec<u8>, format: ImageFormat, path: impl AsRef<Path>) -> Result<()> {
-  let path = path.as_ref().to_owned();
-  let parent = path.try_parent()?;
-  fs::create_dir_all(parent).await?;
-
-  let join = async_runtime::spawn_blocking(move || {
-    let cursor = Cursor::new(cover);
-    let reader = ImageReader::with_format(cursor, format).decode()?;
-    let cover = reader.thumbnail(400, 400);
-
-    let file = File::create(&path)?;
-    let encoder = WebPEncoder::new_lossless(file);
-    cover.write_with_encoder(encoder)?;
-
-    Ok(())
-  });
-
-  join.await?
-}
-
-impl From<PathBuf> for Cover {
-  fn from(path: PathBuf) -> Self {
+impl<P: AsRef<Path>> From<P> for Cover {
+  fn from(path: P) -> Self {
+    let path = path.as_ref().to_path_buf();
     Self::Extracted(path)
   }
 }

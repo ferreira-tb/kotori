@@ -17,7 +17,7 @@ use tokio::fs;
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app.path().app_local_data_dir()?;
 
-  async_runtime::block_on(async move {
+  block_on(async move {
     fs::create_dir_all(&path).await?;
 
     #[cfg(any(debug_assertions, feature = "devtools"))]

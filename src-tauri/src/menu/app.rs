@@ -8,16 +8,15 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
 use tokio::sync::oneshot;
 
+#[cfg(any(debug_assertions, feature = "devtools"))]
+use crate::image::Orientation;
+
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
   #[strum(serialize = "kt-app-about")]
   About,
   #[strum(serialize = "kt-app-add-to-library")]
   AddToLibrary,
-  #[strum(serialize = "kt-app-clear-library")]
-  ClearLibrary,
-  #[strum(serialize = "kt-app-close-all-reader-windows")]
-  CloseAllReaderWindows,
   #[strum(serialize = "kt-app-color-mode-auto")]
   ColorModeAuto,
   #[strum(serialize = "kt-app-color-mode-dark")]
@@ -32,18 +31,29 @@ pub enum Item {
   Repository,
   #[strum(serialize = "kt-app-open-file")]
   OpenFile,
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[strum(serialize = "kt-app-add-mock-books-landscape")]
+  AddMockBooksLandscape,
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[strum(serialize = "kt-app-add-mock-books-portrait")]
+  AddMockBooksPortrait,
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[strum(serialize = "kt-app-clear-library")]
+  ClearLibrary,
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[strum(serialize = "kt-app-close-all-reader-windows")]
+  CloseAllReaderWindows,
 }
 
 impl Listener for Item {
   fn execute(window: &Window, event: &MenuEvent) {
     let item = menu_item_or_bail!(event);
     let app = window.app_handle().clone();
-    async_runtime::spawn(async move {
+    spawn(async move {
       match item {
         Item::About => {}
         Item::AddToLibrary => add_to_library_with_dialog(&app).await,
-        Item::ClearLibrary => clear_library(&app).await,
-        Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
         Item::ColorModeAuto | Item::ColorModeDark | Item::ColorModeLight => {
           todo!("color mode")
         }
@@ -51,6 +61,15 @@ impl Listener for Item {
         Item::Repository => open_repository(&app),
         Item::OpenFile => open_file(&app).await,
         Item::RandomBook => open_random_book(&app).await,
+
+        #[cfg(any(debug_assertions, feature = "devtools"))]
+        Item::AddMockBooksLandscape => add_mock_books(&app, Orientation::Landscape).await,
+        #[cfg(any(debug_assertions, feature = "devtools"))]
+        Item::AddMockBooksPortrait => add_mock_books(&app, Orientation::Portrait).await,
+        #[cfg(any(debug_assertions, feature = "devtools"))]
+        Item::ClearLibrary => clear_library(&app).await,
+        #[cfg(any(debug_assertions, feature = "devtools"))]
+        Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
       }
     });
   }
@@ -129,7 +148,16 @@ fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+  let mocks = SubmenuBuilder::new(app, "Mocks")
+    .items(&[
+      &menu_item!(app, Item::AddMockBooksLandscape, "Landscape")?,
+      &menu_item!(app, Item::AddMockBooksPortrait, "Portrait")?,
+    ])
+    .build()?;
+
   let library = SubmenuBuilder::new(app, "Library")
+    .items(&[&mocks])
+    .separator()
     .items(&[&menu_item!(app, Item::ClearLibrary, "Clear")?])
     .build()?;
 
@@ -143,12 +171,20 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     .map_err(Into::into)
 }
 
+#[cfg(any(debug_assertions, feature = "devtools"))]
+async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
+  library::add_mock_books(app, 15, 20, orientation)
+    .await
+    .into_dialog(app);
+}
+
 async fn add_to_library_with_dialog(app: &AppHandle) {
   library::add_with_dialog(app)
     .await
     .into_dialog(app);
 }
 
+#[cfg(any(debug_assertions, feature = "devtools"))]
 async fn clear_library(app: &AppHandle) {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();

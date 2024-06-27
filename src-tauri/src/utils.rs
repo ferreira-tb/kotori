@@ -146,6 +146,9 @@ pub mod path {
   pub trait PathResolverExt {
     fn cover_dir(&self) -> Result<PathBuf>;
     fn cover(&self, book_id: i32) -> Result<PathBuf>;
+
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    fn dev_cache_dir(&self) -> Result<PathBuf>;
   }
 
   impl PathResolverExt for PathResolver<Wry> {
@@ -160,6 +163,14 @@ pub mod path {
       self
         .cover_dir()
         .map(|it| it.join(book_id.to_string()))
+    }
+
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    fn dev_cache_dir(&self) -> Result<PathBuf> {
+      self
+        .app_cache_dir()
+        .map(|it| it.join("kotori-dev"))
+        .map_err(Into::into)
     }
   }
 
