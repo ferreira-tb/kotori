@@ -1,10 +1,12 @@
 use crate::book::handle::{BookHandle, PageMap};
 use crate::book::title::Title;
 use crate::book::Cover;
-use crate::database::prelude::*;
+use crate::database::BookExt;
 use crate::event::Event;
 use crate::{library, prelude::*};
 use image::ImageFormat;
+use kotori_entity::book;
+use kotori_entity::prelude::Book;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
 use std::sync::Arc;

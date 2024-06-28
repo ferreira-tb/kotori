@@ -1,7 +1,8 @@
 use crate::book::ActiveBook;
-use crate::database::prelude::*;
+use crate::database::BookExt;
 use crate::menu::prelude::*;
 use crate::{menu_item_or_bail, prelude::*, reader};
+use kotori_entity::prelude::Book;
 use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]

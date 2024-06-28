@@ -1,13 +1,18 @@
-pub mod entities;
-mod r#impl;
+mod book;
+mod collection;
 
-pub mod prelude {
-  pub use super::entities::book;
-  pub use super::entities::prelude::*;
+mod prelude {
   pub use sea_orm::sea_query::OnConflict;
   pub use sea_orm::ActiveValue::Set;
-  pub use sea_orm::{ActiveModelTrait, ConnectionTrait, EntityTrait};
+  pub use sea_query::Query;
+
+  pub use sea_orm::{
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, QueryFilter,
+  };
 }
+
+pub use book::BookExt;
+pub use collection::CollectionExt;
 
 use crate::prelude::*;
 use kotori_migration::{Migrator, MigratorTrait};

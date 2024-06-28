@@ -1,9 +1,9 @@
 use crate::book::active::ActiveBook;
 use crate::book::get_cover;
 use crate::book::title::Title;
-use crate::database::prelude::*;
 use crate::prelude::*;
 use crate::window::WindowManager;
+use kotori_entity::book;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]

@@ -1,9 +1,11 @@
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
-use crate::database::entities::book;
-use crate::database::prelude::*;
+use crate::database::BookExt;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
+use kotori_entity::book;
+use kotori_entity::prelude::Book;
+use sea_orm::EntityTrait;
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
@@ -60,22 +62,7 @@ pub async fn save<P>(app: &AppHandle, path: P) -> Result<book::Model>
 where
   P: AsRef<Path>,
 {
-  let path = path.try_string()?;
-  let model = book::ActiveModel {
-    path: Set(path),
-    ..Default::default()
-  };
-
-  let kotori = app.kotori();
-  let model = Book::insert(model)
-    .on_conflict(
-      OnConflict::column(book::Column::Path)
-        .do_nothing()
-        .to_owned(),
-    )
-    .exec_with_returning(&kotori.db)
-    .await?;
-
+  let model = Book::create(app, path).await?;
   LibraryBook::from_model(app, &model)
     .await
     .and_then(|it| Event::BookAdded(&it).emit(app))?;
@@ -200,13 +187,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
 }
 
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
-  use sea_query::Query;
-
-  let kotori = app.kotori();
-  let builder = kotori.db.get_database_backend();
-
-  let stmt = Query::delete().from_table(Book).to_owned();
-  kotori.db.execute(builder.build(&stmt)).await?;
+  Book::remove_all(app).await?;
   Event::LibraryCleared.emit(app)?;
 
   let path = app.path().cover_dir()?;

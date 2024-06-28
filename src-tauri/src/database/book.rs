@@ -1,24 +1,29 @@
 use crate::book::Title;
-use crate::database::entities::{book, prelude::*};
+use crate::database::prelude::*;
 use crate::prelude::*;
-use sea_orm::ActiveValue::Set;
-use sea_query::Query;
+use kotori_entity::{book, prelude::*};
 
-use sea_orm::{
-  ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, PaginatorTrait,
-  QueryFilter,
-};
+pub trait BookExt {
+  async fn create<P>(app: &AppHandle, path: P) -> Result<book::Model>
+  where
+    P: AsRef<Path>;
+  async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
+  async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model>;
+  async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model>;
+  async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
+  async fn remove_all(app: &AppHandle) -> Result<()>;
+  async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
+  where
+    C: Into<Option<&'a str>>;
+  async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model>;
 
-impl Book {
-  pub async fn count(app: &AppHandle) -> Result<u64> {
-    let kotori = app.kotori();
-    Self::find()
-      .count(&kotori.db)
-      .await
-      .map_err(Into::into)
-  }
+  /// Get a random book from the library.
+  /// Will return `None` if the library is empty.
+  async fn get_random(app: &AppHandle) -> Result<Option<book::Model>>;
+}
 
-  pub async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>> {
+impl BookExt for Book {
+  async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>> {
     let kotori = app.kotori();
     Self::find()
       .all(&kotori.db)
@@ -26,7 +31,7 @@ impl Book {
       .map_err(Into::into)
   }
 
-  pub async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model> {
+  async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model> {
     let kotori = app.kotori();
     Self::find_by_id(id)
       .one(&kotori.db)
@@ -34,7 +39,7 @@ impl Book {
       .ok_or_else(|| err!(BookNotFound))
   }
 
-  pub async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
+  async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model> {
     let kotori = app.kotori();
     let path = path.try_str()?;
     Self::find()
@@ -44,7 +49,7 @@ impl Book {
       .ok_or_else(|| err!(BookNotFound))
   }
 
-  pub async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
+  async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
     let kotori = app.kotori();
     let builder = kotori.db.get_database_backend();
 
@@ -63,9 +68,7 @@ impl Book {
       .and_then(|it| Title::try_from(it.as_str()))
   }
 
-  /// Get a random book from the library.
-  /// Will return `None` if the library is empty.
-  pub async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
+  async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
     let kotori = app.kotori();
     let builder = kotori.db.get_database_backend();
 
@@ -98,7 +101,39 @@ impl Book {
     }
   }
 
-  pub async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
+  async fn create<P>(app: &AppHandle, path: P) -> Result<book::Model>
+  where
+    P: AsRef<Path>,
+  {
+    let path = path.try_string()?;
+    let model = book::ActiveModel {
+      path: Set(path),
+      ..Default::default()
+    };
+
+    let kotori = app.kotori();
+    Book::insert(model)
+      .on_conflict(
+        OnConflict::column(book::Column::Path)
+          .do_nothing()
+          .to_owned(),
+      )
+      .exec_with_returning(&kotori.db)
+      .await
+      .map_err(Into::into)
+  }
+
+  async fn remove_all(app: &AppHandle) -> Result<()> {
+    let kotori = app.kotori();
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::delete().from_table(Book).to_owned();
+    kotori.db.execute(builder.build(&stmt)).await?;
+
+    Ok(())
+  }
+
+  async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
   where
     C: Into<Option<&'a str>>,
   {
@@ -116,7 +151,7 @@ impl Book {
     book.update(&kotori.db).await.map_err(Into::into)
   }
 
-  pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model> {
+  async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model> {
     if rating > 5 {
       bail!(InvalidRating);
     }

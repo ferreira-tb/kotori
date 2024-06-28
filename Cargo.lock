@@ -2942,6 +2942,7 @@ dependencies = [
  "indexmap 2.2.6",
  "indoc",
  "itertools 0.13.0",
+ "kotori-entity",
  "kotori-migration",
  "natord",
  "open",
@@ -2970,6 +2971,14 @@ dependencies = [
  "uuid",
  "walkdir",
  "zip",
+]
+
+[[package]]
+name = "kotori-entity"
+version = "0.1.0"
+dependencies = [
+ "sea-orm",
+ "serde",
 ]
 
 [[package]]

@@ -56,6 +56,9 @@ zip = "2.1.3"
 git = "https://github.com/ferreira-tb/future-iter"
 branch = "master"
 
+[dependencies.kotori-entity]
+path = "../crates/entity"
+
 [dependencies.kotori-migration]
 path = "../crates/migration"
 

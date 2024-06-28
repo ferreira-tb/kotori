@@ -36,3 +36,4 @@ coverage/
 .eslintcache
 config.json
 .env
+orm.md

@@ -1,9 +1,9 @@
 mod active;
 mod cover;
 mod handle;
+mod metadata;
 mod structs;
 mod title;
-mod metadata;
 
 pub use active::ActiveBook;
 pub use cover::Cover;
@@ -11,9 +11,10 @@ pub use handle::{BookHandle, MAX_FILE_PERMITS};
 pub use structs::{LibraryBook, ReaderBook};
 pub use title::Title;
 
-use crate::database::prelude::*;
+use crate::database::BookExt;
 use crate::event::Event;
 use crate::{prelude::*, reader};
+use kotori_entity::prelude::Book;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::fs;
 use tokio::sync::oneshot;
