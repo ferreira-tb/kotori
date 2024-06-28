@@ -3,6 +3,7 @@ mod cover;
 mod handle;
 mod structs;
 mod title;
+mod metadata;
 
 pub use active::ActiveBook;
 pub use cover::Cover;
@@ -24,7 +25,7 @@ pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
   FileDialogBuilder::new(dialog)
     .add_filter("Book", &["cbr", "cbz", "zip"])
     .pick_files(move |response| {
-      tx.send(response).ok();
+      let _ = tx.send(response);
     });
 
   let books = rx

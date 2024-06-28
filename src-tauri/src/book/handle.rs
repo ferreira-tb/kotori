@@ -203,7 +203,7 @@ impl BookFile {
     let join = spawn_blocking(move || {
       let reader = File::open(&path)?;
       let zip = ZipArchive::new(reader)?;
-      let pages = zip.pages();
+      let pages = zip.book_pages();
 
       let file = BookFile {
         file: Arc::new(Mutex::new(zip)),
@@ -278,14 +278,14 @@ impl BookFile {
 }
 
 trait ZipArchiveExt {
-  fn pages(&self) -> PageMap;
+  fn book_pages(&self) -> PageMap;
 }
 
 impl<T> ZipArchiveExt for ZipArchive<T>
 where
   T: Read + Seek,
 {
-  fn pages(&self) -> PageMap {
+  fn book_pages(&self) -> PageMap {
     use natord::compare_ignore_case;
 
     let globset = glob::book_page();
