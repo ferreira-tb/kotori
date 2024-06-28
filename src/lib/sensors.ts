@@ -9,8 +9,11 @@ function disableDefaultSensors() {
   preventContextMenu();
   preventKeyDown(['F3', 'F7']);
 
+  // Search
+  preventCtrlKeyDown(['f', 'F']);
+
   // Focus move.
-  preventKeyDown('Tab', { shiftKey: true });
+  preventShiftKeyDown('Tab');
 }
 
 export function setGlobalSensors() {

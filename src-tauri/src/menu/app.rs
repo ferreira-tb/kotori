@@ -227,6 +227,7 @@ async fn open_random_book(app: &AppHandle) {
 }
 
 async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {
+  use tauri_plugin_manatsu::AppHandleExt as _;
   use tauri_plugin_window_state::{AppHandleExt as _, StateFlags};
 
   let (tx, rx) = oneshot::channel();
@@ -244,6 +245,7 @@ async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {
   if let Ok(true) = rx.await {
     let _ = mode.set(app);
     let _ = app.save_window_state(StateFlags::all());
+    let _ = app.write_logs_to_disk();
 
     // Kotori may crash in dev mode after restarting.
     app.restart();

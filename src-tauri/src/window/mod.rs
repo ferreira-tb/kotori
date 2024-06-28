@@ -107,9 +107,8 @@ impl ColorMode {
 
   pub fn set(&self, app: &AppHandle) -> Result<()> {
     app.with_config_store(|store| {
-      let key = ConfigKey::ColorMode.to_string();
       let mode = self.to_string();
-      store.insert(key, mode.into())?;
+      store.insert(ConfigKey::ColorMode.into(), mode.into())?;
       store.save()
     })
   }

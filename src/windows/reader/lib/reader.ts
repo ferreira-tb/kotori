@@ -105,12 +105,10 @@ export class Reader {
     return customRef((track, trigger) => {
       const reader = new Reader(trigger);
       return {
+        set: noop,
         get() {
           track();
           return reader;
-        },
-        set(_newValue) {
-          noop();
         }
       };
     });

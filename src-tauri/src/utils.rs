@@ -186,9 +186,9 @@ pub mod path {
 }
 
 pub mod result {
-  use super::dialog;
+  use crate::utils::dialog;
   use std::error::Error;
-  use tauri::{async_runtime, AppHandle};
+  use tauri::AppHandle;
   use tauri_plugin_manatsu::Log;
   use tracing::error;
 
@@ -203,14 +203,10 @@ pub mod result {
   impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
     fn log(self, app: &AppHandle) {
       if let Err(err) = self {
-        let app = app.clone();
         let message = err.to_string();
-        async_runtime::spawn(async move {
-          let _ = Log::new("Error", message)
-            .save(&app)
-            .await
-            .inspect_err(|error| error!(%error));
-        });
+        let _ = Log::new("Error", message)
+          .save(&app)
+          .inspect_err(|error| error!(%error));
       }
     }
 
@@ -257,5 +253,11 @@ pub mod store {
   #[strum(serialize_all = "kebab-case")]
   pub enum ConfigKey {
     ColorMode,
+  }
+
+  impl From<ConfigKey> for String {
+    fn from(value: ConfigKey) -> Self {
+      value.to_string()
+    }
   }
 }
