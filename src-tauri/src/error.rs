@@ -40,6 +40,10 @@ pub enum Error {
   #[error(transparent)]
   Tauri(#[from] tauri::Error),
   #[error(transparent)]
+  TauriStore(#[from] tauri_plugin_store::Error),
+  #[error(transparent)]
+  TauriWindowState(#[from] tauri_plugin_window_state::Error),
+  #[error(transparent)]
   TokioAcquire(#[from] tokio::sync::AcquireError),
   #[error(transparent)]
   TokioJoin(#[from] tokio::task::JoinError),

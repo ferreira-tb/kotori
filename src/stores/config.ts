@@ -15,13 +15,11 @@ export const useConfigStore = defineStore('config', () => {
   handlers.push(watchPausable(colorMode, onChange(Key.ColorMode)));
 
   async function load() {
-    handlers.forEach((it) => it.pause());
-    await nextTick();
+    await pause();
 
     colorMode.value = (await store.get(Key.ColorMode)) ?? 'auto';
 
-    await nextTick();
-    handlers.forEach((it) => it.resume());
+    await resume();
   }
 
   function save() {
@@ -32,6 +30,16 @@ export const useConfigStore = defineStore('config', () => {
     return function <T>(value: T) {
       store.set(key, value).catch(handleError);
     };
+  }
+
+  async function pause() {
+    handlers.forEach((it) => it.pause());
+    await nextTick();
+  }
+
+  async function resume() {
+    await nextTick();
+    handlers.forEach((it) => it.resume());
   }
 
   return {

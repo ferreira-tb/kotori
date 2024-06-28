@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::error::Result;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
-use crate::window::WindowKind;
+use crate::window::{ColorMode, WindowKind};
 use crate::{menu, reader};
 use itertools::Itertools;
 use std::path::PathBuf;
@@ -16,6 +16,7 @@ pub fn create(app: &AppHandle) -> Result<()> {
   let window = WebviewWindowBuilder::new(app, kind.label(), kind.url())
     .data_directory(kind.data_dir(app)?)
     .title("Kotori")
+    .theme(ColorMode::get(app)?.into())
     .resizable(true)
     .maximizable(true)
     .minimizable(true)

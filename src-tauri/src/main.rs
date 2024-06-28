@@ -17,12 +17,12 @@ mod utils;
 mod window;
 
 use book::BookHandle;
-use error::{BoxResult, Result};
+use error::BoxResult;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
 use tauri::{App, AppHandle, Manager};
 use tauri_plugin_window_state::StateFlags;
-use utils::app::AppHandleExt;
+use window::{WindowExt, WindowManager};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -92,19 +92,12 @@ fn setup(app: &mut App) -> BoxResult<()> {
     reader: Reader::new(),
   });
 
-  server::serve(app);
+  server::serve(app)?;
   window::app::create(app)?;
 
   Ok(())
 }
 
 fn single_instance(app: &AppHandle, _: Vec<String>, _: String) {
-  let _: Result<()> = try {
-    let window = app.main_window();
-    if window.is_minimized()? {
-      window.unminimize()?;
-    }
-
-    window.set_focus()?;
-  };
+  let _ = app.main_window().set_foreground_focus();
 }

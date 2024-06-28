@@ -14,6 +14,7 @@
     "store:allow-get",
     "store:allow-save",
     "store:allow-set",
+    "window-state:allow-save-window-state",
     {
       "identifier": "http:default",
       "allow": [

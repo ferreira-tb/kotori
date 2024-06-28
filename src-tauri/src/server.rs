@@ -1,4 +1,5 @@
 use crate::book::ActiveBook;
+use crate::window::WindowManager;
 use crate::{prelude::*, VERSION};
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
@@ -15,7 +16,7 @@ use tokio::sync::oneshot;
 static PORT: OnceLock<u16> = OnceLock::new();
 
 /// This depends on state managed by Tauri.
-pub fn serve(app: &AppHandle) {
+pub fn serve(app: &AppHandle) -> Result<()> {
   let app = app.clone();
   let (tx, rx) = oneshot::channel();
 
@@ -34,15 +35,16 @@ pub fn serve(app: &AppHandle) {
         .unwrap()
         .port();
 
-      tx.send(port).unwrap();
+      let _ = tx.send(port);
 
       axum::serve(listener, router).await.unwrap();
     });
   });
 
-  block_on(rx)
-    .map(|port| PORT.set(port).unwrap())
-    .unwrap();
+  let port = block_on(rx)?;
+  let _ = PORT.set(port);
+
+  Ok(())
 }
 
 pub fn port() -> u16 {

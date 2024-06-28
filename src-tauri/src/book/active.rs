@@ -1,6 +1,6 @@
-use super::handle::{BookHandle, PageMap};
-use super::title::Title;
-use super::Cover;
+use crate::book::handle::{BookHandle, PageMap};
+use crate::book::title::Title;
+use crate::book::Cover;
 use crate::database::prelude::*;
 use crate::event::Event;
 use crate::{library, prelude::*};

@@ -1,8 +1,7 @@
 pub mod app {
   use crate::book::BookHandle;
-  use crate::reader::WindowMap;
   use crate::Kotori;
-  use tauri::{AppHandle, Manager, State, WebviewWindow, Wry};
+  use tauri::{AppHandle, Manager, State, Wry};
 
   pub trait AppHandleExt: Manager<Wry> {
     fn kotori(&self) -> State<Kotori> {
@@ -11,21 +10,6 @@ pub mod app {
 
     fn book_handle(&self) -> BookHandle {
       self.kotori().book_handle.clone()
-    }
-
-    fn get_focused_window(&self) -> Option<WebviewWindow> {
-      self
-        .webview_windows()
-        .into_values()
-        .find(|it| it.is_focused().unwrap_or(false))
-    }
-
-    fn main_window(&self) -> WebviewWindow {
-      self.get_webview_window("main").unwrap()
-    }
-
-    fn reader_windows(&self) -> WindowMap {
-      self.kotori().reader.windows()
     }
   }
 
@@ -236,5 +220,42 @@ pub mod result {
         self.log(app);
       }
     }
+  }
+}
+
+pub mod store {
+  use crate::error::Result;
+  use std::path::PathBuf;
+  use strum::{AsRefStr, Display, EnumString};
+  use tauri::{AppHandle, Manager, Wry};
+  use tauri_plugin_store::{with_store, Store, StoreCollection};
+
+  type StoreResult<T> = std::result::Result<T, tauri_plugin_store::Error>;
+
+  pub trait TauriStore: Manager<Wry> {
+    fn with_store<F, T>(&self, path: impl AsRef<str>, f: F) -> Result<T>
+    where
+      F: FnOnce(&mut Store<Wry>) -> StoreResult<T>,
+    {
+      let app = self.app_handle().clone();
+      let path = PathBuf::from(path.as_ref());
+      let collection = self.state::<StoreCollection<Wry>>();
+      with_store(app, collection, path, f).map_err(Into::into)
+    }
+
+    fn with_config_store<F, T>(&self, f: F) -> Result<T>
+    where
+      F: FnOnce(&mut Store<Wry>) -> StoreResult<T>,
+    {
+      self.with_store("config.json", f)
+    }
+  }
+
+  impl TauriStore for AppHandle {}
+
+  #[derive(AsRefStr, Debug, Display, EnumString)]
+  #[strum(serialize_all = "kebab-case")]
+  pub enum ConfigKey {
+    ColorMode,
   }
 }

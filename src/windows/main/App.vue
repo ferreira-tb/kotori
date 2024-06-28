@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { loadStores, useLibraryStore } from './stores';
 
 const config = useConfigStore();
-const { resume } = useIntervalFn(config.save, 30_000, { immediate: false });
+useIntervalFn(config.save, 30_000);
 
 const libraryStore = useLibraryStore();
 const { library, selected } = storeToRefs(libraryStore);
@@ -16,7 +16,7 @@ const { library, selected } = storeToRefs(libraryStore);
 setGlobalSensors();
 
 onMounted(() => {
-  loadStores().then(flushPromises).then(resume).then(showWindow).catch(handleError);
+  loadStores().then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 

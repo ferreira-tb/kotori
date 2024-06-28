@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
-use crate::window::ReaderWindow;
+use crate::window::{ReaderWindow, WindowExt, WindowManager};
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tokio::sync::{oneshot, RwLock};
@@ -34,7 +34,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
       .and_then(|it| it.webview(app));
 
     if let Some(webview) = webview {
-      return webview.set_focus().map_err(Into::into);
+      return webview.set_foreground_focus();
     }
   }
 
@@ -65,7 +65,7 @@ pub async fn close_all(app: &AppHandle) -> Result<()> {
     }
   }
 
-  app.main_window().set_focus().map_err(Into::into)
+  app.main_window().set_foreground_focus()
 }
 
 pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
@@ -113,7 +113,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
       .and_then(|(_, window)| window.webview(app));
 
     if let Some(webview) = webview {
-      webview.set_focus()?;
+      webview.set_foreground_focus()?;
 
       if main_window.is_fullscreen()? {
         webview.set_fullscreen(true)?;
@@ -145,7 +145,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
         .and_then(|window| window.webview(app));
 
       if let Some(webview) = webview {
-        webview.set_focus()?;
+        webview.set_foreground_focus()?;
 
         if focused.is_fullscreen()? {
           webview.set_fullscreen(true)?;

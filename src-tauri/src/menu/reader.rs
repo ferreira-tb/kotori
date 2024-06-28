@@ -1,4 +1,5 @@
-use super::prelude::*;
+use crate::menu::prelude::*;
+use crate::window::WindowManager;
 use crate::{library, prelude::*, reader};
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;

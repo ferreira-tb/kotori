@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::menu::reader::{build as build_menu, Item};
 use crate::menu::MenuExt;
 use crate::prelude::*;
-use crate::window::WindowKind;
+use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
 use tauri::menu::MenuEvent;
 use tauri::{WebviewWindowBuilder, WindowEvent};
 
@@ -26,6 +26,7 @@ impl ReaderWindow {
       .initialization_script(&script)
       .data_directory(kind.data_dir(app)?)
       .title(book.title.to_string())
+      .theme(ColorMode::get(app)?.into())
       .resizable(true)
       .maximizable(true)
       .minimizable(true)
@@ -118,7 +119,7 @@ fn on_window_event(app: &AppHandle, webview: &WebviewWindow, window_id: u16) {
           .get_index(previous)
           .and_then(|(_, window)| window.webview(&app))
           .or_else(|| Some(app.main_window()))
-          .map(|webview| webview.set_focus())
+          .map(|webview| webview.set_foreground_focus())
           .transpose()
           .log(&app);
       });

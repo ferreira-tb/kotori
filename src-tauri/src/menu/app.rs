@@ -1,8 +1,7 @@
-use super::prelude::*;
-use super::reader::close_all_reader_windows;
 use crate::book::{self, ActiveBook};
-use crate::reader;
-use crate::{library, menu_item_or_bail, prelude::*, VERSION};
+use crate::menu::prelude::*;
+use crate::menu::reader::close_all_reader_windows;
+use crate::{library, menu_item_or_bail, prelude::*, reader, window, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
@@ -54,9 +53,9 @@ impl Listener for Item {
       match item {
         Item::About => {}
         Item::AddToLibrary => add_to_library_with_dialog(&app).await,
-        Item::ColorModeAuto | Item::ColorModeDark | Item::ColorModeLight => {
-          todo!("color mode")
-        }
+        Item::ColorModeAuto => set_color_mode(&app, window::ColorMode::Auto).await,
+        Item::ColorModeDark => set_color_mode(&app, window::ColorMode::Dark).await,
+        Item::ColorModeLight => set_color_mode(&app, window::ColorMode::Light).await,
         Item::Discord => open_discord(&app),
         Item::Repository => open_repository(&app),
         Item::OpenFile => open_file(&app).await,
@@ -150,8 +149,8 @@ fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
 fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let mocks = SubmenuBuilder::new(app, "Mocks")
     .items(&[
-      &menu_item!(app, Item::AddMockBooksLandscape, "Landscape")?,
       &menu_item!(app, Item::AddMockBooksPortrait, "Portrait")?,
+      &menu_item!(app, Item::AddMockBooksLandscape, "Landscape")?,
     ])
     .build()?;
 
@@ -225,4 +224,28 @@ async fn open_random_book(app: &AppHandle) {
   };
 
   result.dialog(app);
+}
+
+async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {
+  use tauri_plugin_window_state::{AppHandleExt as _, StateFlags};
+
+  let (tx, rx) = oneshot::channel();
+  let dialog = app.dialog().clone();
+
+  let message = "Kotori must restart to apply the change. Do you want to continue?";
+  MessageDialogBuilder::new(dialog, "Color mode", message)
+    .kind(MessageDialogKind::Warning)
+    .ok_button_label("Confirm")
+    .cancel_button_label("Cancel")
+    .show(move |response| {
+      let _ = tx.send(response);
+    });
+
+  if let Ok(true) = rx.await {
+    let _ = mode.set(app);
+    let _ = app.save_window_state(StateFlags::all());
+
+    // Kotori may crash in dev mode after restarting.
+    app.restart();
+  }
 }

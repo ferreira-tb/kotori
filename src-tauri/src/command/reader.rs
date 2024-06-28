@@ -1,4 +1,5 @@
 use crate::book::{self, ActiveBook, ReaderBook};
+use crate::window::WindowManager;
 use crate::{prelude::*, reader};
 
 #[tauri::command]
