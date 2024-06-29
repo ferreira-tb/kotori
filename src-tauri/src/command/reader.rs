@@ -67,9 +67,9 @@ pub async fn open_book(app: AppHandle, book_id: i32) -> Result<()> {
 }
 
 #[tauri::command]
-pub async fn open_book_from_dialog(app: AppHandle) -> Result<()> {
-  debug!(command = "open_book_from_dialog");
-  book::open_from_dialog(&app).await
+pub async fn open_book_with_dialog(app: AppHandle) -> Result<()> {
+  debug!(command = "open_book_with_dialog");
+  book::open_with_dialog(&app).await
 }
 
 #[tauri::command]

@@ -7,7 +7,7 @@ export enum Command {
   GetCurrentReaderBook = 'get_current_reader_book',
   GetLibraryBooks = 'get_library_books',
   OpenBook = 'open_book',
-  OpenBookFromDialog = 'open_book_from_dialog',
+  OpenBookWithDialog = 'open_book_with_dialog',
   RemoveBook = 'remove_book',
   RemoveBookWithDialog = 'remove_book_with_dialog',
   ServerPort = 'server_port',
@@ -77,8 +77,8 @@ export async function openBook(bookId: number) {
   await invoke(Command.OpenBook, { bookId });
 }
 
-export async function openBookFromDialog() {
-  await invoke(Command.OpenBookFromDialog);
+export async function openBookWithDialog() {
+  await invoke(Command.OpenBookWithDialog);
 }
 
 export function toggleFullscreen() {

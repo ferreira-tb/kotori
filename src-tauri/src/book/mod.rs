@@ -20,7 +20,7 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 use tokio::fs;
 use tokio::sync::oneshot;
 
-pub async fn open_from_dialog(app: &AppHandle) -> Result<()> {
+pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 

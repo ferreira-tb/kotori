@@ -75,6 +75,10 @@ version = "0.30.7"
 default-features = false
 features = ["backend-sqlite", "thread-safe"]
 
+[dependencies.semver]
+version = "1.0.23"
+features = ["serde"]
+
 [dependencies.serde]
 version = "1.0.203"
 features = ["derive"]

@@ -62,7 +62,21 @@ pub async fn save<P>(app: &AppHandle, path: P) -> Result<Option<book::Model>>
 where
   P: AsRef<Path>,
 {
-  let model = Book::builder(path).build(app).await?;
+  let mut builder = Book::builder(&path);
+
+  // In theory, we should call `BookHandle::close` afterwards, as the file will no longer be needed.
+  // But in practice, Kotori will schedule the extraction of the book cover right after it is saved,
+  // which would open the file again.
+  let book_handle = app.book_handle();
+  if let Some(metadata) = book_handle.get_metadata(&path).await? {
+    builder = builder.metadata(metadata);
+  }
+
+  // This will be `None` if an unique constraint violation occurs.
+  let model = builder.build(app).await?;
+
+  // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
+  // but that doesn't seem like a good idea. After all, the data would only be default values.
   if let Some(model) = &model {
     LibraryBook::from_model(app, model)
       .await

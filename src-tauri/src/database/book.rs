@@ -7,11 +7,14 @@ pub trait BookExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
   async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model>;
   async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model>;
+  async fn get_cover(app: &AppHandle, id: i32) -> Result<Option<String>>;
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
   async fn remove_all(app: &AppHandle) -> Result<()>;
+
   async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
   where
     C: Into<Option<&'a str>>;
+
   async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model>;
 
   /// Get a random book from the library.
@@ -48,6 +51,24 @@ impl BookExt for Book {
       .one(&kotori.db)
       .await?
       .ok_or_else(|| err!(BookNotFound))
+  }
+
+  async fn get_cover(app: &AppHandle, id: i32) -> Result<Option<String>> {
+    let kotori = app.kotori();
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::select()
+      .column(book::Column::Cover)
+      .and_where(book::Column::Id.eq(id))
+      .from(Book)
+      .to_owned();
+
+    kotori
+      .db
+      .query_one(builder.build(&stmt))
+      .await?
+      .ok_or_else(|| err!(BookNotFound))
+      .map(|it| it.try_get::<String>("", "cover").ok())
   }
 
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
@@ -148,7 +169,7 @@ impl BookExt for Book {
 pub struct Builder {
   path: PathBuf,
   title: Option<Title>,
-  rating: Option<i32>,
+  rating: Option<u8>,
   cover: Option<String>,
 }
 
@@ -173,8 +194,8 @@ impl Builder {
       self.title = Some(title);
     }
 
-    if let Some(rating) = metadata.rating.take() {
-      self.rating = Some(rating);
+    if matches!(metadata.rating, Some(it) if it <= 5) {
+      self.rating = metadata.rating.take();
     }
 
     if let Some(cover) = metadata.cover.take() {
@@ -194,7 +215,7 @@ impl Builder {
     let model = book::ActiveModel {
       path: Set(path),
       title: Set(title),
-      rating: self.rating.map_or(NotSet, Set),
+      rating: self.rating.map_or(NotSet, |it| Set(it.into())),
       cover: Set(self.cover),
       ..Default::default()
     };

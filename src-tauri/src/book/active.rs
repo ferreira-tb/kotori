@@ -84,11 +84,6 @@ impl ActiveBook {
     pages.await.map(Arc::clone)
   }
 
-  async fn model(&self, app: &AppHandle) -> Result<book::Model> {
-    let id = self.try_id(app).await?;
-    Book::get_by_id(app, id).await
-  }
-
   pub async fn has_page(&self, name: &str) -> Result<bool> {
     self
       .pages()
@@ -109,15 +104,16 @@ impl ActiveBook {
     self.handle.read_page(&self.path, name).await
   }
 
+  /// Get cover name if the book is in the library.
+  /// If the name isn't saved in the database yet, this method will do it.
   pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
-    let mut model = self.model(app).await?;
-    if let Some(cover) = model.cover.take() {
+    let id = self.try_id(app).await?;
+    if let Some(cover) = Book::get_cover(app, id).await? {
       if self.has_page(&cover).await? {
         return Ok(cover);
       }
     };
 
-    let id = self.try_id(app).await?;
     let name = self.get_first_page().await?;
     Book::update_cover(app, id, name.as_str()).await?;
 
@@ -156,6 +152,12 @@ impl ActiveBook {
   }
 
   pub async fn delete_page(&mut self, app: &AppHandle, name: &str) -> Result<()> {
+    // `ActiveBook::get_cover_name` will always fail if the book isn't in the library.
+    let is_cover = match self.get_cover_name(app).await {
+      Ok(cover) => cover == name,
+      Err(_) => self.try_id(app).await.is_ok(),
+    };
+
     self.handle.delete_page(&self.path, name).await?;
 
     // As the page has been removed, we need to reset the cell.
@@ -163,13 +165,13 @@ impl ActiveBook {
 
     // Next steps are exclusive to books in the library.
     if let Ok(id) = self.try_id(app).await {
+      // Remove from library if it was the last page.
       if self.pages().await?.is_empty() {
         return library::remove(app, id).await;
       }
 
-      // Reset the cover if it was the deleted page.
-      let cover = self.get_cover_name(app).await?;
-      if cover == name {
+      // Extract a new cover if it was the deleted page.
+      if is_cover {
         Book::update_cover(app, id, None).await?;
         if let Ok(cover) = app.path().cover(id) {
           self.extract_cover(app, cover).await?;
@@ -187,7 +189,7 @@ impl Drop for ActiveBook {
     let handle = self.handle.clone();
     spawn(async move { handle.close(path).await });
 
-    trace!(dropped = %self.path.display());
+    trace!(active_book_drop = %self.path.display());
   }
 }
 

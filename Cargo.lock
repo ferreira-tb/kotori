@@ -2949,6 +2949,7 @@ dependencies = [
  "rand 0.8.5",
  "sea-orm",
  "sea-query",
+ "semver",
  "serde",
  "serde_json",
  "sqlx",

@@ -71,7 +71,7 @@ fn main() {
       command::reader::delete_page_with_dialog,
       command::reader::get_current_reader_book,
       command::reader::open_book,
-      command::reader::open_book_from_dialog,
+      command::reader::open_book_with_dialog,
       command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
       command::reader::toggle_reader_menu

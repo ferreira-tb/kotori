@@ -2,26 +2,31 @@ use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
+use crate::utils::temp::Tempfile;
 use ahash::{HashMap, HashMapExt};
-use futures::future::{self, BoxFuture};
 use std::fs::{self, File};
-use std::io::{Read, Seek};
+use std::io::{Read, Seek, Write};
 use std::sync::{Arc, Mutex};
 use std::{fmt, thread};
 use strum::Display;
 use tokio::sync::{mpsc, oneshot, Notify, Semaphore, SemaphorePermit};
-use uuid::Uuid;
 use zip::result::{ZipError, ZipResult};
+use zip::write::SimpleFileOptions as ZipSimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
 type TxResult<T> = oneshot::Sender<Result<T>>;
 
-pub type PageMap = OrderedMap<usize, String>;
+pub(super) type PageMap = OrderedMap<usize, String>;
 
 pub const MAX_FILE_PERMITS: usize = 50;
 static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
 
-/// Sends a message to the actor, awaiting its response with a oneshot channel.
+#[cfg(any(debug_assertions, feature = "devtools"))]
+const METADATA: &str = "kotori-dev.json";
+#[cfg(not(any(debug_assertions, feature = "devtools")))]
+const METADATA: &str = "kotori.json";
+
+/// Send a message to the actor, awaiting its response with a oneshot channel.
 macro_rules! send_tx {
   ($handle:expr, $message:ident { $($item:tt),* }) => {{
     let (tx, rx) = oneshot::channel();
@@ -30,6 +35,7 @@ macro_rules! send_tx {
   }};
 }
 
+/// Send a message to the actor, awaiting to be notified by it.
 macro_rules! send_notify {
     ($handle:expr, $message:ident { $($item:tt),* }) => {{
       let notify = Arc::new(Notify::new());
@@ -86,9 +92,24 @@ impl BookHandle {
     send_notify!(self, Close { path });
   }
 
-  pub async fn get_book_metadata(&self, path: impl AsRef<Path>) -> Result<Option<Metadata>> {
+  pub async fn get_metadata(&self, path: impl AsRef<Path>) -> Result<Option<Metadata>> {
     let path = path.as_ref().to_owned();
-    send_tx!(self, Metadata { path })
+    let metadata = send_tx!(self, GetMetadata { path })?;
+
+    #[cfg(debug_assertions)]
+    if let Some(metadata) = &metadata {
+      trace!(?metadata);
+    }
+
+    Ok(metadata)
+  }
+
+  pub async fn set_metadata<P>(&self, path: P, metadata: Metadata) -> Result<()>
+  where
+    P: AsRef<Path>,
+  {
+    let path = path.as_ref().to_owned();
+    send_tx!(self, SetMetadata { path, metadata })
   }
 }
 
@@ -119,13 +140,18 @@ enum Message {
     path: PathBuf,
     nt: Arc<Notify>,
   },
-  Metadata {
+  GetMetadata {
     path: PathBuf,
     tx: TxResult<Option<Metadata>>,
   },
+  SetMetadata {
+    path: PathBuf,
+    metadata: Metadata,
+    tx: TxResult<()>,
+  },
 }
 
-pub struct Actor {
+struct Actor {
   books: HashMap<PathBuf, BookFile>,
   receiver: mpsc::Receiver<Message>,
 }
@@ -135,7 +161,7 @@ impl Actor {
     Self { books: HashMap::new(), receiver }
   }
 
-  pub async fn run(&mut self) {
+  async fn run(&mut self) {
     while let Some(message) = self.receiver.recv().await {
       debug!(queued_messages = self.receiver.len());
       self.handle_message(message).await;
@@ -163,24 +189,8 @@ impl Actor {
       }
       Message::DeletePage { path, page, tx } => {
         let result = self
-          .books
-          .remove(&path)
-          .map_or_else(
-            || {
-              let future = BookFile::open(&path);
-              Box::pin(future) as BoxFuture<Result<BookFile>>
-            },
-            |book| Box::pin(future::ok(book)),
-          )
-          .and_then(|it| it.delete_page(&path, page))
-          .await;
-
-        let _ = tx.send(result);
-      }
-      Message::Metadata { path, tx } => {
-        let result = self
-          .get_book(&path)
-          .and_then(BookFile::read_book_metadata)
+          .remove_book(&path)
+          .and_then(|it| it.delete_page(page))
           .await;
 
         let _ = tx.send(result);
@@ -189,17 +199,29 @@ impl Actor {
         self.books.remove(&path);
         nt.notify_one();
       }
+      Message::GetMetadata { path, tx } => {
+        let result = self
+          .get_book(&path)
+          .and_then(BookFile::read_metadata)
+          .await;
+
+        let _ = tx.send(result);
+      }
+      Message::SetMetadata { path, metadata, tx } => {
+        let result = self
+          .remove_book(&path)
+          .and_then(|it| it.write_metadata(metadata))
+          .await;
+
+        let _ = tx.send(result);
+      }
     };
   }
 
-  async fn get_book<P>(&mut self, path: P) -> Result<&BookFile>
-  where
-    P: AsRef<Path>,
-  {
-    let path = path.as_ref();
+  async fn get_book(&mut self, path: &PathBuf) -> Result<&BookFile> {
     if !self.books.contains_key(path) {
       let book = BookFile::open(&path).await?;
-      self.books.insert(path.to_owned(), book);
+      self.books.insert(path.clone(), book);
     }
 
     self
@@ -208,11 +230,20 @@ impl Actor {
       .map(Ok)
       .expect("book should have been added if it was missing")
   }
+
+  async fn remove_book(&mut self, path: &PathBuf) -> Result<BookFile> {
+    if let Some(book) = self.books.remove(path) {
+      Ok(book)
+    } else {
+      BookFile::open(&path).await
+    }
+  }
 }
 
 struct BookFile {
   file: Arc<Mutex<ZipArchive<File>>>,
   pages: Arc<PageMap>,
+  path: PathBuf,
 
   #[allow(dead_code)]
   permit: SemaphorePermit<'static>,
@@ -232,6 +263,7 @@ impl BookFile {
       let file = BookFile {
         file: Arc::new(Mutex::new(zip)),
         pages: Arc::new(pages),
+        path,
         permit,
       };
 
@@ -256,13 +288,13 @@ impl BookFile {
     join.await?
   }
 
-  async fn read_book_metadata(&self) -> Result<Option<Metadata>> {
+  async fn read_metadata(&self) -> Result<Option<Metadata>> {
     let zip = Arc::clone(&self.file);
     let join = spawn_blocking(move || {
       zip
         .lock()
         .unwrap()
-        .book_metadata()?
+        .read_book_metadata()?
         .as_deref()
         .map(serde_json::from_slice)
         .transpose()
@@ -272,41 +304,47 @@ impl BookFile {
     join.await?
   }
 
-  async fn delete_page<P, S>(self, path: P, page: S) -> Result<()>
-  where
-    P: AsRef<Path>,
-    S: AsRef<str>,
-  {
-    let parent = path.try_parent()?;
-    let temp = parent.join(format!("{}.kotori", Uuid::now_v7()));
-
-    let zip = Arc::clone(&self.file);
-    let path = path.as_ref().to_owned();
+  async fn delete_page(self, page: impl AsRef<str>) -> Result<()> {
     let page = page.as_ref().to_owned();
-
     let join = spawn_blocking(move || {
-      let mut file = File::create(&temp)?;
-      let mut writer = ZipWriter::new(&mut file);
+      let parent = self.path.try_parent()?;
+      let mut temp = Tempfile::new_in(parent)?;
+      let mut writer = ZipWriter::new(&mut temp.file);
 
-      let mut zip = zip.lock().unwrap();
-      let names = zip
-        .file_names()
-        .filter(|it| *it != page)
-        .map(ToOwned::to_owned)
-        .collect_vec();
+      self
+        .file
+        .lock()
+        .unwrap()
+        .raw_copy_if(&mut writer, |it| *it != page)?;
 
-      for name in names {
-        let file = zip.by_name(&name)?;
-        writer.raw_copy_file(file)?;
-      }
+      writer.finish()?;
+      fs::remove_file(&self.path)?;
+      fs::rename(&temp.path, self.path)?;
 
-      if let Err(err) = writer.finish() {
-        fs::remove_file(&temp)?;
-        return Err(Into::into(err));
-      }
+      Ok(())
+    });
 
-      fs::remove_file(&path)?;
-      fs::rename(temp, path)?;
+    join.await?
+  }
+
+  async fn write_metadata(self, metadata: Metadata) -> Result<()> {
+    let join = spawn_blocking(move || {
+      let parent = self.path.try_parent()?;
+      let mut temp = Tempfile::new_in(parent)?;
+      let mut writer = ZipWriter::new(&mut temp.file);
+
+      self
+        .file
+        .lock()
+        .unwrap()
+        .raw_copy_if(&mut writer, |it| *it != METADATA)?;
+
+      writer.start_file(METADATA, ZipSimpleFileOptions::default())?;
+      serde_json::to_writer_pretty(&mut writer, &metadata)?;
+
+      writer.finish()?;
+      fs::remove_file(&self.path)?;
+      fs::rename(&temp.path, self.path)?;
 
       Ok(())
     });
@@ -317,7 +355,17 @@ impl BookFile {
 
 trait ZipArchiveExt {
   fn book_pages(&self) -> PageMap;
-  fn book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>>;
+
+  fn file_names_by<F>(&mut self, f: F) -> Vec<String>
+  where
+    F: FnMut(&&str) -> bool;
+
+  fn raw_copy_if<W, F>(&mut self, writer: &mut ZipWriter<&mut W>, f: F) -> ZipResult<()>
+  where
+    W: Write + Seek,
+    F: FnMut(&&str) -> bool;
+
+  fn read_book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>>;
   fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>>;
 }
 
@@ -338,17 +386,15 @@ where
       .collect()
   }
 
-  fn book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>> {
-    #[cfg(any(debug_assertions, feature = "devtools"))]
-    let name = "kotori-dev.json";
-    #[cfg(not(any(debug_assertions, feature = "devtools")))]
-    let name = "kotori.json";
-
-    match self.read_file(name) {
-      Ok(it) => Ok(Some(it)),
-      Err(ZipError::FileNotFound) => Ok(None),
-      Err(err) => Err(err),
-    }
+  fn file_names_by<F>(&mut self, f: F) -> Vec<String>
+  where
+    F: FnMut(&&str) -> bool,
+  {
+    self
+      .file_names()
+      .filter(f)
+      .map(ToOwned::to_owned)
+      .collect_vec()
   }
 
   fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>> {
@@ -357,5 +403,26 @@ where
     let mut buf = Vec::with_capacity(size);
     file.read_to_end(&mut buf)?;
     Ok(buf)
+  }
+
+  fn read_book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>> {
+    match self.read_file(METADATA) {
+      Ok(it) => Ok(Some(it)),
+      Err(ZipError::FileNotFound) => Ok(None),
+      Err(err) => Err(err),
+    }
+  }
+
+  fn raw_copy_if<W, F>(&mut self, writer: &mut ZipWriter<&mut W>, f: F) -> ZipResult<()>
+  where
+    W: Write + Seek,
+    F: FnMut(&&str) -> bool,
+  {
+    for name in self.file_names_by(f) {
+      let file = self.by_name(&name)?;
+      writer.raw_copy_file(file)?;
+    }
+
+    Ok(())
   }
 }

@@ -201,7 +201,7 @@ async fn clear_library(app: &AppHandle) {
 }
 
 async fn open_file(app: &AppHandle) {
-  book::open_from_dialog(app).await.dialog(app);
+  book::open_with_dialog(app).await.dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {
