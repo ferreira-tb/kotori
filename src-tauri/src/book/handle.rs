@@ -4,6 +4,7 @@ use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
 use crate::utils::temp::Tempfile;
 use ahash::{HashMap, HashMapExt};
+use natord::compare_ignore_case;
 use std::fs::{self, File};
 use std::io::{Read, Seek, Write};
 use std::sync::{Arc, Mutex};
@@ -37,12 +38,12 @@ macro_rules! send_tx {
 
 /// Send a message to the actor, awaiting to be notified by it.
 macro_rules! send_notify {
-    ($handle:expr, $message:ident { $($item:tt),* }) => {{
-      let notify = Arc::new(Notify::new());
-      let message = Message::$message { nt: Arc::clone(&notify) $(,$item)* };
-      let _ = $handle.sender.send(message).await;
-      notify.notified().await;
-    }};
+  ($handle:expr, $message:ident { $($item:tt),* }) => {{
+    let notify = Arc::new(Notify::new());
+    let message = Message::$message { nt: Arc::clone(&notify) $(,$item)* };
+    let _ = $handle.sender.send(message).await;
+    notify.notified().await;
+  }};
 }
 
 #[derive(Clone)]
@@ -60,6 +61,11 @@ impl BookHandle {
     });
 
     Self { sender }
+  }
+
+  pub async fn close(&self, path: impl AsRef<Path>) {
+    let path = path.as_ref().to_owned();
+    send_notify!(self, Close { path });
   }
 
   pub async fn get_pages(&self, path: impl AsRef<Path>) -> Result<Arc<PageMap>> {
@@ -87,18 +93,13 @@ impl BookHandle {
     send_tx!(self, DeletePage { path, page })
   }
 
-  pub async fn close(&self, path: impl AsRef<Path>) {
-    let path = path.as_ref().to_owned();
-    send_notify!(self, Close { path });
-  }
-
   pub async fn get_metadata(&self, path: impl AsRef<Path>) -> Result<Option<Metadata>> {
     let path = path.as_ref().to_owned();
     let metadata = send_tx!(self, GetMetadata { path })?;
 
     #[cfg(debug_assertions)]
     if let Some(metadata) = &metadata {
-      trace!(?metadata);
+      trace!(get_metadata = ?metadata);
     }
 
     Ok(metadata)
@@ -108,8 +109,17 @@ impl BookHandle {
   where
     P: AsRef<Path>,
   {
+    trace!(set_metadata = ?metadata);
     let path = path.as_ref().to_owned();
     send_tx!(self, SetMetadata { path, metadata })
+  }
+
+  pub async fn get_first_page_name<P>(&self, path: P) -> Result<String>
+  where
+    P: AsRef<Path>,
+  {
+    let path = path.as_ref().to_owned();
+    send_tx!(self, GetFirstPageName { path })
   }
 }
 
@@ -122,6 +132,10 @@ impl fmt::Debug for BookHandle {
 #[derive(Display)]
 #[strum(serialize_all = "snake_case")]
 enum Message {
+  Close {
+    path: PathBuf,
+    nt: Arc<Notify>,
+  },
   GetPages {
     path: PathBuf,
     tx: TxResult<Arc<PageMap>>,
@@ -136,9 +150,9 @@ enum Message {
     page: String,
     tx: TxResult<()>,
   },
-  Close {
+  GetFirstPageName {
     path: PathBuf,
-    nt: Arc<Notify>,
+    tx: TxResult<String>,
   },
   GetMetadata {
     path: PathBuf,
@@ -171,6 +185,10 @@ impl Actor {
   async fn handle_message(&mut self, message: Message) {
     trace!(%message, books = self.books.len());
     match message {
+      Message::Close { path, nt } => {
+        self.books.remove(&path);
+        nt.notify_one();
+      }
       Message::GetPages { path, tx } => {
         let result = self
           .get_book(&path)
@@ -195,10 +213,6 @@ impl Actor {
 
         let _ = tx.send(result);
       }
-      Message::Close { path, nt } => {
-        self.books.remove(&path);
-        nt.notify_one();
-      }
       Message::GetMetadata { path, tx } => {
         let result = self
           .get_book(&path)
@@ -212,6 +226,14 @@ impl Actor {
           .remove_book(&path)
           .and_then(|it| it.write_metadata(metadata))
           .await;
+
+        let _ = tx.send(result);
+      }
+      Message::GetFirstPageName { path, tx } => {
+        let result = self
+          .get_book(&path)
+          .await
+          .and_then(BookFile::first_page_name);
 
         let _ = tx.send(result);
       }
@@ -327,6 +349,15 @@ impl BookFile {
     join.await?
   }
 
+  fn first_page_name(&self) -> Result<String> {
+    self
+      .pages
+      .values()
+      .next()
+      .map(ToOwned::to_owned)
+      .ok_or_else(|| err!(EmptyBook))
+  }
+
   async fn write_metadata(self, metadata: Metadata) -> Result<()> {
     let join = spawn_blocking(move || {
       let parent = self.path.try_parent()?;
@@ -374,8 +405,6 @@ where
   T: Read + Seek,
 {
   fn book_pages(&self) -> PageMap {
-    use natord::compare_ignore_case;
-
     let globset = glob::book_page();
     self
       .file_names()

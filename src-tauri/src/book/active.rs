@@ -1,6 +1,7 @@
+use crate::book::cover::Cover;
 use crate::book::handle::{BookHandle, PageMap};
+use crate::book::metadata::Metadata;
 use crate::book::title::Title;
-use crate::book::Cover;
 use crate::database::BookExt;
 use crate::event::Event;
 use crate::{library, prelude::*};
@@ -91,21 +92,11 @@ impl ActiveBook {
       .map(|it| it.values().any(|it| it == name))
   }
 
-  async fn get_first_page(&self) -> Result<String> {
-    self
-      .pages()
-      .await?
-      .first()
-      .map(|(_, name)| name.to_owned())
-      .ok_or_else(|| err!(PageNotFound))
-  }
-
   pub async fn get_page_as_bytes(&self, name: &str) -> Result<Vec<u8>> {
     self.handle.read_page(&self.path, name).await
   }
 
   /// Get cover name if the book is in the library.
-  /// If the name isn't saved in the database yet, this method will do it.
   pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
     let id = self.try_id(app).await?;
     if let Some(cover) = Book::get_cover(app, id).await? {
@@ -114,10 +105,10 @@ impl ActiveBook {
       }
     };
 
-    let name = self.get_first_page().await?;
-    Book::update_cover(app, id, name.as_str()).await?;
-
-    Ok(name)
+    app
+      .book_handle()
+      .get_first_page_name(&self.path)
+      .await
   }
 
   pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
@@ -139,23 +130,30 @@ impl ActiveBook {
     Event::CoverExtracted { id, path }.emit(app)
   }
 
-  /// Set the specified page as the book cover.
-  pub async fn update_cover(&self, app: &AppHandle, name: &str) -> Result<()> {
+  /// Set the specified page as the book cover, extracting it afterwards.
+  pub async fn update_cover<N>(&self, app: &AppHandle, name: N) -> Result<()>
+  where
+    N: AsRef<str>,
+  {
     let id = self.try_id(app).await?;
-    Book::update_cover(app, id, name).await?;
+    let model = Book::update_cover(app, id, name).await?;
 
     if let Ok(cover) = app.path().cover(id) {
       self.extract_cover(app, cover).await?;
     }
 
-    Ok(())
+    let metadata = Metadata::try_from(&model)?;
+    app
+      .book_handle()
+      .set_metadata(&model.path, metadata)
+      .await
   }
 
   pub async fn delete_page(&mut self, app: &AppHandle, name: &str) -> Result<()> {
     // `ActiveBook::get_cover_name` will always fail if the book isn't in the library.
     let is_cover = match self.get_cover_name(app).await {
       Ok(cover) => cover == name,
-      Err(_) => self.try_id(app).await.is_ok(),
+      Err(_) => self.id().is_some(),
     };
 
     self.handle.delete_page(&self.path, name).await?;
@@ -164,18 +162,19 @@ impl ActiveBook {
     self.pages.take();
 
     // Next steps are exclusive to books in the library.
-    if let Ok(id) = self.try_id(app).await {
+    if let Some(id) = self.id() {
       // Remove from library if it was the last page.
       if self.pages().await?.is_empty() {
         return library::remove(app, id).await;
       }
 
-      // Extract a new cover if it was the deleted page.
+      // Update with a new cover if it was the deleted page.
       if is_cover {
-        Book::update_cover(app, id, None).await?;
-        if let Ok(cover) = app.path().cover(id) {
-          self.extract_cover(app, cover).await?;
-        }
+        app
+          .book_handle()
+          .get_first_page_name(&self.path)
+          .and_then(|name| self.update_cover(app, name))
+          .await?;
       }
     }
 

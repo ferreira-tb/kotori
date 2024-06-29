@@ -11,9 +11,9 @@ pub trait BookExt {
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
   async fn remove_all(app: &AppHandle) -> Result<()>;
 
-  async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
+  async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<book::Model>
   where
-    C: Into<Option<&'a str>>;
+    N: AsRef<str>;
 
   async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model>;
 
@@ -133,19 +133,13 @@ impl BookExt for Book {
     Ok(())
   }
 
-  async fn update_cover<'a, C>(app: &AppHandle, id: i32, cover: C) -> Result<book::Model>
+  async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<book::Model>
   where
-    C: Into<Option<&'a str>>,
+    N: AsRef<str>,
   {
     let book = Self::get_by_id(app, id).await?;
     let mut book = book.into_active_model();
-
-    if let Some(cover) = cover.into() {
-      let cover = cover.to_owned();
-      book.cover = Set(Some(cover));
-    } else {
-      book.cover = Set(None);
-    }
+    book.cover = Set(name.as_ref().to_owned());
 
     let kotori = app.kotori();
     book.update(&kotori.db).await.map_err(Into::into)
@@ -184,6 +178,11 @@ impl Builder {
     }
   }
 
+  pub fn cover(mut self, cover: String) -> Self {
+    self.cover = Some(cover);
+    self
+  }
+
   pub fn title(mut self, title: Title) -> Self {
     self.title = Some(title);
     self
@@ -205,18 +204,28 @@ impl Builder {
     self
   }
 
-  pub async fn build(self, app: &AppHandle) -> Result<Option<book::Model>> {
+  pub async fn build(mut self, app: &AppHandle) -> Result<Option<book::Model>> {
     let path = self.path.try_string()?;
     let title = match self.title {
       Some(it) => it.to_string(),
       None => Title::try_from(&self.path)?.to_string(),
     };
 
+    let cover = match self.cover.take() {
+      Some(cover) => cover,
+      None => {
+        app
+          .book_handle()
+          .get_first_page_name(&self.path)
+          .await?
+      }
+    };
+
     let model = book::ActiveModel {
       path: Set(path),
       title: Set(title),
       rating: self.rating.map_or(NotSet, |it| Set(it.into())),
-      cover: Set(self.cover),
+      cover: Set(cover),
       ..Default::default()
     };
 

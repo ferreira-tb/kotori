@@ -15,7 +15,7 @@ pub struct Model {
   pub path: String,
   pub title: String,
   pub rating: i32,
-  pub cover: Option<String>,
+  pub cover: String,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

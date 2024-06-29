@@ -68,6 +68,9 @@ where
   // But in practice, Kotori will schedule the extraction of the book cover right after it is saved,
   // which would open the file again.
   let book_handle = app.book_handle();
+  let cover = book_handle.get_first_page_name(&path).await?;
+  builder = builder.cover(cover);
+
   if let Some(metadata) = book_handle.get_metadata(&path).await? {
     builder = builder.metadata(metadata);
   }

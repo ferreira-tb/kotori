@@ -38,11 +38,11 @@ pub enum Item {
   #[strum(serialize = "kt-app-add-mock-books-portrait")]
   AddMockBooksPortrait,
   #[cfg(any(debug_assertions, feature = "devtools"))]
-  #[strum(serialize = "kt-app-clear-library")]
-  ClearLibrary,
-  #[cfg(any(debug_assertions, feature = "devtools"))]
   #[strum(serialize = "kt-app-close-all-reader-windows")]
   CloseAllReaderWindows,
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[strum(serialize = "kt-app-remove-all-books")]
+  RemoveAllBooks,
 }
 
 impl Listener for Item {
@@ -66,7 +66,7 @@ impl Listener for Item {
         #[cfg(any(debug_assertions, feature = "devtools"))]
         Item::AddMockBooksPortrait => add_mock_books(&app, Orientation::Portrait).await,
         #[cfg(any(debug_assertions, feature = "devtools"))]
-        Item::ClearLibrary => clear_library(&app).await,
+        Item::RemoveAllBooks => remove_all_books(&app).await,
         #[cfg(any(debug_assertions, feature = "devtools"))]
         Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
       }
@@ -157,7 +157,7 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
   let library = SubmenuBuilder::new(app, "Library")
     .items(&[&mocks])
     .separator()
-    .items(&[&menu_item!(app, Item::ClearLibrary, "Clear")?])
+    .items(&[&menu_item!(app, Item::RemoveAllBooks, "Remove all")?])
     .build()?;
 
   let reader = SubmenuBuilder::new(app, "Reader")
@@ -179,25 +179,6 @@ async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
 
 async fn add_to_library_with_dialog(app: &AppHandle) {
   library::add_with_dialog(app).await.dialog(app);
-}
-
-#[cfg(any(debug_assertions, feature = "devtools"))]
-async fn clear_library(app: &AppHandle) {
-  let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
-  let message = "All books will be removed.";
-  MessageDialogBuilder::new(dialog, "Clear library", message)
-    .kind(MessageDialogKind::Warning)
-    .ok_button_label("Clear")
-    .cancel_button_label("Cancel")
-    .show(move |response| {
-      let _ = tx.send(response);
-    });
-
-  if let Ok(true) = rx.await {
-    library::remove_all(app).await.dialog(app);
-  }
 }
 
 async fn open_file(app: &AppHandle) {
@@ -224,6 +205,25 @@ async fn open_random_book(app: &AppHandle) {
   };
 
   result.dialog(app);
+}
+
+#[cfg(any(debug_assertions, feature = "devtools"))]
+async fn remove_all_books(app: &AppHandle) {
+  let (tx, rx) = oneshot::channel();
+  let dialog = app.dialog().clone();
+
+  let message = "All books will be removed. Are you sure?";
+  MessageDialogBuilder::new(dialog, "Remove all books", message)
+    .kind(MessageDialogKind::Warning)
+    .ok_button_label("Clear")
+    .cancel_button_label("Cancel")
+    .show(move |response| {
+      let _ = tx.send(response);
+    });
+
+  if let Ok(true) = rx.await {
+    library::remove_all(app).await.dialog(app);
+  }
 }
 
 async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {

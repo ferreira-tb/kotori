@@ -1,6 +1,7 @@
 use crate::book::Title;
 use crate::prelude::*;
 use crate::VERSION;
+use kotori_entity::book;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -16,12 +17,22 @@ pub struct Metadata {
 }
 
 impl Metadata {
-  pub fn new(path: impl AsRef<Path>) -> Self {
-    Self::builder(path).build()
-  }
-
   pub fn builder(path: impl AsRef<Path>) -> Builder {
     Builder::new(path)
+  }
+}
+
+impl TryFrom<&book::Model> for Metadata {
+  type Error = crate::error::Error;
+
+  fn try_from(model: &book::Model) -> Result<Self> {
+    let title = Title::new(&model.title);
+    let rating = u8::try_from(model.rating)?;
+    Builder::new(&model.path)
+      .title(title)
+      .cover(&model.cover)
+      .rating(rating)
+      .map(Builder::build)
   }
 }
 
@@ -63,8 +74,8 @@ impl Builder {
     let version = Version::parse(VERSION).unwrap();
     Metadata {
       title: self.title,
-      rating: None,
-      cover: None,
+      rating: self.rating,
+      cover: self.cover,
       version: Some(version),
     }
   }

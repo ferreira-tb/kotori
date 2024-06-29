@@ -75,7 +75,10 @@ async fn set_as_cover(app: &AppHandle) {
       .and_then(|model| ActiveBook::from_model(app, &model).ok());
 
     if let Some(book) = book {
-      book.update_cover(app, &name).await.dialog(app);
+      book
+        .update_cover(app, name.as_str())
+        .await
+        .dialog(app);
     }
   };
 }

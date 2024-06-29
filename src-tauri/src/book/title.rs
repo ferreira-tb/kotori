@@ -5,6 +5,12 @@ use std::fmt;
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Title(pub(super) String);
 
+impl Title {
+  pub fn new(title: impl AsRef<str>) -> Self {
+    Self(title.as_ref().to_owned())
+  }
+}
+
 impl TryFrom<&Path> for Title {
   type Error = crate::error::Error;
 
