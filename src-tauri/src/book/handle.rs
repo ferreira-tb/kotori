@@ -9,7 +9,7 @@ use std::io::{Read, Seek};
 use std::sync::{Arc, Mutex};
 use std::{fmt, thread};
 use strum::Display;
-use tokio::sync::{mpsc, oneshot, Semaphore, SemaphorePermit};
+use tokio::sync::{mpsc, oneshot, Notify, Semaphore, SemaphorePermit};
 use uuid::Uuid;
 use zip::result::{ZipError, ZipResult};
 use zip::{ZipArchive, ZipWriter};
@@ -20,6 +20,24 @@ pub type PageMap = OrderedMap<usize, String>;
 
 pub const MAX_FILE_PERMITS: usize = 50;
 static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
+
+/// Sends a message to the actor, awaiting its response with a oneshot channel.
+macro_rules! send_tx {
+  ($handle:expr, $message:ident { $($item:tt),* }) => {{
+    let (tx, rx) = oneshot::channel();
+    let _ = $handle.sender.send(Message::$message { tx $(,$item)* }).await;
+    rx.await?
+  }};
+}
+
+macro_rules! send_notify {
+    ($handle:expr, $message:ident { $($item:tt),* }) => {{
+      let notify = Arc::new(Notify::new());
+      let message = Message::$message { nt: Arc::clone(&notify) $(,$item)* };
+      let _ = $handle.sender.send(message).await;
+      notify.notified().await;
+    }};
+}
 
 #[derive(Clone)]
 pub struct BookHandle {
@@ -40,13 +58,7 @@ impl BookHandle {
 
   pub async fn get_pages(&self, path: impl AsRef<Path>) -> Result<Arc<PageMap>> {
     let path = path.as_ref().to_owned();
-    let (tx, rx) = oneshot::channel();
-    let _ = self
-      .sender
-      .send(Message::GetPages { path, tx })
-      .await;
-
-    rx.await?
+    send_tx!(self, GetPages { path })
   }
 
   pub async fn read_page<P, S>(&self, path: P, page: S) -> Result<Vec<u8>>
@@ -56,13 +68,7 @@ impl BookHandle {
   {
     let path = path.as_ref().to_owned();
     let page = page.as_ref().to_owned();
-    let (tx, rx) = oneshot::channel();
-    let _ = self
-      .sender
-      .send(Message::ReadPage { path, page, tx })
-      .await;
-
-    rx.await?
+    send_tx!(self, ReadPage { path, page })
   }
 
   pub async fn delete_page<P, S>(&self, path: P, page: S) -> Result<()>
@@ -72,29 +78,17 @@ impl BookHandle {
   {
     let path = path.as_ref().to_owned();
     let page = page.as_ref().to_owned();
-    let (tx, rx) = oneshot::channel();
-    let _ = self
-      .sender
-      .send(Message::DeletePage { path, page, tx })
-      .await;
-
-    rx.await?
+    send_tx!(self, DeletePage { path, page })
   }
 
   pub async fn close(&self, path: impl AsRef<Path>) {
     let path = path.as_ref().to_owned();
-    let _ = self.sender.send(Message::Close { path }).await;
+    send_notify!(self, Close { path });
   }
 
   pub async fn get_book_metadata(&self, path: impl AsRef<Path>) -> Result<Option<Metadata>> {
     let path = path.as_ref().to_owned();
-    let (tx, rx) = oneshot::channel();
-    let _ = self
-      .sender
-      .send(Message::Metadata { path, tx })
-      .await;
-
-    rx.await?
+    send_tx!(self, Metadata { path })
   }
 }
 
@@ -123,6 +117,7 @@ enum Message {
   },
   Close {
     path: PathBuf,
+    nt: Arc<Notify>,
   },
   Metadata {
     path: PathBuf,
@@ -190,8 +185,9 @@ impl Actor {
 
         let _ = tx.send(result);
       }
-      Message::Close { path } => {
+      Message::Close { path, nt } => {
         self.books.remove(&path);
+        nt.notify_one();
       }
     };
   }

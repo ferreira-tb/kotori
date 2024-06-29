@@ -941,9 +941,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.0.101"
+version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac367972e516d45567c7eafc73d24e1c193dcf200a8d94e9db7b3d38b349572d"
+checksum = "779e6b7d17797c0b42023d417228c02889300190e700cb074c3438d9c541d332"
 dependencies = [
  "jobserver",
  "libc",
@@ -3670,9 +3670,9 @@ dependencies = [
 
 [[package]]
 name = "object"
-version = "0.36.0"
+version = "0.36.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "576dfe1fc8f9df304abb159d767a29d0476f7750fbf8aa7ad07816004a207434"
+checksum = "081b846d1d56ddfc18fdf1a922e4f6e07a11768ea1b92dec44e42b72712ccfce"
 dependencies = [
  "memchr",
 ]
@@ -6153,7 +6153,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-manatsu"
 version = "0.12.0"
-source = "git+https://github.com/ferreira-tb/manatsu?branch=main#ed633375a44242dd0ed5a839acc6ca99d2d2c4c5"
+source = "git+https://github.com/ferreira-tb/manatsu?branch=main#cd6d1be17d03519443289a5f1f182f983d9d495a"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6237,7 +6237,7 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-window-state"
 version = "2.0.0-beta.9"
-source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#bd3b5e948d3b2e9f6fe23d83188dc027f849fbdd"
+source = "git+https://github.com/tauri-apps/plugins-workspace?branch=v2#6dedb3fa6d4a592f3a5f4d9a4ffb9732449ddc2d"
 dependencies = [
  "bitflags 2.6.0",
  "log",
