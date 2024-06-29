@@ -1,3 +1,4 @@
+use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
@@ -10,6 +11,7 @@ use std::{fmt, thread};
 use strum::Display;
 use tokio::sync::{mpsc, oneshot, Semaphore, SemaphorePermit};
 use uuid::Uuid;
+use zip::result::{ZipError, ZipResult};
 use zip::{ZipArchive, ZipWriter};
 
 type TxResult<T> = oneshot::Sender<Result<T>>;
@@ -83,6 +85,17 @@ impl BookHandle {
     let path = path.as_ref().to_owned();
     let _ = self.sender.send(Message::Close { path }).await;
   }
+
+  pub async fn get_book_metadata(&self, path: impl AsRef<Path>) -> Result<Option<Metadata>> {
+    let path = path.as_ref().to_owned();
+    let (tx, rx) = oneshot::channel();
+    let _ = self
+      .sender
+      .send(Message::Metadata { path, tx })
+      .await;
+
+    rx.await?
+  }
 }
 
 impl fmt::Debug for BookHandle {
@@ -110,6 +123,10 @@ enum Message {
   },
   Close {
     path: PathBuf,
+  },
+  Metadata {
+    path: PathBuf,
+    tx: TxResult<Option<Metadata>>,
   },
 }
 
@@ -154,10 +171,21 @@ impl Actor {
           .books
           .remove(&path)
           .map_or_else(
-            || Box::pin(BookFile::open(&path)) as BoxFuture<Result<BookFile>>,
+            || {
+              let future = BookFile::open(&path);
+              Box::pin(future) as BoxFuture<Result<BookFile>>
+            },
             |book| Box::pin(future::ok(book)),
           )
           .and_then(|it| it.delete_page(&path, page))
+          .await;
+
+        let _ = tx.send(result);
+      }
+      Message::Metadata { path, tx } => {
+        let result = self
+          .get_book(&path)
+          .and_then(BookFile::read_book_metadata)
           .await;
 
         let _ = tx.send(result);
@@ -182,7 +210,7 @@ impl Actor {
       .books
       .get(path)
       .map(Ok)
-      .expect("book was just added to the map")
+      .expect("book should have been added if it was missing")
   }
 }
 
@@ -222,13 +250,27 @@ impl BookFile {
     let page = page.as_ref().to_owned();
 
     let join = spawn_blocking(move || {
-      let mut file = zip.lock().unwrap();
-      let mut page = file.by_name(&page)?;
-      let size = usize::try_from(page.size()).unwrap_or_default();
-      let mut buf = Vec::with_capacity(size);
-      page.read_to_end(&mut buf)?;
+      zip
+        .lock()
+        .unwrap()
+        .read_file(&page)
+        .map_err(Into::into)
+    });
 
-      Ok(buf)
+    join.await?
+  }
+
+  async fn read_book_metadata(&self) -> Result<Option<Metadata>> {
+    let zip = Arc::clone(&self.file);
+    let join = spawn_blocking(move || {
+      zip
+        .lock()
+        .unwrap()
+        .book_metadata()?
+        .as_deref()
+        .map(serde_json::from_slice)
+        .transpose()
+        .map_err(Into::into)
     });
 
     join.await?
@@ -279,6 +321,8 @@ impl BookFile {
 
 trait ZipArchiveExt {
   fn book_pages(&self) -> PageMap;
+  fn book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>>;
+  fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>>;
 }
 
 impl<T> ZipArchiveExt for ZipArchive<T>
@@ -296,5 +340,26 @@ where
       .enumerate()
       .map(|(idx, name)| (idx, name.to_owned()))
       .collect()
+  }
+
+  fn book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>> {
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    let name = "kotori-dev.json";
+    #[cfg(not(any(debug_assertions, feature = "devtools")))]
+    let name = "kotori.json";
+
+    match self.read_file(name) {
+      Ok(it) => Ok(Some(it)),
+      Err(ZipError::FileNotFound) => Ok(None),
+      Err(err) => Err(err),
+    }
+  }
+
+  fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>> {
+    let mut file = self.by_name(name)?;
+    let size = usize::try_from(file.size()).unwrap_or_default();
+    let mut buf = Vec::with_capacity(size);
+    file.read_to_end(&mut buf)?;
+    Ok(buf)
   }
 }

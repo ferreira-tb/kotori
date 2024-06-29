@@ -1,4 +1,4 @@
-use crate::book::Title;
+use crate::book::{Metadata, Title};
 use crate::database::prelude::*;
 use crate::prelude::*;
 use kotori_entity::{book, prelude::*};
@@ -148,16 +148,39 @@ impl BookExt for Book {
 pub struct Builder {
   path: PathBuf,
   title: Option<Title>,
+  rating: Option<i32>,
+  cover: Option<String>,
 }
 
 impl Builder {
   pub fn new(path: impl AsRef<Path>) -> Self {
     let path = path.as_ref().to_path_buf();
-    Self { path, title: None }
+    Self {
+      path,
+      title: None,
+      rating: None,
+      cover: None,
+    }
   }
 
   pub fn title(mut self, title: Title) -> Self {
     self.title = Some(title);
+    self
+  }
+
+  pub fn metadata(mut self, mut metadata: Metadata) -> Self {
+    if let Some(title) = metadata.title.take() {
+      self.title = Some(title);
+    }
+
+    if let Some(rating) = metadata.rating.take() {
+      self.rating = Some(rating);
+    }
+
+    if let Some(cover) = metadata.cover.take() {
+      self.cover = Some(cover);
+    }
+
     self
   }
 
@@ -171,6 +194,8 @@ impl Builder {
     let model = book::ActiveModel {
       path: Set(path),
       title: Set(title),
+      rating: self.rating.map_or(NotSet, Set),
+      cover: Set(self.cover),
       ..Default::default()
     };
 

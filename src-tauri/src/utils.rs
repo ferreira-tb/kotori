@@ -205,7 +205,7 @@ pub mod result {
       if let Err(err) = self {
         let message = err.to_string();
         let _ = Log::new("Error", message)
-          .save(&app)
+          .save(app)
           .inspect_err(|error| error!(%error));
       }
     }

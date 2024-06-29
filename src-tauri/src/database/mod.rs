@@ -3,7 +3,7 @@ mod collection;
 
 mod prelude {
   pub use sea_orm::error::{DbErr, RuntimeErr};
-  pub use sea_orm::ActiveValue::Set;
+  pub use sea_orm::ActiveValue::{NotSet, Set};
   pub use sea_query::Query;
   pub use sqlx::error::Error as SqlxError;
 

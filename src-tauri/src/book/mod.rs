@@ -8,6 +8,7 @@ mod title;
 pub use active::ActiveBook;
 pub use cover::Cover;
 pub use handle::{BookHandle, MAX_FILE_PERMITS};
+pub use metadata::Metadata;
 pub use structs::{LibraryBook, ReaderBook};
 pub use title::Title;
 
