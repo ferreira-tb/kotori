@@ -2,3 +2,4 @@
 
 pub use super::book::Entity as Book;
 pub use super::collection::Entity as Collection;
+pub use super::folder::Entity as Folder;

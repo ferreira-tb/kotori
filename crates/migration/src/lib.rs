@@ -2,6 +2,7 @@ pub use sea_orm_migration::prelude::*;
 
 mod m20240320_134836_book;
 mod m20240513_014639_collection;
+mod m20240629_212842_folder;
 
 pub struct Migrator;
 
@@ -11,6 +12,7 @@ impl MigratorTrait for Migrator {
     vec![
       Box::new(m20240320_134836_book::Migration),
       Box::new(m20240513_014639_collection::Migration),
+      Box::new(m20240629_212842_folder::Migration),
     ]
   }
 }

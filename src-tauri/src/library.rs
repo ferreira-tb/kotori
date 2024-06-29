@@ -1,10 +1,10 @@
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
-use crate::database::BookExt;
+use crate::database::{BookExt, FolderExt};
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
 use kotori_entity::book;
-use kotori_entity::prelude::Book;
+use kotori_entity::prelude::{Book, Folder};
 use sea_orm::EntityTrait;
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
@@ -26,8 +26,24 @@ where
 
   let globset = glob::book();
   let mut books = Vec::new();
+  let library_folders = Folder::get_all(app).await?;
+  let mut current_folders = Vec::with_capacity(folders.len());
 
   for folder in folders {
+    let folder = folder.as_ref();
+
+    // There's no need to add folders contained in others that have already been saved.
+    if library_folders
+      .iter()
+      .chain(current_folders.iter())
+      .any(|it| folder.starts_with(it))
+    {
+      trace!(skip_folder = ?folder);
+      continue;
+    }
+
+    current_folders.push(folder.to_owned());
+
     WalkDir::new(folder)
       .into_iter()
       .flatten()
@@ -37,6 +53,22 @@ where
           books.push(path);
         }
       });
+  }
+
+  if !current_folders.is_empty() {
+    let semaphore = Arc::new(Semaphore::new(20));
+    let mut set = current_folders
+      .into_iter()
+      .into_join_set_by(|folder| {
+        let app = app.clone();
+        let semaphore = Arc::clone(&semaphore);
+        async move {
+          let _permit = semaphore.acquire_owned().await?;
+          Folder::create(&app, folder).await
+        }
+      });
+
+    while set.join_next().await.is_some() {}
   }
 
   if !books.is_empty() {

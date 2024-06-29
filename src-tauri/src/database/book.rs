@@ -1,5 +1,5 @@
 use crate::book::{Metadata, Title};
-use crate::database::prelude::*;
+use crate::database::{prelude::*, UniqueViolation};
 use crate::prelude::*;
 use kotori_entity::{book, prelude::*};
 
@@ -230,20 +230,14 @@ impl Builder {
     };
 
     let kotori = app.kotori();
-    let model = Book::insert(model)
+    let result = Book::insert(model)
       .exec_with_returning(&kotori.db)
       .await;
 
-    if let Err(err) = &model
-      && let DbErr::Exec(runtime_err) = err
-      && let RuntimeErr::SqlxError(sqlx_err) = runtime_err
-      && let SqlxError::Database(db_err) = sqlx_err
-      && db_err.is_unique_violation()
-    {
-      warn!(error = ?db_err);
+    if matches!(&result, Err(e) if e.is_unique_violation()) {
       return Ok(None);
     }
 
-    model.map(Some).map_err(Into::into)
+    result.map(Some).map_err(Into::into)
   }
 }

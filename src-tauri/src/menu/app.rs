@@ -28,6 +28,8 @@ pub enum Item {
   RandomBook,
   #[strum(serialize = "kt-app-repository")]
   Repository,
+  #[strum(serialize = "kt-app-scan-book-folders")]
+  ScanBookFolders,
   #[strum(serialize = "kt-app-open-file")]
   OpenFile,
 
@@ -57,9 +59,10 @@ impl Listener for Item {
         Item::ColorModeDark => set_color_mode(&app, window::ColorMode::Dark).await,
         Item::ColorModeLight => set_color_mode(&app, window::ColorMode::Light).await,
         Item::Discord => open_discord(&app),
-        Item::Repository => open_repository(&app),
         Item::OpenFile => open_file(&app).await,
         Item::RandomBook => open_random_book(&app).await,
+        Item::Repository => open_repository(&app),
+        Item::ScanBookFolders => todo!(),
 
         #[cfg(any(debug_assertions, feature = "devtools"))]
         Item::AddMockBooksLandscape => add_mock_books(&app, Orientation::Landscape).await,
@@ -88,10 +91,17 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
 }
 
 fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  let mut menu = SubmenuBuilder::new(app, "File").items(&[
-    &menu_item!(app, Item::OpenFile, "Open file")?,
-    &menu_item!(app, Item::AddToLibrary, "Add to library")?,
-  ]);
+  let mut menu = SubmenuBuilder::new(app, "File")
+    .items(&[
+      &menu_item!(app, Item::OpenFile, "Open file")?,
+      &menu_item!(app, Item::AddToLibrary, "Add to library")?,
+    ])
+    .separator()
+    .items(&[&menu_item!(
+      app,
+      Item::ScanBookFolders,
+      "Scan book folders"
+    )?]);
 
   if !cfg!(target_os = "linux") {
     menu = menu.separator().quit();
