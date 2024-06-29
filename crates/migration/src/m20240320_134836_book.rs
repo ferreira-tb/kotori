@@ -24,6 +24,7 @@ impl MigrationTrait for Migration {
               .not_null()
               .unique_key(),
           )
+          .col(ColumnDef::new(Book::Title).string().not_null())
           .col(
             ColumnDef::new(Book::Rating)
               .integer()
@@ -49,5 +50,6 @@ enum Book {
   Id,
   Rating,
   Path,
+  Title,
   Cover,
 }

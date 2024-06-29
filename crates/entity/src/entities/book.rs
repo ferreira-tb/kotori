@@ -13,6 +13,7 @@ pub struct Model {
   pub id: i32,
   #[sea_orm(unique)]
   pub path: String,
+  pub title: String,
   pub rating: i32,
   pub cover: Option<String>,
 }

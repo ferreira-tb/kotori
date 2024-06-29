@@ -2951,6 +2951,7 @@ dependencies = [
  "sea-query",
  "serde",
  "serde_json",
+ "sqlx",
  "strum 0.26.3",
  "tauri",
  "tauri-build",

@@ -58,14 +58,16 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   add_folders(app, &folders).await
 }
 
-pub async fn save<P>(app: &AppHandle, path: P) -> Result<book::Model>
+pub async fn save<P>(app: &AppHandle, path: P) -> Result<Option<book::Model>>
 where
   P: AsRef<Path>,
 {
-  let model = Book::create(app, path).await?;
-  LibraryBook::from_model(app, &model)
-    .await
-    .and_then(|it| Event::BookAdded(&it).emit(app))?;
+  let model = Book::builder(path).build(app).await?;
+  if let Some(model) = &model {
+    LibraryBook::from_model(app, model)
+      .await
+      .and_then(|it| Event::BookAdded(&it).emit(app))?;
+  }
 
   Ok(model)
 }
@@ -86,7 +88,7 @@ where
 
   let mut models = Vec::with_capacity(set.len());
   while let Some(result) = set.join_next().await {
-    if let Ok(model) = result? {
+    if let Ok(Some(model)) = result? {
       models.push(model);
     }
   }

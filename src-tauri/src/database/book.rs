@@ -4,9 +4,6 @@ use crate::prelude::*;
 use kotori_entity::{book, prelude::*};
 
 pub trait BookExt {
-  async fn create<P>(app: &AppHandle, path: P) -> Result<book::Model>
-  where
-    P: AsRef<Path>;
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
   async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model>;
   async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model>;
@@ -20,6 +17,10 @@ pub trait BookExt {
   /// Get a random book from the library.
   /// Will return `None` if the library is empty.
   async fn get_random(app: &AppHandle) -> Result<Option<book::Model>>;
+
+  fn builder(path: impl AsRef<Path>) -> Builder {
+    Builder::new(path)
+  }
 }
 
 impl BookExt for Book {
@@ -70,7 +71,7 @@ impl BookExt for Book {
 
   async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
     let kotori = app.kotori();
-    let builder = kotori.db.get_database_backend();
+    let database = kotori.db.get_database_backend();
 
     let stmt = Query::select()
       .column(book::Column::Id)
@@ -79,7 +80,7 @@ impl BookExt for Book {
 
     let ids = kotori
       .db
-      .query_all(builder.build(&stmt))
+      .query_all(database.build(&stmt))
       .await?
       .into_iter()
       .filter_map(|it| it.try_get::<i32>("", "id").ok())
@@ -101,34 +102,12 @@ impl BookExt for Book {
     }
   }
 
-  async fn create<P>(app: &AppHandle, path: P) -> Result<book::Model>
-  where
-    P: AsRef<Path>,
-  {
-    let path = path.try_string()?;
-    let model = book::ActiveModel {
-      path: Set(path),
-      ..Default::default()
-    };
-
-    let kotori = app.kotori();
-    Book::insert(model)
-      .on_conflict(
-        OnConflict::column(book::Column::Path)
-          .do_nothing()
-          .to_owned(),
-      )
-      .exec_with_returning(&kotori.db)
-      .await
-      .map_err(Into::into)
-  }
-
   async fn remove_all(app: &AppHandle) -> Result<()> {
     let kotori = app.kotori();
-    let builder = kotori.db.get_database_backend();
+    let database = kotori.db.get_database_backend();
 
     let stmt = Query::delete().from_table(Book).to_owned();
-    kotori.db.execute(builder.build(&stmt)).await?;
+    kotori.db.execute(database.build(&stmt)).await?;
 
     Ok(())
   }
@@ -162,5 +141,54 @@ impl BookExt for Book {
 
     let kotori = app.kotori();
     book.update(&kotori.db).await.map_err(Into::into)
+  }
+}
+
+#[derive(Debug)]
+pub struct Builder {
+  path: PathBuf,
+  title: Option<Title>,
+}
+
+impl Builder {
+  pub fn new(path: impl AsRef<Path>) -> Self {
+    let path = path.as_ref().to_path_buf();
+    Self { path, title: None }
+  }
+
+  pub fn title(mut self, title: Title) -> Self {
+    self.title = Some(title);
+    self
+  }
+
+  pub async fn build(self, app: &AppHandle) -> Result<Option<book::Model>> {
+    let path = self.path.try_string()?;
+    let title = match self.title {
+      Some(it) => it.to_string(),
+      None => Title::try_from(&self.path)?.to_string(),
+    };
+
+    let model = book::ActiveModel {
+      path: Set(path),
+      title: Set(title),
+      ..Default::default()
+    };
+
+    let kotori = app.kotori();
+    let model = Book::insert(model)
+      .exec_with_returning(&kotori.db)
+      .await;
+
+    if let Err(err) = &model
+      && let DbErr::Exec(runtime_err) = err
+      && let RuntimeErr::SqlxError(sqlx_err) = runtime_err
+      && let SqlxError::Database(db_err) = sqlx_err
+      && db_err.is_unique_violation()
+    {
+      warn!(error = ?db_err);
+      return Ok(None);
+    }
+
+    model.map(Some).map_err(Into::into)
   }
 }

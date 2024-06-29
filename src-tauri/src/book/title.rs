@@ -19,6 +19,14 @@ impl TryFrom<&Path> for Title {
   }
 }
 
+impl TryFrom<&PathBuf> for Title {
+  type Error = crate::error::Error;
+
+  fn try_from(path: &PathBuf) -> Result<Self> {
+    Title::try_from(path.as_path())
+  }
+}
+
 impl TryFrom<&str> for Title {
   type Error = crate::error::Error;
 
