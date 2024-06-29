@@ -129,4 +129,3 @@ features = ["v4", "v7", "fast-rng"]
 
 [features]
 devtools = ["tauri/devtools"]
-ephemeral = ["devtools"]

@@ -34,10 +34,7 @@ pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
     let url = format!("sqlite://{}?mode=rwc", path.try_str()?);
     let conn = Database::connect(url).await?;
 
-    #[cfg(not(feature = "ephemeral"))]
     Migrator::up(&conn, None).await?;
-    #[cfg(feature = "ephemeral")]
-    Migrator::fresh(&conn).await?;
 
     Ok(conn)
   })
