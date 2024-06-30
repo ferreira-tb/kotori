@@ -14,6 +14,7 @@ export class Reader {
   public async load() {
     const book = await getCurrentReaderBook(Reader.windowId);
     this.#book = new ReaderBookImpl(book);
+    this.#current = 0;
     this.#trigger();
 
     for await (const index of this.#book.fetch()) {
@@ -105,10 +106,12 @@ export class Reader {
     return customRef((track, trigger) => {
       const reader = new Reader(trigger);
       return {
-        set: noop,
         get() {
           track();
           return reader;
+        },
+        set(_) {
+          noop();
         }
       };
     });

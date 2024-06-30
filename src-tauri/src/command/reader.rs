@@ -1,9 +1,7 @@
-use crate::book::{
-  ActiveBook, ReaderBook, {self},
-};
+use crate::book::{ActiveBook, ReaderBook};
 use crate::prelude::*;
-use crate::reader;
 use crate::window::WindowManager;
+use crate::{book, reader};
 
 #[tauri::command]
 pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, name: String) -> Result<()> {
@@ -23,9 +21,8 @@ pub async fn show_reader_page_context_menu(
   window_id: u16,
   name: String,
 ) -> Result<()> {
-  use crate::menu::context::reader::page::{
-    Context, ReaderPageContextMenu, {self},
-  };
+  use crate::menu::context::reader::page;
+  use crate::menu::context::reader::page::{Context, ReaderPageContextMenu};
 
   debug!(
     command = "show_reader_page_context_menu",

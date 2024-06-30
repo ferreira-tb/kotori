@@ -38,7 +38,7 @@ impl ReaderBook {
     let windows = windows.read().await;
     let book = windows
       .get(&window_id)
-      .ok_or_else(|| err!(WindowNotFound, "{window_id}"))
+      .ok_or_else(|| err!(ReaderWindowNotFound, "{window_id}"))
       .map(|it| &it.book)?;
 
     Self::from_active(app, book).await

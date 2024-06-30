@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
 use itertools::Itertools;
+use tauri::async_runtime::spawn;
 use tauri::menu::MenuEvent;
 use tauri::DragDropEvent::Dropped;
-use tauri::{async_runtime, AppHandle, WebviewWindowBuilder, Window, WindowEvent};
+use tauri::{AppHandle, WebviewWindowBuilder, Window, WindowEvent};
 use tracing::{info, trace};
 
 use crate::book::ActiveBook;
@@ -72,7 +73,7 @@ fn handle_drop_event(app: &AppHandle, paths: &[PathBuf]) {
 
   if !books.is_empty() {
     let app = app.clone();
-    async_runtime::spawn(async move {
+    spawn(async move {
       reader::open_many(&app, books).await.dialog(&app);
     });
   }

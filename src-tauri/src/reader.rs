@@ -40,10 +40,15 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     }
   }
 
-  let window = ReaderWindow::open(app, book).await?;
-  let windows = app.reader_windows();
-  let mut windows = windows.write().await;
-  windows.insert(window.id, window);
+  {
+    let window = ReaderWindow::open(app, book)?;
+    let windows = app.reader_windows();
+    let mut windows = windows.write().await;
+    windows.insert(window.id, window);
+  }
+
+  // This will read lock the windows.
+  ReaderWindow::update_all_menus(app).await?;
 
   Ok(())
 }

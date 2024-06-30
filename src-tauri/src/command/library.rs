@@ -28,9 +28,8 @@ pub async fn remove_book_with_dialog(app: AppHandle, id: i32) -> Result<()> {
 
 #[tauri::command]
 pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Result<()> {
-  use crate::menu::context::library::book::{
-    Context, LibraryBookContextMenu, {self},
-  };
+  use crate::menu::context::library::book;
+  use crate::menu::context::library::book::{Context, LibraryBookContextMenu};
 
   debug!(
     command = "show_library_book_context_menu",

@@ -3,14 +3,13 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 
 use crate::menu::prelude::*;
 use crate::prelude::*;
-use crate::window::WindowManager;
+use crate::window::ReaderWindow;
 use crate::{library, reader};
 
 #[derive(Debug, Display, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Item {
   AddBookToLibrary,
-  /// There's a [`tauri::menu::PredefinedMenuItem`] for this, but Linux doesn't support it.
   Close,
   CloseAll,
   CloseOthers,
@@ -105,13 +104,9 @@ fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
     let result: Result<()> = try {
-      library::save(app, path).await?;
-
-      // Disable the menu item after adding the book to the library.
-      let windows = app.reader_windows();
-      let windows = windows.read().await;
-      if let Some(window) = windows.get(&window_id) {
-        window.set_menu_item_enabled(app, &Item::AddBookToLibrary, false)?;
+      if library::save(app, path).await?.is_some() {
+        // Disable the menu item after adding the book to the library.
+        ReaderWindow::update_all_menus(app).await?;
       }
     };
 

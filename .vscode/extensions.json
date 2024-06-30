@@ -11,7 +11,7 @@
     "bradlc.vscode-tailwindcss",
     "tauri-apps.tauri-vscode",
     "vscode-icons-team.vscode-icons",
-    "vue.volar",
-    "redhat.vscode-yaml"
+    "redhat.vscode-yaml",
+    "vue.volar"
   ]
 }

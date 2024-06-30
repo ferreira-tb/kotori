@@ -125,10 +125,12 @@ export class Library {
     return customRef((track, trigger) => {
       const library = new Library(trigger);
       return {
-        set: noop,
         get() {
           track();
           return library;
+        },
+        set(_) {
+          noop();
         }
       };
     });

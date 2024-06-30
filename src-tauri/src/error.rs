@@ -20,8 +20,10 @@ pub enum Error {
   InvalidRating,
   #[error("page not found")]
   PageNotFound,
-  #[error("window not found: {0}")]
-  WindowNotFound(String),
+  #[error("reader window not found: {0}")]
+  ReaderWindowNotFound(String),
+  #[error("window menu not found")]
+  WindowMenuNotFound,
 
   #[error(transparent)]
   ChronoParse(#[from] chrono::ParseError),
@@ -71,7 +73,9 @@ impl Serialize for Error {
 impl IntoResponse for Error {
   fn into_response(self) -> Response {
     let status = match self {
-      Error::BookNotFound | Error::PageNotFound | Error::WindowNotFound(_) => StatusCode::NOT_FOUND,
+      Error::BookNotFound | Error::PageNotFound | Error::ReaderWindowNotFound(_) => {
+        StatusCode::NOT_FOUND
+      }
       _ => StatusCode::INTERNAL_SERVER_ERROR,
     };
 

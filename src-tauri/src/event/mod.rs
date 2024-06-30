@@ -22,6 +22,7 @@ pub enum Event<'a> {
   LibraryCleared,
   PageDeleted { window_id: u16, name: &'a str },
   RatingUpdated { id: i32, rating: u8 },
+  ReaderBookChanged { window_id: u16 },
 }
 
 impl<'a> Event<'a> {
@@ -64,6 +65,7 @@ impl<'a> Event<'a> {
       Event::LibraryCleared => to_main!(()),
       Event::PageDeleted { window_id, name } => to_reader!(window_id, PageDeleted::new(name)),
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated { id, rating }),
+      Event::ReaderBookChanged { window_id } => to_reader!(window_id, ()),
     }
   }
 }
