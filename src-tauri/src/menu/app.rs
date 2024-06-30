@@ -7,7 +7,6 @@ use crate::book::ActiveBook;
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
 use crate::menu::prelude::*;
-use crate::menu::reader::close_all_reader_windows;
 use crate::prelude::*;
 use crate::{library, menu_item_or_bail, reader, window, VERSION};
 
@@ -41,9 +40,6 @@ pub enum Item {
   #[strum(serialize = "kt-app-add-mock-books-portrait")]
   AddMockBooksPortrait,
   #[cfg(any(debug_assertions, feature = "devtools"))]
-  #[strum(serialize = "kt-app-close-all-reader-windows")]
-  CloseAllReaderWindows,
-  #[cfg(any(debug_assertions, feature = "devtools"))]
   #[strum(serialize = "kt-app-remove-all-books")]
   RemoveAllBooks,
 }
@@ -63,7 +59,7 @@ impl Listener for Item {
         Item::OpenFile => open_file(&app).await,
         Item::RandomBook => open_random_book(&app).await,
         Item::Repository => open_repository(&app),
-        Item::ScanBookFolders => todo!(),
+        Item::ScanBookFolders => scan_book_folders(&app).await,
 
         #[cfg(any(debug_assertions, feature = "devtools"))]
         Item::AddMockBooksLandscape => add_mock_books(&app, Orientation::Landscape).await,
@@ -71,8 +67,6 @@ impl Listener for Item {
         Item::AddMockBooksPortrait => add_mock_books(&app, Orientation::Portrait).await,
         #[cfg(any(debug_assertions, feature = "devtools"))]
         Item::RemoveAllBooks => remove_all_books(&app).await,
-        #[cfg(any(debug_assertions, feature = "devtools"))]
-        Item::CloseAllReaderWindows => close_all_reader_windows(&app).await,
       }
     });
   }
@@ -165,18 +159,10 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     ])
     .build()?;
 
-  let library = SubmenuBuilder::new(app, "Library")
+  SubmenuBuilder::new(app, "Developer")
     .items(&[&mocks])
     .separator()
-    .items(&[&menu_item!(app, Item::RemoveAllBooks, "Remove all")?])
-    .build()?;
-
-  let reader = SubmenuBuilder::new(app, "Reader")
-    .items(&[&menu_item!(app, Item::CloseAllReaderWindows, "Close all")?])
-    .build()?;
-
-  SubmenuBuilder::new(app, "Developer")
-    .items(&[&library, &reader])
+    .items(&[&menu_item!(app, Item::RemoveAllBooks, "Remove all books")?])
     .build()
     .map_err(Into::into)
 }
@@ -193,7 +179,9 @@ async fn add_to_library_with_dialog(app: &AppHandle) {
 }
 
 async fn open_file(app: &AppHandle) {
-  crate::book::open_with_dialog(app).await.dialog(app);
+  crate::book::open_with_dialog(app)
+    .await
+    .dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {
@@ -235,6 +223,10 @@ async fn remove_all_books(app: &AppHandle) {
   if let Ok(true) = rx.await {
     library::remove_all(app).await.dialog(app);
   }
+}
+
+async fn scan_book_folders(app: &AppHandle) {
+  library::scan_book_folders(app).await.dialog(app);
 }
 
 async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {

@@ -54,7 +54,7 @@ impl ActiveBook {
   }
 
   pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
-    if let Some(book) = Book::get_random(app).await? {
+    if let Some(book) = Book::random(app).await? {
       Self::from_model(app, &book).map(Some)
     } else {
       Ok(None)
@@ -102,11 +102,12 @@ impl ActiveBook {
   /// Get cover name if the book is in the library.
   pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
     let id = self.try_id(app).await?;
-    if let Some(cover) = Book::get_cover(app, id).await? {
-      if self.has_page(&cover).await? {
-        return Ok(cover);
-      }
-    };
+    let cover = Book::get_cover(app, id).await?;
+
+    // The cover saved in the database may have been deleted from the file.
+    if self.has_page(&cover).await? {
+      return Ok(cover);
+    }
 
     app
       .book_handle()

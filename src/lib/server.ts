@@ -19,7 +19,7 @@ async function fetch(endpoint: string, init?: RequestInit) {
 }
 
 export async function getBookCover(bookId: number) {
-  return fetch(`library/${bookId}/cover`);
+  return fetch(`library/${bookId}`);
 }
 
 export async function getBookPage(windowId: number, name: string) {

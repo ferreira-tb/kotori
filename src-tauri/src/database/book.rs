@@ -10,8 +10,10 @@ pub trait BookExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
   async fn get_by_id(app: &AppHandle, id: i32) -> Result<book::Model>;
   async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model>;
-  async fn get_cover(app: &AppHandle, id: i32) -> Result<Option<String>>;
+  async fn get_cover(app: &AppHandle, id: i32) -> Result<String>;
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
+  async fn has_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<bool>;
+  async fn random(app: &AppHandle) -> Result<Option<book::Model>>;
   async fn remove(app: &AppHandle, id: i32) -> Result<()>;
   async fn remove_all(app: &AppHandle) -> Result<()>;
 
@@ -20,10 +22,6 @@ pub trait BookExt {
     N: AsRef<str>;
 
   async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model>;
-
-  /// Get a random book from the library.
-  /// Will return `None` if the library is empty.
-  async fn get_random(app: &AppHandle) -> Result<Option<book::Model>>;
 
   fn builder(path: impl AsRef<Path>) -> Builder {
     Builder::new(path)
@@ -57,7 +55,7 @@ impl BookExt for Book {
       .ok_or_else(|| err!(BookNotFound))
   }
 
-  async fn get_cover(app: &AppHandle, id: i32) -> Result<Option<String>> {
+  async fn get_cover(app: &AppHandle, id: i32) -> Result<String> {
     let kotori = app.kotori();
     let builder = kotori.db.get_database_backend();
 
@@ -71,8 +69,8 @@ impl BookExt for Book {
       .db
       .query_one(builder.build(&stmt))
       .await?
+      .and_then(|it| it.try_get::<String>("", "cover").ok())
       .ok_or_else(|| err!(BookNotFound))
-      .map(|it| it.try_get::<String>("", "cover").ok())
   }
 
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
@@ -94,7 +92,26 @@ impl BookExt for Book {
       .and_then(|it| Title::try_from(it.as_str()))
   }
 
-  async fn get_random(app: &AppHandle) -> Result<Option<book::Model>> {
+  async fn has_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<bool> {
+    let kotori = app.kotori();
+    let builder = kotori.db.get_database_backend();
+
+    let path = path.try_str()?;
+    let stmt = Query::select()
+      .column(book::Column::Id)
+      .and_where(book::Column::Path.eq(path))
+      .from(Book)
+      .to_owned();
+
+    kotori
+      .db
+      .query_one(builder.build(&stmt))
+      .await
+      .map(|it| it.is_some())
+      .map_err(Into::into)
+  }
+
+  async fn random(app: &AppHandle) -> Result<Option<book::Model>> {
     let kotori = app.kotori();
     let database = kotori.db.get_database_backend();
 

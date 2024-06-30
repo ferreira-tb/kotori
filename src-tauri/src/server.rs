@@ -3,10 +3,9 @@ use std::thread;
 
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
-use axum::response::{Html, IntoResponse, Response};
+use axum::response::{IntoResponse, Response};
 use axum::routing::{get, post};
 use axum::Router;
-use indoc::formatdoc;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
@@ -14,7 +13,6 @@ use tokio::sync::oneshot;
 use crate::book::ActiveBook;
 use crate::prelude::*;
 use crate::window::WindowManager;
-use crate::VERSION;
 
 static PORT: OnceLock<u16> = OnceLock::new();
 
@@ -26,8 +24,7 @@ pub fn serve(app: &AppHandle) -> Result<()> {
   thread::spawn(move || {
     block_on(async move {
       let router = Router::new()
-        .route("/kotori/library/:book_id/cover", get(book_cover))
-        .route("/kotori/reader", get(reader_root))
+        .route("/kotori/library/:book_id", get(book_cover))
         .route("/kotori/reader/:window_id", post(book_page))
         .with_state(app);
 
@@ -52,41 +49,6 @@ pub fn serve(app: &AppHandle) -> Result<()> {
 
 pub fn port() -> u16 {
   *PORT.get().unwrap()
-}
-
-async fn reader_root(State(app): State<AppHandle>) -> Html<String> {
-  let windows = app.reader_windows();
-  let windows = windows.read().await;
-  let amount = windows.len();
-
-  macro_rules! row {
-    ($($td:expr),*) => {{
-      let mut row = String::from("<tr>");
-      $(row.push_str(&format!("<td>{}</td>", $td));)*
-      row.push_str("</tr>");
-      row
-    }};
-  }
-
-  let table = windows
-    .iter()
-    .sorted_unstable_by_key(|(id, _)| *id)
-    .map(|(id, window)| row!(id, window.book.title))
-    .collect::<String>();
-
-  let html = formatdoc! {"
-    <html lang='en'>
-      <head>
-        <title>Kotori {VERSION}</title>
-      </head>
-      <body>
-        <p>Active books: {amount}</p>
-        <table>{table}</table>
-      </body>
-    </html>
-  "};
-
-  Html(html)
 }
 
 async fn book_cover(State(app): State<AppHandle>, Path(book_id): Path<i32>) -> Response {

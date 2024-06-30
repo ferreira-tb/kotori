@@ -24,7 +24,6 @@ where
     return Ok(());
   }
 
-  let globset = glob::book();
   let mut books = Vec::new();
   let library_folders = Folder::get_all(app).await?;
   let mut current_folders = Vec::with_capacity(folders.len());
@@ -43,20 +42,11 @@ where
     }
 
     current_folders.push(folder.to_owned());
-
-    WalkDir::new(folder)
-      .into_iter()
-      .flatten()
-      .for_each(|entry| {
-        let path = entry.into_path();
-        if path.is_file() && globset.is_match(&path) {
-          books.push(path);
-        }
-      });
+    walk_folder(&mut books, folder);
   }
 
   if !current_folders.is_empty() {
-    Folder::create_many(&app, current_folders).await?;
+    Folder::create_many(app, current_folders).await?;
   }
 
   if !books.is_empty() {
@@ -82,6 +72,10 @@ pub async fn save<P>(app: &AppHandle, path: P) -> Result<Option<book::Model>>
 where
   P: AsRef<Path>,
 {
+  if Book::has_path(app, &path).await? {
+    return Ok(None);
+  }
+
   let mut builder = Book::builder(&path);
 
   let book_handle = app.book_handle();
@@ -128,7 +122,9 @@ where
     }
   }
 
-  schedule_cover_extraction(app, models);
+  if !models.is_empty() {
+    schedule_cover_extraction(app, models);
+  }
 
   Ok(())
 }
@@ -164,13 +160,16 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
     }
   }
 
-  schedule_cover_extraction(app, pending);
+  if !pending.is_empty() {
+    schedule_cover_extraction(app, pending);
+  }
 
   Ok(books)
 }
 
 fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
-  let semaphore = Arc::new(Semaphore::new(10));
+  let permits = MAX_FILE_PERMITS / 5;
+  let semaphore = Arc::new(Semaphore::new(permits));
   for model in models {
     let app = app.clone();
     let semaphore = Arc::clone(&semaphore);
@@ -229,6 +228,33 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
   }
 
   Ok(())
+}
+
+pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
+  let mut books = Vec::new();
+  for folder in Folder::get_all(app).await? {
+    walk_folder(&mut books, &folder);
+  }
+
+  if !books.is_empty() {
+    save_many(app, books).await?;
+  }
+
+  Ok(())
+}
+
+/// Search recursively for books within the folder.
+fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
+  let globset = glob::book();
+  WalkDir::new(folder)
+    .into_iter()
+    .flatten()
+    .for_each(|entry| {
+      let path = entry.into_path();
+      if path.is_file() && globset.is_match(&path) {
+        books.push(path);
+      }
+    });
 }
 
 /// Adds mock books to the library.

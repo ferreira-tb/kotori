@@ -125,7 +125,7 @@ fn close_reader_window(app: &AppHandle, label: &str) {
   }
 }
 
-pub(super) async fn close_all_reader_windows(app: &AppHandle) {
+async fn close_all_reader_windows(app: &AppHandle) {
   reader::close_all(app).await.dialog(app);
 }
 
