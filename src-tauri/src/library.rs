@@ -56,19 +56,7 @@ where
   }
 
   if !current_folders.is_empty() {
-    let semaphore = Arc::new(Semaphore::new(20));
-    let mut set = current_folders
-      .into_iter()
-      .into_join_set_by(|folder| {
-        let app = app.clone();
-        let semaphore = Arc::clone(&semaphore);
-        async move {
-          let _permit = semaphore.acquire_owned().await?;
-          Folder::create(&app, folder).await
-        }
-      });
-
-    while set.join_next().await.is_some() {}
+    Folder::create_many(&app, current_folders).await?;
   }
 
   if !books.is_empty() {

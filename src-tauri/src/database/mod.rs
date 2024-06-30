@@ -3,7 +3,7 @@ mod collection;
 mod folder;
 
 mod prelude {
-  pub use sea_query::Query;
+  pub use sea_query::{OnConflict, Query};
 
   pub use sea_orm::{
     ActiveModelTrait,

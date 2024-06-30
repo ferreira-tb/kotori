@@ -1,9 +1,12 @@
-use crate::database::{prelude::*, UniqueViolation};
+use crate::database::prelude::*;
 use crate::prelude::*;
 use kotori_entity::{folder, prelude::*};
 
 pub trait FolderExt {
-  async fn create(app: &AppHandle, path: PathBuf) -> Result<()>;
+  async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>
+  where
+    I: IntoIterator<Item = PathBuf>;
+
   async fn get_all(app: &AppHandle) -> Result<Vec<PathBuf>>;
 }
 
@@ -29,20 +32,34 @@ impl FolderExt for Folder {
     Ok(folders)
   }
 
-  async fn create(app: &AppHandle, path: PathBuf) -> Result<()> {
-    let path = path.try_string()?;
-    let model = folder::ActiveModel {
-      path: Set(path),
-      ..Default::default()
-    };
+  async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>
+  where
+    I: IntoIterator<Item = PathBuf>,
+  {
+    let models = folders
+      .into_iter()
+      .filter_map(|folder| {
+        let path = folder.try_string().ok()?;
+        let model = folder::ActiveModel {
+          path: Set(path),
+          ..Default::default()
+        };
+
+        Some(model)
+      })
+      .collect_vec();
 
     let kotori = app.kotori();
-    let result = Folder::insert(model).exec(&kotori.db).await;
-
-    if matches!(&result, Err(e) if e.is_unique_violation()) {
-      return Ok(());
-    }
-
-    result.map(|_| ()).map_err(Into::into)
+    Folder::insert_many(models)
+      .on_conflict(
+        OnConflict::column(folder::Column::Path)
+          .do_nothing()
+          .to_owned(),
+      )
+      .on_empty_do_nothing()
+      .exec(&kotori.db)
+      .await
+      .map(|_| ())
+      .map_err(Into::into)
   }
 }

@@ -419,11 +419,7 @@ where
   where
     F: FnMut(&&str) -> bool,
   {
-    self
-      .file_names()
-      .filter(f)
-      .map(ToOwned::to_owned)
-      .collect_vec()
+    self.file_names().filter(f).map_into().collect()
   }
 
   fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>> {
