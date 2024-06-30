@@ -3,16 +3,13 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
 use tokio::sync::oneshot;
 
+use crate::book::ActiveBook;
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
-use crate::{
-  book::{self, ActiveBook},
-  library,
-  menu::{prelude::*, reader::close_all_reader_windows},
-  menu_item_or_bail,
-  prelude::*,
-  reader, window, VERSION,
-};
+use crate::menu::prelude::*;
+use crate::menu::reader::close_all_reader_windows;
+use crate::prelude::*;
+use crate::{library, menu_item_or_bail, reader, window, VERSION};
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
@@ -196,7 +193,7 @@ async fn add_to_library_with_dialog(app: &AppHandle) {
 }
 
 async fn open_file(app: &AppHandle) {
-  book::open_with_dialog(app).await.dialog(app);
+  crate::book::open_with_dialog(app).await.dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {

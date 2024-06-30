@@ -1,11 +1,11 @@
 use kotori_entity::book;
 use serde::Serialize;
 
-use crate::{
-  book::{active::ActiveBook, cover::Cover, title::Title},
-  prelude::*,
-  window::WindowManager,
-};
+use crate::book::active::ActiveBook;
+use crate::book::cover::Cover;
+use crate::book::title::Title;
+use crate::prelude::*;
+use crate::window::WindowManager;
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all(serialize = "camelCase"))]

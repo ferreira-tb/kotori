@@ -1,17 +1,20 @@
-use std::{sync::OnceLock, thread};
+use std::sync::OnceLock;
+use std::thread;
 
-use axum::{
-  extract::{Json, Path, State},
-  http::StatusCode,
-  response::{Html, IntoResponse, Response},
-  routing::{get, post},
-  Router,
-};
+use axum::extract::{Json, Path, State};
+use axum::http::StatusCode;
+use axum::response::{Html, IntoResponse, Response};
+use axum::routing::{get, post};
+use axum::Router;
 use indoc::formatdoc;
 use serde::Deserialize;
-use tokio::{net::TcpListener, sync::oneshot};
+use tokio::net::TcpListener;
+use tokio::sync::oneshot;
 
-use crate::{book::ActiveBook, prelude::*, window::WindowManager, VERSION};
+use crate::book::ActiveBook;
+use crate::prelude::*;
+use crate::window::WindowManager;
+use crate::VERSION;
 
 static PORT: OnceLock<u16> = OnceLock::new();
 

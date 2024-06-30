@@ -1,14 +1,11 @@
-use tauri::{menu::MenuEvent, WebviewWindowBuilder, WindowEvent};
+use tauri::menu::MenuEvent;
+use tauri::{WebviewWindowBuilder, WindowEvent};
 
-use crate::{
-  book::ActiveBook,
-  menu::{
-    reader::{build as build_menu, Item},
-    MenuExt,
-  },
-  prelude::*,
-  window::{ColorMode, WindowExt, WindowKind, WindowManager},
-};
+use crate::book::ActiveBook;
+use crate::menu::reader::{build as build_menu, Item};
+use crate::menu::MenuExt;
+use crate::prelude::*;
+use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
 
 pub struct ReaderWindow {
   pub id: u16,
@@ -90,7 +87,9 @@ fn initialization_script(id: u16) -> String {
 }
 
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
-  use crate::menu::{self, context, Listener};
+  use crate::menu::{
+    context, Listener, {self},
+  };
   move |window, event| {
     menu::reader::Item::execute(window, &event);
     context::reader::page::Item::execute(window, &event);

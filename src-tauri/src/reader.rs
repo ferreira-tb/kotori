@@ -3,13 +3,11 @@ use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tokio::sync::{oneshot, RwLock};
 
-use crate::{
-  book::ActiveBook,
-  event::Event,
-  prelude::*,
-  utils::collections::OrderedMap,
-  window::{ReaderWindow, WindowExt, WindowManager},
-};
+use crate::book::ActiveBook;
+use crate::event::Event;
+use crate::prelude::*;
+use crate::utils::collections::OrderedMap;
+use crate::window::{ReaderWindow, WindowExt, WindowManager};
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
 

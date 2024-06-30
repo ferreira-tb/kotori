@@ -7,7 +7,9 @@ use serde::Serialize;
 use strum::{AsRefStr, Display};
 use tauri::EventTarget;
 
-use crate::{book::LibraryBook, prelude::*, window::WindowKind};
+use crate::book::LibraryBook;
+use crate::prelude::*;
+use crate::window::WindowKind;
 
 #[allow(clippy::enum_variant_names)]
 #[derive(AsRefStr, Clone, Display)]

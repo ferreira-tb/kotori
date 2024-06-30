@@ -1,6 +1,9 @@
 use std::sync::Mutex;
 
-use crate::{book::ActiveBook, library, menu::prelude::*, menu_item_or_bail, prelude::*, reader};
+use crate::book::ActiveBook;
+use crate::menu::prelude::*;
+use crate::prelude::*;
+use crate::{library, menu_item_or_bail, reader};
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {

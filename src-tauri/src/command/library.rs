@@ -1,8 +1,6 @@
-use crate::{
-  book::{self, LibraryBook},
-  library,
-  prelude::*,
-};
+use crate::book::LibraryBook;
+use crate::library;
+use crate::prelude::*;
 
 #[tauri::command]
 pub async fn add_to_library_with_dialog(app: AppHandle) -> Result<()> {
@@ -30,7 +28,9 @@ pub async fn remove_book_with_dialog(app: AppHandle, id: i32) -> Result<()> {
 
 #[tauri::command]
 pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Result<()> {
-  use crate::menu::context::library::book::{self, Context, LibraryBookContextMenu};
+  use crate::menu::context::library::book::{
+    Context, LibraryBookContextMenu, {self},
+  };
 
   debug!(
     command = "show_library_book_context_menu",
@@ -56,5 +56,5 @@ pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Res
 #[tauri::command]
 pub async fn update_book_rating(app: AppHandle, id: i32, rating: u8) -> Result<()> {
   debug!(command = "update_book_rating", book_id = id, rating);
-  book::update_rating(&app, id, rating).await
+  crate::book::update_rating(&app, id, rating).await
 }

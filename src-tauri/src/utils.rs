@@ -1,7 +1,8 @@
 pub mod app {
   use tauri::{AppHandle, Manager, State, Wry};
 
-  use crate::{book::BookHandle, Kotori};
+  use crate::book::BookHandle;
+  use crate::Kotori;
 
   pub trait AppHandleExt: Manager<Wry> {
     fn kotori(&self) -> State<Kotori> {
@@ -76,12 +77,13 @@ pub mod log {
   use std::io;
 
   use tauri::{AppHandle, Manager};
-  use tracing_appender::{non_blocking::WorkerGuard, rolling};
-  use tracing_subscriber::{
-    fmt::{time::ChronoLocal, writer::MakeWriterExt, Layer},
-    layer::SubscriberExt,
-    EnvFilter, Registry,
-  };
+  use tracing_appender::non_blocking::WorkerGuard;
+  use tracing_appender::rolling;
+  use tracing_subscriber::fmt::time::ChronoLocal;
+  use tracing_subscriber::fmt::writer::MakeWriterExt;
+  use tracing_subscriber::fmt::Layer;
+  use tracing_subscriber::layer::SubscriberExt;
+  use tracing_subscriber::{EnvFilter, Registry};
 
   const TIMESTAMP: &str = "%F %T%.3f %:z";
 
@@ -125,9 +127,11 @@ pub mod log {
 pub mod path {
   use std::path::{Path, PathBuf};
 
-  use tauri::{path::PathResolver, Wry};
+  use tauri::path::PathResolver;
+  use tauri::Wry;
 
-  use crate::{err, error::Result};
+  use crate::err;
+  use crate::error::Result;
 
   pub trait PathResolverExt {
     fn cover_dir(&self) -> Result<PathBuf>;
@@ -269,10 +273,8 @@ pub mod store {
 }
 
 pub mod temp {
-  use std::{
-    fs::{self, File},
-    path::{Path, PathBuf},
-  };
+  use std::fs::{remove_file, File};
+  use std::path::{Path, PathBuf};
 
   use tracing::trace;
   use uuid::Uuid;
@@ -296,7 +298,7 @@ pub mod temp {
   impl Drop for Tempfile {
     fn drop(&mut self) {
       if let Ok(true) = self.path.try_exists() {
-        let _ = fs::remove_file(&self.path);
+        let _ = remove_file(&self.path);
       }
 
       trace!(tempfile_drop = %self.path.display());

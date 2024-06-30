@@ -2,12 +2,10 @@ pub mod collection;
 pub mod library;
 pub mod reader;
 
-use crate::{
-  event::Event,
-  prelude::*,
-  server,
-  window::{WindowExt, WindowManager},
-};
+use crate::event::Event;
+use crate::prelude::*;
+use crate::server;
+use crate::window::{WindowExt, WindowManager};
 
 #[tauri::command]
 pub async fn close_window(window: WebviewWindow) -> Result<()> {

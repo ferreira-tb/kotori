@@ -1,6 +1,8 @@
-use kotori_entity::{collection, prelude::*};
+use kotori_entity::collection;
+use kotori_entity::prelude::*;
 
-use crate::{database::prelude::*, prelude::*};
+use crate::database::prelude::*;
+use crate::prelude::*;
 
 pub trait CollectionExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<collection::Model>>;

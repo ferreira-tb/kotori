@@ -1,9 +1,9 @@
-use std::{
-  fs::File,
-  io::{Cursor, Write},
-};
+use std::fs::File;
+use std::io::{Cursor, Write};
 
-use image::{codecs::webp::WebPEncoder, io::Reader as ImageReader, ImageFormat, Rgb, RgbImage};
+use image::codecs::webp::WebPEncoder;
+use image::io::Reader as ImageReader;
+use image::{ImageFormat, Rgb, RgbImage};
 
 use crate::prelude::*;
 
@@ -47,7 +47,8 @@ pub async fn create_mock_book(
 ) -> Result<PathBuf> {
   use rand::Rng;
   use uuid::Uuid;
-  use zip::{write::SimpleFileOptions, ZipWriter};
+  use zip::write::SimpleFileOptions;
+  use zip::ZipWriter;
 
   let path = app
     .path()

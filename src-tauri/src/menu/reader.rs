@@ -1,7 +1,10 @@
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
-use crate::{library, menu::prelude::*, prelude::*, reader, window::WindowManager};
+use crate::menu::prelude::*;
+use crate::prelude::*;
+use crate::window::WindowManager;
+use crate::{library, reader};
 
 #[derive(Debug, Display, EnumString)]
 #[strum(serialize_all = "kebab-case")]

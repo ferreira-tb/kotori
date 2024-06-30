@@ -1,26 +1,20 @@
 use std::sync::Arc;
 
-use kotori_entity::{
-  book,
-  prelude::{Book, Folder},
-};
+use kotori_entity::book;
+use kotori_entity::prelude::{Book, Folder};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::{
-  fs,
-  sync::{oneshot, Semaphore},
-  task::JoinSet,
-};
+use tokio::fs;
+use tokio::sync::{oneshot, Semaphore};
+use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
+use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
+use crate::database::{BookExt, FolderExt};
+use crate::event::Event;
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
-use crate::{
-  book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS},
-  database::{BookExt, FolderExt},
-  event::Event,
-  prelude::*,
-  utils::glob,
-};
+use crate::prelude::*;
+use crate::utils::glob;
 
 pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
 where

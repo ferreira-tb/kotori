@@ -5,12 +5,10 @@ pub use reader::ReaderWindow;
 use strum::{Display, EnumIs, EnumString};
 use tauri::{EventTarget, WebviewUrl};
 
-use crate::{
-  prelude::*,
-  reader::WindowMap,
-  utils::store::{ConfigKey, TauriStore},
-  Kotori,
-};
+use crate::prelude::*;
+use crate::reader::WindowMap;
+use crate::utils::store::{ConfigKey, TauriStore};
+use crate::Kotori;
 
 #[derive(Debug, Display, EnumIs)]
 #[strum(serialize_all = "kebab-case")]

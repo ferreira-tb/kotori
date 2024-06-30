@@ -1,19 +1,17 @@
 use std::path::PathBuf;
 
 use itertools::Itertools;
-use tauri::{
-  async_runtime, menu::MenuEvent, AppHandle, DragDropEvent::Dropped, WebviewWindowBuilder, Window,
-  WindowEvent,
-};
+use tauri::menu::MenuEvent;
+use tauri::DragDropEvent::Dropped;
+use tauri::{async_runtime, AppHandle, WebviewWindowBuilder, Window, WindowEvent};
 use tracing::{info, trace};
 
-use crate::{
-  book::ActiveBook,
-  error::Result,
-  menu, reader,
-  utils::{glob, result::ResultExt},
-  window::{ColorMode, WindowKind},
-};
+use crate::book::ActiveBook;
+use crate::error::Result;
+use crate::utils::glob;
+use crate::utils::result::ResultExt;
+use crate::window::{ColorMode, WindowKind};
+use crate::{menu, reader};
 
 pub fn create(app: &AppHandle) -> Result<()> {
   let kind = WindowKind::Main;
@@ -40,7 +38,9 @@ pub fn create(app: &AppHandle) -> Result<()> {
 /// Calling `on_menu_event` on a window will override previously registered event listeners.
 /// For this reason, all listeners must be registered inside a single call.
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
-  use crate::menu::{self, context, Listener};
+  use crate::menu::{
+    context, Listener, {self},
+  };
   move |window, event| {
     menu::app::Item::execute(window, &event);
     context::library::book::Item::execute(window, &event);

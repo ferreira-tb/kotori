@@ -1,10 +1,10 @@
-use kotori_entity::{book, prelude::*};
+use kotori_entity::book;
+use kotori_entity::prelude::*;
 
-use crate::{
-  book::{Metadata, Title},
-  database::{prelude::*, UniqueViolation},
-  prelude::*,
-};
+use crate::book::{Metadata, Title};
+use crate::database::prelude::*;
+use crate::database::UniqueViolation;
+use crate::prelude::*;
 
 pub trait BookExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
@@ -112,7 +112,8 @@ impl BookExt for Book {
       .collect_vec();
 
     let id = {
-      use rand::{seq::SliceRandom, thread_rng};
+      use rand::seq::SliceRandom;
+      use rand::thread_rng;
 
       let mut rng = thread_rng();
       ids.choose(&mut rng)

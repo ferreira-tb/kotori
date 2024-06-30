@@ -14,7 +14,10 @@ use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 pub use title::Title;
 use tokio::sync::oneshot;
 
-use crate::{database::BookExt, event::Event, prelude::*, reader};
+use crate::database::BookExt;
+use crate::event::Event;
+use crate::prelude::*;
+use crate::reader;
 
 pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();

@@ -1,6 +1,8 @@
-use kotori_entity::{folder, prelude::*};
+use kotori_entity::folder;
+use kotori_entity::prelude::*;
 
-use crate::{database::prelude::*, prelude::*};
+use crate::database::prelude::*;
+use crate::prelude::*;
 
 pub trait FolderExt {
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>

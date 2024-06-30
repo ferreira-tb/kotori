@@ -4,7 +4,9 @@ use kotori_entity::book;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 
-use crate::{book::Title, prelude::*, VERSION};
+use crate::book::Title;
+use crate::prelude::*;
+use crate::VERSION;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Metadata {

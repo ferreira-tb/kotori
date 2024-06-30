@@ -3,10 +3,9 @@ mod collection;
 mod folder;
 
 mod prelude {
+  pub use sea_orm::ActiveValue::{NotSet, Set};
   pub use sea_orm::{
-    ActiveModelTrait,
-    ActiveValue::{NotSet, Set},
-    ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, QueryFilter,
+    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, QueryFilter,
   };
   pub use sea_query::{OnConflict, Query};
 }
@@ -15,10 +14,8 @@ pub use book::BookExt;
 pub use collection::CollectionExt;
 pub use folder::FolderExt;
 use kotori_migration::{Migrator, MigratorTrait};
-use sea_orm::{
-  error::{DbErr, RuntimeErr},
-  Database, DatabaseConnection,
-};
+use sea_orm::error::{DbErr, RuntimeErr};
+use sea_orm::{Database, DatabaseConnection};
 use sqlx::error::Error as SqlxError;
 use tokio::fs;
 
