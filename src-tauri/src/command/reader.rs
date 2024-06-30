@@ -1,6 +1,9 @@
-use crate::book::{self, ActiveBook, ReaderBook};
-use crate::window::WindowManager;
-use crate::{prelude::*, reader};
+use crate::{
+  book::{self, ActiveBook, ReaderBook},
+  prelude::*,
+  reader,
+  window::WindowManager,
+};
 
 #[tauri::command]
 pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, name: String) -> Result<()> {

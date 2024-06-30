@@ -1,7 +1,10 @@
-use crate::book::{Metadata, Title};
-use crate::database::{prelude::*, UniqueViolation};
-use crate::prelude::*;
 use kotori_entity::{book, prelude::*};
+
+use crate::{
+  book::{Metadata, Title},
+  database::{prelude::*, UniqueViolation},
+  prelude::*,
+};
 
 pub trait BookExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;
@@ -9,6 +12,7 @@ pub trait BookExt {
   async fn get_by_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<book::Model>;
   async fn get_cover(app: &AppHandle, id: i32) -> Result<Option<String>>;
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
+  async fn remove(app: &AppHandle, id: i32) -> Result<()>;
   async fn remove_all(app: &AppHandle) -> Result<()>;
 
   async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<book::Model>
@@ -108,8 +112,7 @@ impl BookExt for Book {
       .collect_vec();
 
     let id = {
-      use rand::seq::SliceRandom;
-      use rand::thread_rng;
+      use rand::{seq::SliceRandom, thread_rng};
 
       let mut rng = thread_rng();
       ids.choose(&mut rng)
@@ -121,6 +124,15 @@ impl BookExt for Book {
     } else {
       Ok(None)
     }
+  }
+
+  async fn remove(app: &AppHandle, id: i32) -> Result<()> {
+    let kotori = app.kotori();
+    Book::delete_by_id(id)
+      .exec(&kotori.db)
+      .await
+      .map(|_| ())
+      .map_err(Into::into)
   }
 
   async fn remove_all(app: &AppHandle) -> Result<()> {

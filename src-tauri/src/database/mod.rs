@@ -3,25 +3,26 @@ mod collection;
 mod folder;
 
 mod prelude {
-  pub use sea_query::{OnConflict, Query};
-
   pub use sea_orm::{
     ActiveModelTrait,
     ActiveValue::{NotSet, Set},
     ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, QueryFilter,
   };
+  pub use sea_query::{OnConflict, Query};
 }
 
 pub use book::BookExt;
 pub use collection::CollectionExt;
 pub use folder::FolderExt;
-
-use crate::prelude::*;
 use kotori_migration::{Migrator, MigratorTrait};
-use sea_orm::error::{DbErr, RuntimeErr};
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{
+  error::{DbErr, RuntimeErr},
+  Database, DatabaseConnection,
+};
 use sqlx::error::Error as SqlxError;
 use tokio::fs;
+
+use crate::prelude::*;
 
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app.path().app_local_data_dir()?;

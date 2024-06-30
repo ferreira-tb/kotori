@@ -1,7 +1,7 @@
 pub mod app {
-  use crate::book::BookHandle;
-  use crate::Kotori;
   use tauri::{AppHandle, Manager, State, Wry};
+
+  use crate::{book::BookHandle, Kotori};
 
   pub trait AppHandleExt: Manager<Wry> {
     fn kotori(&self) -> State<Kotori> {
@@ -17,15 +17,17 @@ pub mod app {
 }
 
 pub mod collections {
+  use std::hash::BuildHasherDefault;
+
   use ahash::AHasher;
   use indexmap::IndexMap;
-  use std::hash::BuildHasherDefault;
 
   pub type OrderedMap<K, V> = IndexMap<K, V, BuildHasherDefault<AHasher>>;
 }
 
 pub mod dialog {
   use std::fmt::Display;
+
   use tauri::AppHandle;
   use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 
@@ -72,14 +74,14 @@ pub mod glob {
 #[cfg(any(debug_assertions, feature = "devtools"))]
 pub mod log {
   use std::io;
+
   use tauri::{AppHandle, Manager};
-  use tracing_appender::non_blocking::WorkerGuard;
-  use tracing_appender::rolling;
-  use tracing_subscriber::fmt::time::ChronoLocal;
-  use tracing_subscriber::fmt::writer::MakeWriterExt;
-  use tracing_subscriber::fmt::Layer;
-  use tracing_subscriber::layer::SubscriberExt;
-  use tracing_subscriber::{EnvFilter, Registry};
+  use tracing_appender::{non_blocking::WorkerGuard, rolling};
+  use tracing_subscriber::{
+    fmt::{time::ChronoLocal, writer::MakeWriterExt, Layer},
+    layer::SubscriberExt,
+    EnvFilter, Registry,
+  };
 
   const TIMESTAMP: &str = "%F %T%.3f %:z";
 
@@ -121,11 +123,11 @@ pub mod log {
 }
 
 pub mod path {
-  use crate::err;
-  use crate::error::Result;
   use std::path::{Path, PathBuf};
-  use tauri::path::PathResolver;
-  use tauri::Wry;
+
+  use tauri::{path::PathResolver, Wry};
+
+  use crate::{err, error::Result};
 
   pub trait PathResolverExt {
     fn cover_dir(&self) -> Result<PathBuf>;
@@ -186,11 +188,13 @@ pub mod path {
 }
 
 pub mod result {
-  use crate::utils::dialog;
   use std::error::Error;
+
   use tauri::AppHandle;
   use tauri_plugin_manatsu::Log;
   use tracing::error;
+
+  use crate::utils::dialog;
 
   pub trait ResultExt<T, E: Error> {
     /// Saves an error log, consuming `self`, and discarding the success value, if any.
@@ -220,11 +224,13 @@ pub mod result {
 }
 
 pub mod store {
-  use crate::error::Result;
   use std::path::PathBuf;
+
   use strum::{AsRefStr, Display, EnumString};
   use tauri::{AppHandle, Manager, Wry};
   use tauri_plugin_store::{with_store, Store, StoreCollection};
+
+  use crate::error::Result;
 
   type StoreResult<T> = std::result::Result<T, tauri_plugin_store::Error>;
 
@@ -263,11 +269,15 @@ pub mod store {
 }
 
 pub mod temp {
-  use crate::error::Result;
-  use std::fs::{self, File};
-  use std::path::{Path, PathBuf};
+  use std::{
+    fs::{self, File},
+    path::{Path, PathBuf},
+  };
+
   use tracing::trace;
   use uuid::Uuid;
+
+  use crate::error::Result;
 
   pub struct Tempfile {
     pub path: PathBuf,

@@ -6,19 +6,15 @@ mod structs;
 mod title;
 
 pub use active::ActiveBook;
-pub use cover::Cover;
 pub use handle::{BookHandle, MAX_FILE_PERMITS};
+use kotori_entity::prelude::Book;
 pub use metadata::Metadata;
 pub use structs::{LibraryBook, ReaderBook};
-pub use title::Title;
-
-use crate::database::BookExt;
-use crate::event::Event;
-use crate::{prelude::*, reader};
-use kotori_entity::prelude::Book;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
-use tokio::fs;
+pub use title::Title;
 use tokio::sync::oneshot;
+
+use crate::{database::BookExt, event::Event, prelude::*, reader};
 
 pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();
@@ -44,15 +40,6 @@ pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   }
 
   Ok(())
-}
-
-pub async fn get_cover(app: &AppHandle, id: i32) -> Result<Cover> {
-  let path = app.path().cover(id)?;
-  if fs::try_exists(&path).await? {
-    return Ok(path.into());
-  }
-
-  Ok(Cover::NotExtracted)
 }
 
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {

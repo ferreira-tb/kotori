@@ -1,7 +1,6 @@
-use crate::database::CollectionExt;
-use crate::prelude::*;
-use kotori_entity::collection;
-use kotori_entity::prelude::Collection;
+use kotori_entity::{collection, prelude::Collection};
+
+use crate::{database::CollectionExt, prelude::*};
 
 #[tauri::command]
 pub async fn get_collections(app: AppHandle) -> Result<Vec<collection::Model>> {

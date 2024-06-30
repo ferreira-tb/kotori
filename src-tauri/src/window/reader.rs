@@ -1,10 +1,14 @@
-use crate::book::ActiveBook;
-use crate::menu::reader::{build as build_menu, Item};
-use crate::menu::MenuExt;
-use crate::prelude::*;
-use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
-use tauri::menu::MenuEvent;
-use tauri::{WebviewWindowBuilder, WindowEvent};
+use tauri::{menu::MenuEvent, WebviewWindowBuilder, WindowEvent};
+
+use crate::{
+  book::ActiveBook,
+  menu::{
+    reader::{build as build_menu, Item},
+    MenuExt,
+  },
+  prelude::*,
+  window::{ColorMode, WindowExt, WindowKind, WindowManager},
+};
 
 pub struct ReaderWindow {
   pub id: u16,

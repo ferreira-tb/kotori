@@ -1,6 +1,6 @@
-use crate::image::create_thumbnail;
-use crate::prelude::*;
 use image::ImageFormat;
+
+use crate::{image::create_thumbnail, prelude::*};
 
 #[derive(Clone, Debug)]
 pub enum Cover {
@@ -9,6 +9,15 @@ pub enum Cover {
 }
 
 impl Cover {
+  pub fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
+    let path = app.path().cover(id)?;
+    if path.try_exists()? {
+      return Ok(path.into());
+    }
+
+    Ok(Cover::NotExtracted)
+  }
+
   pub async fn extract<P>(path: P, buf: Vec<u8>, format: ImageFormat) -> Result<Self>
   where
     P: AsRef<Path>,

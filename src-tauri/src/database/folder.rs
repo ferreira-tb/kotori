@@ -1,6 +1,6 @@
-use crate::database::prelude::*;
-use crate::prelude::*;
 use kotori_entity::{folder, prelude::*};
+
+use crate::{database::prelude::*, prelude::*};
 
 pub trait FolderExt {
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>
@@ -8,6 +8,7 @@ pub trait FolderExt {
     I: IntoIterator<Item = PathBuf>;
 
   async fn get_all(app: &AppHandle) -> Result<Vec<PathBuf>>;
+  async fn remove_all(app: &AppHandle) -> Result<()>;
 }
 
 impl FolderExt for Folder {
@@ -61,5 +62,15 @@ impl FolderExt for Folder {
       .await
       .map(|_| ())
       .map_err(Into::into)
+  }
+
+  async fn remove_all(app: &AppHandle) -> Result<()> {
+    let kotori = app.kotori();
+    let database = kotori.db.get_database_backend();
+
+    let stmt = Query::delete().from_table(Folder).to_owned();
+    kotori.db.execute(database.build(&stmt)).await?;
+
+    Ok(())
   }
 }

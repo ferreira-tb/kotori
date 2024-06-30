@@ -1,13 +1,13 @@
 mod payload;
 
-use crate::book::LibraryBook;
-use crate::prelude::*;
-use crate::window::WindowKind;
+use std::fmt;
+
 use payload::{BookRemoved, CoverExtracted, PageDeleted, RatingUpdated};
 use serde::Serialize;
-use std::fmt;
 use strum::{AsRefStr, Display};
 use tauri::EventTarget;
+
+use crate::{book::LibraryBook, prelude::*, window::WindowKind};
 
 #[allow(clippy::enum_variant_names)]
 #[derive(AsRefStr, Clone, Display)]

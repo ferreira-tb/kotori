@@ -1,15 +1,19 @@
-use crate::book::ActiveBook;
-use crate::error::Result;
-use crate::utils::glob;
-use crate::utils::result::ResultExt;
-use crate::window::{ColorMode, WindowKind};
-use crate::{menu, reader};
-use itertools::Itertools;
 use std::path::PathBuf;
-use tauri::menu::MenuEvent;
-use tauri::DragDropEvent::Dropped;
-use tauri::{async_runtime, AppHandle, WebviewWindowBuilder, Window, WindowEvent};
+
+use itertools::Itertools;
+use tauri::{
+  async_runtime, menu::MenuEvent, AppHandle, DragDropEvent::Dropped, WebviewWindowBuilder, Window,
+  WindowEvent,
+};
 use tracing::{info, trace};
+
+use crate::{
+  book::ActiveBook,
+  error::Result,
+  menu, reader,
+  utils::{glob, result::ResultExt},
+  window::{ColorMode, WindowKind},
+};
 
 pub fn create(app: &AppHandle) -> Result<()> {
   let kind = WindowKind::Main;

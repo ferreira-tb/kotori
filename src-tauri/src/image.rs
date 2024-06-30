@@ -1,9 +1,11 @@
+use std::{
+  fs::File,
+  io::{Cursor, Write},
+};
+
+use image::{codecs::webp::WebPEncoder, io::Reader as ImageReader, ImageFormat, Rgb, RgbImage};
+
 use crate::prelude::*;
-use image::codecs::webp::WebPEncoder;
-use image::io::Reader as ImageReader;
-use image::{ImageFormat, Rgb, RgbImage};
-use std::fs::File;
-use std::io::{Cursor, Write};
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 #[derive(Copy, Clone, Debug)]

@@ -1,20 +1,26 @@
-use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
-use crate::database::{BookExt, FolderExt};
-use crate::event::Event;
-use crate::prelude::*;
-use crate::utils::glob;
-use kotori_entity::book;
-use kotori_entity::prelude::{Book, Folder};
-use sea_orm::EntityTrait;
 use std::sync::Arc;
+
+use kotori_entity::{
+  book,
+  prelude::{Book, Folder},
+};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::fs;
-use tokio::sync::{oneshot, Semaphore};
-use tokio::task::JoinSet;
+use tokio::{
+  fs,
+  sync::{oneshot, Semaphore},
+  task::JoinSet,
+};
 use walkdir::WalkDir;
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
+use crate::{
+  book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS},
+  database::{BookExt, FolderExt},
+  event::Event,
+  prelude::*,
+  utils::glob,
+};
 
 pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
 where
@@ -84,9 +90,6 @@ where
 {
   let mut builder = Book::builder(&path);
 
-  // In theory, we should call `BookHandle::close` afterwards, as the file will no longer be needed.
-  // But in practice, Kotori will schedule the extraction of the book cover right after it is saved,
-  // which would open the file again.
   let book_handle = app.book_handle();
   let cover = book_handle.get_first_page_name(&path).await?;
   builder = builder.cover(cover);
@@ -101,10 +104,11 @@ where
   // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
   // but that doesn't seem like a good idea. After all, the data would only be default values.
   if let Some(model) = &model {
-    LibraryBook::from_model(app, model)
-      .await
-      .and_then(|it| Event::BookAdded(&it).emit(app))?;
+    let book = LibraryBook::from_model(app, model)?;
+    Event::BookAdded(&book).emit(app)?;
   }
+
+  book_handle.close(path).await;
 
   Ok(model)
 }
@@ -136,23 +140,19 @@ where
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
-  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
   let mut set = Book::get_all(app)
     .await?
     .into_iter()
     .into_join_set_by(|model| {
       let app = app.clone();
-      let semaphore = Arc::clone(&semaphore);
       async move {
-        let _permit = semaphore.acquire_owned().await.ok()?;
-
         // Remove the book if the file is missing.
         if let Ok(false) = fs::try_exists(&model.path).await {
           let _ = remove(&app, model.id).await;
           return None;
         }
 
-        let book = LibraryBook::from_model(&app, &model).await.ok()?;
+        let book = LibraryBook::from_model(&app, &model).ok()?;
         Some((book, model))
       }
     });
@@ -176,7 +176,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
 }
 
 fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
-  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
+  let semaphore = Arc::new(Semaphore::new(10));
   for model in models {
     let app = app.clone();
     let semaphore = Arc::clone(&semaphore);
@@ -190,8 +190,7 @@ fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
-  let kotori = app.kotori();
-  Book::delete_by_id(id).exec(&kotori.db).await?;
+  Book::remove(app, id).await?;
   Event::BookRemoved(id).emit(app)?;
 
   if let Ok(cover) = app.path().cover(id) {
@@ -227,10 +226,15 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
 
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
   Book::remove_all(app).await?;
+  Folder::remove_all(app).await?;
   Event::LibraryCleared.emit(app)?;
 
   let path = app.path().cover_dir()?;
-  fs::remove_dir_all(path).await.map_err(Into::into)
+  if let Ok(true) = fs::try_exists(&path).await {
+    fs::remove_dir_all(path).await?;
+  }
+
+  Ok(())
 }
 
 /// Adds mock books to the library.

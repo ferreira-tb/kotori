@@ -1,7 +1,3 @@
-use crate::book::{self, ActiveBook};
-use crate::menu::prelude::*;
-use crate::menu::reader::close_all_reader_windows;
-use crate::{library, menu_item_or_bail, prelude::*, reader, window, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tauri_plugin_shell::ShellExt;
@@ -9,6 +5,14 @@ use tokio::sync::oneshot;
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
+use crate::{
+  book::{self, ActiveBook},
+  library,
+  menu::{prelude::*, reader::close_all_reader_windows},
+  menu_item_or_bail,
+  prelude::*,
+  reader, window, VERSION,
+};
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {

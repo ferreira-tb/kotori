@@ -25,6 +25,7 @@
   "logViewer.logLevel": "trace",
   "logViewer.watch": ["kotori.log"],
   "prettier.requireConfig": true,
+  "rust-analyzer.imports.granularity.enforce": true,
   "rust-analyzer.showUnlinkedFileNotification": false,
   "tailwindCSS.classAttributes": ["class", "header-class", "input-class"],
   "typescript.tsdk": "node_modules\\typescript\\lib",

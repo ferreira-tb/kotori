@@ -1,7 +1,8 @@
-use axum::http::StatusCode;
-use axum::response::{IntoResponse, Response};
-use serde::ser::Serializer;
-use serde::Serialize;
+use axum::{
+  http::StatusCode,
+  response::{IntoResponse, Response},
+};
+use serde::{ser::Serializer, Serialize};
 
 pub type Result<T> = std::result::Result<T, Error>;
 pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;

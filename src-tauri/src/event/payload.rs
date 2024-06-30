@@ -1,5 +1,6 @@
-use crate::prelude::*;
 use serde::Serialize;
+
+use crate::prelude::*;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct BookRemoved {

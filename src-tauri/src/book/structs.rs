@@ -1,10 +1,11 @@
-use crate::book::active::ActiveBook;
-use crate::book::get_cover;
-use crate::book::title::Title;
-use crate::prelude::*;
-use crate::window::WindowManager;
 use kotori_entity::book;
 use serde::Serialize;
+
+use crate::{
+  book::{active::ActiveBook, cover::Cover, title::Title},
+  prelude::*,
+  window::WindowManager,
+};
 
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all(serialize = "camelCase"))]
@@ -69,13 +70,13 @@ pub struct LibraryBook {
 }
 
 impl LibraryBook {
-  pub async fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
+  pub fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
     let book = Self {
       id: model.id,
       path: PathBuf::from(&model.path),
       title: Title::try_from(model.path.as_str())?,
       rating: u8::try_from(model.rating)?,
-      cover: get_cover(app, model.id).await?.path_buf(),
+      cover: Cover::from_id(app, model.id)?.path_buf(),
     };
 
     Ok(book)
