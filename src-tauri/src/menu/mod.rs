@@ -6,14 +6,14 @@ pub mod reader;
 mod prelude {
   pub use strum::{Display, EnumString};
   pub use tauri::menu::{
-    Menu, MenuBuilder, MenuEvent, PredefinedMenuItem, Submenu, SubmenuBuilder,
+    CheckMenuItemBuilder, Menu, MenuBuilder, MenuEvent, MenuId, MenuItemKind, PredefinedMenuItem,
+    Submenu, SubmenuBuilder,
   };
 
-  pub use crate::menu::Listener;
   pub use crate::menu_item;
 }
 
-use tauri::menu::{Menu, MenuEvent, MenuId, MenuItemKind, Submenu};
+use prelude::*;
 
 use crate::prelude::*;
 

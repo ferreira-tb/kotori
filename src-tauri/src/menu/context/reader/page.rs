@@ -5,6 +5,7 @@ use kotori_entity::prelude::Book;
 use crate::book::ActiveBook;
 use crate::database::BookExt;
 use crate::menu::prelude::*;
+use crate::menu::Listener;
 use crate::prelude::*;
 use crate::{menu_item_or_bail, reader};
 
@@ -46,7 +47,7 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
     .items(&[
       &menu_item!(app, Item::SetAsCover, "Set as cover")?,
       &PredefinedMenuItem::separator(app)?,
-      &menu_item!(app, Item::DeletePage, "Delete")?,
+      &menu_item!(app, Item::DeletePage, "Delete page")?,
     ])
     .build()
     .map_err(Into::into)

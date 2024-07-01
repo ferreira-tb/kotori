@@ -3,6 +3,7 @@ use tauri_plugin_clipboard_manager::ClipboardExt;
 
 use crate::book::ActiveBook;
 use crate::menu::prelude::*;
+use crate::menu::Listener;
 use crate::prelude::*;
 use crate::window::ReaderWindow;
 use crate::{library, reader};

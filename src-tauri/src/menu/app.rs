@@ -7,8 +7,10 @@ use crate::book::ActiveBook;
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::image::Orientation;
 use crate::menu::prelude::*;
+use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{library, menu_item_or_bail, reader, window, VERSION};
+use crate::window::ColorMode;
+use crate::{library, menu_item_or_bail, reader, VERSION};
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
@@ -52,9 +54,9 @@ impl Listener for Item {
       match item {
         Item::About => {}
         Item::AddToLibrary => add_to_library_with_dialog(&app).await,
-        Item::ColorModeAuto => set_color_mode(&app, window::ColorMode::Auto).await,
-        Item::ColorModeDark => set_color_mode(&app, window::ColorMode::Dark).await,
-        Item::ColorModeLight => set_color_mode(&app, window::ColorMode::Light).await,
+        Item::ColorModeAuto => set_color_mode(&app, ColorMode::Auto).await,
+        Item::ColorModeDark => set_color_mode(&app, ColorMode::Dark).await,
+        Item::ColorModeLight => set_color_mode(&app, ColorMode::Light).await,
         Item::Discord => open_discord(&app),
         Item::OpenFile => open_file(&app).await,
         Item::RandomBook => open_random_book(&app).await,
@@ -113,11 +115,18 @@ fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
 }
 
 fn view_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+  let current_color_mode = ColorMode::get(app.app_handle())?;
   let color_mode = SubmenuBuilder::new(app, "Color mode")
     .items(&[
-      &menu_item!(app, Item::ColorModeAuto, "Auto")?,
-      &menu_item!(app, Item::ColorModeLight, "Light")?,
-      &menu_item!(app, Item::ColorModeDark, "Dark")?,
+      &CheckMenuItemBuilder::with_id(Item::ColorModeAuto, "Auto")
+        .checked(current_color_mode == ColorMode::Auto)
+        .build(app)?,
+      &CheckMenuItemBuilder::with_id(Item::ColorModeLight, "Light")
+        .checked(current_color_mode == ColorMode::Light)
+        .build(app)?,
+      &CheckMenuItemBuilder::with_id(Item::ColorModeDark, "Dark")
+        .checked(current_color_mode == ColorMode::Dark)
+        .build(app)?,
     ])
     .build()?;
 
@@ -229,7 +238,7 @@ async fn scan_book_folders(app: &AppHandle) {
   library::scan_book_folders(app).await.dialog(app);
 }
 
-async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {
+async fn set_color_mode(app: &AppHandle, mode: ColorMode) {
   use tauri_plugin_manatsu::AppHandleExt as _;
   use tauri_plugin_window_state::{AppHandleExt as _, StateFlags};
 
@@ -238,7 +247,7 @@ async fn set_color_mode(app: &AppHandle, mode: window::ColorMode) {
 
   let message = "Kotori must restart to apply the change. Do you want to continue?";
   MessageDialogBuilder::new(dialog, "Color mode", message)
-    .kind(MessageDialogKind::Warning)
+    .kind(MessageDialogKind::Info)
     .ok_button_label("Confirm")
     .cancel_button_label("Cancel")
     .show(move |response| {

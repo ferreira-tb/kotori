@@ -84,7 +84,7 @@ impl WindowExt for WebviewWindow {
   }
 }
 
-#[derive(Debug, Default, Display, EnumString)]
+#[derive(Debug, Default, Display, EnumString, Eq, PartialEq)]
 #[strum(serialize_all = "lowercase")]
 pub enum ColorMode {
   #[default]

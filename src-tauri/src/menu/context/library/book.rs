@@ -2,6 +2,7 @@ use std::sync::Mutex;
 
 use crate::book::ActiveBook;
 use crate::menu::prelude::*;
+use crate::menu::Listener;
 use crate::prelude::*;
 use crate::{library, menu_item_or_bail, reader};
 
