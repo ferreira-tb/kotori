@@ -20,9 +20,7 @@ use book::BookHandle;
 use error::BoxResult;
 use reader::Reader;
 use sea_orm::DatabaseConnection;
-use tauri::{App, AppHandle, Manager};
-use tauri_plugin_window_state::StateFlags;
-use window::{WindowExt, WindowManager};
+use tauri::{App, Manager};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -33,27 +31,17 @@ pub struct Kotori {
 }
 
 fn main() {
-  let window_state = tauri_plugin_window_state::Builder::new()
-    .with_state_flags(StateFlags::MAXIMIZED | StateFlags::POSITION | StateFlags::SIZE)
-    .map_label(|label| {
-      if label.starts_with("reader") {
-        "reader"
-      } else {
-        label
-      }
-    });
-
   tauri::Builder::default()
     .plugin(tauri_plugin_clipboard_manager::init())
     .plugin(tauri_plugin_dialog::init())
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
-    .plugin(tauri_plugin_prevent_default::Builder::new().build())
-    .plugin(tauri_plugin_single_instance::init(single_instance))
     .plugin(tauri_plugin_shell::init())
     .plugin(tauri_plugin_store::Builder::new().build())
-    .plugin(window_state.build())
+    .plugin(plugin::prevent_default())
+    .plugin(plugin::single_instance())
+    .plugin(plugin::window_state())
     .setup(setup)
     .invoke_handler(tauri::generate_handler![
       command::close_window,
@@ -99,6 +87,45 @@ fn setup(app: &mut App) -> BoxResult<()> {
   Ok(())
 }
 
-fn single_instance(app: &AppHandle, _: Vec<String>, _: String) {
-  let _ = app.main_window().set_foreground_focus();
+mod plugin {
+  use tauri::plugin::TauriPlugin;
+  use tauri::Wry;
+
+  use crate::window::{WindowExt, WindowManager};
+
+  pub fn prevent_default() -> TauriPlugin<Wry> {
+    #[cfg_attr(not(any(debug_assertions, feature = "devtools")), allow(unused_mut))]
+    let mut builder = tauri_plugin_prevent_default::Builder::new();
+
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    {
+      use tauri_plugin_prevent_default::Flags;
+
+      builder = builder.with_flags(Flags::all().difference(Flags::RELOAD));
+    }
+
+    builder.build()
+  }
+
+  pub fn single_instance() -> TauriPlugin<Wry> {
+    tauri_plugin_single_instance::init(|app, _, _| {
+      let _ = app.main_window().set_foreground_focus();
+    })
+  }
+
+  pub fn window_state() -> TauriPlugin<Wry> {
+    use tauri_plugin_window_state::StateFlags as Flags;
+
+    let window_state = tauri_plugin_window_state::Builder::new()
+      .with_state_flags(Flags::MAXIMIZED | Flags::POSITION | Flags::SIZE)
+      .map_label(|label| {
+        if label.starts_with("reader") {
+          "reader"
+        } else {
+          label
+        }
+      });
+
+    window_state.build()
+  }
 }
