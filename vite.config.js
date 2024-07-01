@@ -1,3 +1,4 @@
+import os from 'node:os';
 import tailwind from 'tailwindcss';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
@@ -38,8 +39,9 @@ export default defineConfig({
     }
   },
   build: {
-    emptyOutDir: true,
+    target: os.platform() === 'win32' ? 'esnext' : 'es2015',
     minify: true,
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         main: entry('main'),
