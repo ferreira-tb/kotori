@@ -2954,6 +2954,7 @@ dependencies = [
  "tauri-plugin-http",
  "tauri-plugin-manatsu",
  "tauri-plugin-persisted-scope",
+ "tauri-plugin-prevent-default",
  "tauri-plugin-shell",
  "tauri-plugin-single-instance",
  "tauri-plugin-store",
@@ -6168,6 +6169,15 @@ dependencies = [
  "tauri",
  "tauri-plugin-fs",
  "thiserror",
+]
+
+[[package]]
+name = "tauri-plugin-prevent-default"
+version = "0.1.1"
+source = "git+https://github.com/ferreira-tb/tauri-plugin-prevent-default?branch=master#755a3afb855012d9587cf35283e4b9f07224c550"
+dependencies = [
+ "bitflags 2.6.0",
+ "tauri",
 ]
 
 [[package]]

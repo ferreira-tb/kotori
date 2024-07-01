@@ -102,6 +102,10 @@ features = ["rustls-tls"]
 git = "https://github.com/ferreira-tb/manatsu"
 branch = "main"
 
+[dependencies.tauri-plugin-prevent-default]
+git = "https://github.com/ferreira-tb/tauri-plugin-prevent-default"
+branch = "master"
+
 [dependencies.tauri-plugin-window-state]
 git = "https://github.com/tauri-apps/plugins-workspace"
 branch = "v2"
