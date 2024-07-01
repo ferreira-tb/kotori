@@ -2,9 +2,11 @@ use kotori_entity::folder;
 use kotori_entity::prelude::*;
 
 use crate::database::prelude::*;
+use crate::database::UniqueViolation;
 use crate::prelude::*;
 
 pub trait FolderExt {
+  async fn create(app: &AppHandle, folder: impl AsRef<Path>) -> Result<Option<folder::Model>>;
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>
   where
     I: IntoIterator<Item = PathBuf>;
@@ -33,6 +35,25 @@ impl FolderExt for Folder {
       .collect();
 
     Ok(folders)
+  }
+
+  async fn create(app: &AppHandle, folder: impl AsRef<Path>) -> Result<Option<folder::Model>> {
+    let path = folder.try_string()?;
+    let model = folder::ActiveModel {
+      path: Set(path),
+      ..Default::default()
+    };
+
+    let kotori = app.kotori();
+    let result = Folder::insert(model)
+      .exec_with_returning(&kotori.db)
+      .await;
+
+    if matches!(&result, Err(e) if e.is_unique_violation()) {
+      return Ok(None);
+    }
+
+    result.map(Some).map_err(Into::into)
   }
 
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>

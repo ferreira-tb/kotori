@@ -139,6 +139,8 @@ pub mod path {
 
     #[cfg(any(debug_assertions, feature = "devtools"))]
     fn dev_cache_dir(&self) -> Result<PathBuf>;
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    fn mocks_dir(&self) -> Result<PathBuf>;
   }
 
   impl PathResolverExt for PathResolver<Wry> {
@@ -161,6 +163,11 @@ pub mod path {
         .app_cache_dir()
         .map(|it| it.join("dev-cache"))
         .map_err(Into::into)
+    }
+
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    fn mocks_dir(&self) -> Result<PathBuf> {
+      self.dev_cache_dir().map(|it| it.join("mocks"))
     }
   }
 

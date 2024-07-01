@@ -50,11 +50,7 @@ pub async fn create_mock_book(
   use zip::write::SimpleFileOptions;
   use zip::ZipWriter;
 
-  let path = app
-    .path()
-    .dev_cache_dir()
-    .map(|it| it.join("mocks"))?;
-
+  let path = app.path().mocks_dir()?;
   tokio::fs::create_dir_all(&path).await?;
 
   let name = format!("{}.zip", Uuid::new_v4());

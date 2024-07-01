@@ -283,6 +283,8 @@ pub async fn add_mock_books(
   }
 
   if !books.is_empty() {
+    let path = app.path().mocks_dir()?;
+    Folder::create(app, path).await?;
     save_many(app, books).await?;
   }
 
