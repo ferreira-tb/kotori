@@ -109,8 +109,8 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
         // Disable the menu item after adding the book to the library.
         ReaderWindow::update_all_menus(app).await?;
 
-        ActiveBook::from_model(&app, &model)?
-          .extract_cover(&app)
+        ActiveBook::from_model(app, &model)?
+          .extract_cover(app)
           .await?;
       }
     };

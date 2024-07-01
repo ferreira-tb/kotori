@@ -145,9 +145,9 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
 
     windows.shift_remove(&window_id);
 
-    // No need to hold a write lock from now on.
     drop(windows);
 
+    // This will read lock the windows.
     ReaderWindow::update_all_menus(&app)
       .await
       .log(&app);

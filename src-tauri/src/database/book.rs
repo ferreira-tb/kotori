@@ -219,16 +219,16 @@ impl Builder {
   }
 
   pub fn metadata(mut self, mut metadata: Metadata) -> Self {
-    if let Some(title) = metadata.title.take() {
-      self.title = Some(title);
+    if metadata.title.is_some() {
+      self.title = metadata.title.take();
     }
 
-    if matches!(metadata.rating, Some(it) if it <= 5) {
+    if metadata.rating.is_some_and(|it| it <= 5) {
       self.rating = metadata.rating.take();
     }
 
-    if let Some(cover) = metadata.cover.take() {
-      self.cover = Some(cover);
+    if metadata.cover.is_some() {
+      self.cover = metadata.cover.take();
     }
 
     self
