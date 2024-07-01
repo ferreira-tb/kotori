@@ -120,16 +120,17 @@ impl ActiveBook {
     self.handle.read_page(&self.path, name).await
   }
 
-  pub async fn extract_cover(&self, app: &AppHandle, path: PathBuf) -> Result<()> {
+  pub async fn extract_cover(&self, app: &AppHandle) -> Result<()> {
     let name = self.get_cover_name(app).await?;
-    let page = self.get_page_as_bytes(&name).await?;
-    let format = image::guess_format(&page)
+    let bytes = self.get_page_as_bytes(&name).await?;
+    let format = image::guess_format(&bytes)
       .inspect_err(|error| warn!(%error))
       .or_else(|_| ImageFormat::from_path(name))?;
 
-    Cover::extract(&path, page, format).await?;
-
     let id = self.try_id(app).await?;
+    let path = app.path().cover(id)?;
+    Cover::extract(&path, bytes, format).await?;
+
     let path = path.as_ref();
     Event::CoverExtracted { id, path }.emit(app)
   }
@@ -141,10 +142,7 @@ impl ActiveBook {
   {
     let id = self.try_id(app).await?;
     let model = Book::update_cover(app, id, name).await?;
-
-    if let Ok(cover) = app.path().cover(id) {
-      self.extract_cover(app, cover).await?;
-    }
+    self.extract_cover(app).await?;
 
     let metadata = Metadata::try_from(&model)?;
     app

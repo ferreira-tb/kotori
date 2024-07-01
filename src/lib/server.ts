@@ -18,10 +18,6 @@ async function fetch(endpoint: string, init?: RequestInit) {
   return response.blob();
 }
 
-export async function getBookCover(bookId: number) {
-  return fetch(`library/${bookId}`);
-}
-
 export async function getBookPage(windowId: number, name: string) {
   return fetch(`reader/${windowId}`, {
     method: 'POST',

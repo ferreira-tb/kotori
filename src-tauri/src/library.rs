@@ -167,7 +167,10 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   Ok(books)
 }
 
-fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
+fn schedule_cover_extraction<I>(app: &AppHandle, models: I)
+where
+  I: IntoIterator<Item = book::Model>,
+{
   let permits = MAX_FILE_PERMITS / 5;
   let semaphore = Arc::new(Semaphore::new(permits));
   for model in models {
@@ -175,9 +178,9 @@ fn schedule_cover_extraction(app: &AppHandle, models: Vec<book::Model>) {
     let semaphore = Arc::clone(&semaphore);
     spawn(async move {
       let _permit = semaphore.acquire_owned().await?;
-      let book = ActiveBook::from_model(&app, &model)?;
-      let path = app.path().cover(model.id)?;
-      book.extract_cover(&app, path).await
+      ActiveBook::from_model(&app, &model)?
+        .extract_cover(&app)
+        .await
     });
   }
 }

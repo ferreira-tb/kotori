@@ -1,6 +1,7 @@
 use tauri::menu::MenuId;
 use tauri_plugin_clipboard_manager::ClipboardExt;
 
+use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::prelude::*;
 use crate::window::ReaderWindow;
@@ -104,9 +105,13 @@ fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
     let result: Result<()> = try {
-      if library::save(app, path).await?.is_some() {
+      if let Some(model) = library::save(app, path).await? {
         // Disable the menu item after adding the book to the library.
         ReaderWindow::update_all_menus(app).await?;
+
+        ActiveBook::from_model(&app, &model)?
+          .extract_cover(&app)
+          .await?;
       }
     };
 

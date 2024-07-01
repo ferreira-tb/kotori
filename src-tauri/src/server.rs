@@ -4,13 +4,12 @@ use std::thread;
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{get, post};
+use axum::routing::post;
 use axum::Router;
 use serde::Deserialize;
 use tokio::net::TcpListener;
 use tokio::sync::oneshot;
 
-use crate::book::ActiveBook;
 use crate::prelude::*;
 use crate::window::WindowManager;
 
@@ -24,7 +23,6 @@ pub fn serve(app: &AppHandle) -> Result<()> {
   thread::spawn(move || {
     block_on(async move {
       let router = Router::new()
-        .route("/kotori/library/:book_id", get(book_cover))
         .route("/kotori/reader/:window_id", post(book_page))
         .with_state(app);
 
@@ -49,17 +47,6 @@ pub fn serve(app: &AppHandle) -> Result<()> {
 
 pub fn port() -> u16 {
   *PORT.get().unwrap()
-}
-
-async fn book_cover(State(app): State<AppHandle>, Path(book_id): Path<i32>) -> Response {
-  if let Ok(book) = ActiveBook::from_id(&app, book_id).await {
-    return match book.get_cover_as_bytes(&app).await {
-      Ok(bytes) => (StatusCode::OK, bytes).into_response(),
-      Err(err) => err.into_response(),
-    };
-  };
-
-  err!(BookNotFound).into_response()
 }
 
 #[derive(Deserialize)]
