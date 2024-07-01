@@ -93,18 +93,18 @@ mod plugin {
 
   use crate::window::{WindowExt, WindowManager};
 
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   pub fn prevent_default() -> TauriPlugin<Wry> {
-    #[cfg_attr(not(any(debug_assertions, feature = "devtools")), allow(unused_mut))]
-    let mut builder = tauri_plugin_prevent_default::Builder::new();
+    use tauri_plugin_prevent_default::Flags;
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
-    {
-      use tauri_plugin_prevent_default::Flags;
+    tauri_plugin_prevent_default::Builder::new()
+      .with_flags(Flags::all().difference(Flags::RELOAD))
+      .build()
+  }
 
-      builder = builder.with_flags(Flags::all().difference(Flags::RELOAD));
-    }
-
-    builder.build()
+  #[cfg(not(any(debug_assertions, feature = "devtools")))]
+  pub fn prevent_default() -> TauriPlugin<Wry> {
+    tauri_plugin_prevent_default::Builder::new().build()
   }
 
   pub fn single_instance() -> TauriPlugin<Wry> {
@@ -116,7 +116,7 @@ mod plugin {
   pub fn window_state() -> TauriPlugin<Wry> {
     use tauri_plugin_window_state::StateFlags as Flags;
 
-    let window_state = tauri_plugin_window_state::Builder::new()
+    let builder = tauri_plugin_window_state::Builder::new()
       .with_state_flags(Flags::MAXIMIZED | Flags::POSITION | Flags::SIZE)
       .map_label(|label| {
         if label.starts_with("reader") {
@@ -126,6 +126,6 @@ mod plugin {
         }
       });
 
-    window_state.build()
+    builder.build()
   }
 }

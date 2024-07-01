@@ -41,6 +41,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^3.6.0",
+    "es-iterator-helpers": "^1.0.19",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.399.0",
     "manatsu": "^0.12.0",

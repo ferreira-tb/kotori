@@ -5,8 +5,6 @@ use kotori_entity::prelude::{Book, Folder};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
-#[cfg(any(debug_assertions, feature = "devtools"))]
-use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
@@ -271,6 +269,8 @@ pub async fn add_mock_books(
   size: usize,
   orientation: Orientation,
 ) -> Result<()> {
+  use tokio::task::JoinSet;
+
   use crate::image::create_mock_book;
 
   let mut set = JoinSet::new();
