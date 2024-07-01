@@ -5,6 +5,7 @@ use kotori_entity::prelude::{Book, Folder};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
+#[cfg(any(debug_assertions, feature = "devtools"))]
 use tokio::task::JoinSet;
 use walkdir::WalkDir;
 
@@ -220,6 +221,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
+#[cfg(any(debug_assertions, feature = "devtools"))]
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
   Book::remove_all(app).await?;
   Folder::remove_all(app).await?;

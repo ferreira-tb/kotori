@@ -1,9 +1,13 @@
 use std::fs::File;
-use std::io::{Cursor, Write};
+use std::io::Cursor;
+#[cfg(any(debug_assertions, feature = "devtools"))]
+use std::io::Write;
 
 use image::codecs::webp::WebPEncoder;
 use image::io::Reader as ImageReader;
-use image::{ImageFormat, Rgb, RgbImage};
+use image::ImageFormat;
+#[cfg(any(debug_assertions, feature = "devtools"))]
+use image::{Rgb, RgbImage};
 
 use crate::prelude::*;
 

@@ -2,16 +2,20 @@ use kotori_entity::folder;
 use kotori_entity::prelude::*;
 
 use crate::database::prelude::*;
+#[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::database::UniqueViolation;
 use crate::prelude::*;
 
 pub trait FolderExt {
-  async fn create(app: &AppHandle, folder: impl AsRef<Path>) -> Result<Option<folder::Model>>;
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>
   where
     I: IntoIterator<Item = PathBuf>;
 
   async fn get_all(app: &AppHandle) -> Result<Vec<PathBuf>>;
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  async fn create(app: &AppHandle, folder: impl AsRef<Path>) -> Result<Option<folder::Model>>;
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn remove_all(app: &AppHandle) -> Result<()>;
 }
 
@@ -37,6 +41,7 @@ impl FolderExt for Folder {
     Ok(folders)
   }
 
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn create(app: &AppHandle, folder: impl AsRef<Path>) -> Result<Option<folder::Model>> {
     let path = folder.try_string()?;
     let model = folder::ActiveModel {
@@ -87,6 +92,7 @@ impl FolderExt for Folder {
       .map_err(Into::into)
   }
 
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn remove_all(app: &AppHandle) -> Result<()> {
     let kotori = app.kotori();
     let database = kotori.db.get_database_backend();

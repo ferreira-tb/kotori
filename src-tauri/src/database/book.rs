@@ -14,8 +14,10 @@ pub trait BookExt {
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title>;
   async fn has_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<bool>;
   async fn random(app: &AppHandle) -> Result<Option<book::Model>>;
-  async fn remove(app: &AppHandle, id: i32) -> Result<()>;
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn remove_all(app: &AppHandle) -> Result<()>;
+  async fn remove(app: &AppHandle, id: i32) -> Result<()>;
 
   async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<book::Model>
   where
@@ -153,6 +155,7 @@ impl BookExt for Book {
       .map_err(Into::into)
   }
 
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn remove_all(app: &AppHandle) -> Result<()> {
     let kotori = app.kotori();
     let database = kotori.db.get_database_backend();

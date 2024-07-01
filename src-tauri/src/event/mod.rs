@@ -18,11 +18,24 @@ pub enum Event<'a> {
   BookAdded(&'a LibraryBook),
   BookRemoved(i32),
   ConfigUpdated(Option<&'a str>),
-  CoverExtracted { id: i32, path: &'a Path },
+  CoverExtracted {
+    id: i32,
+    path: &'a Path,
+  },
+  PageDeleted {
+    window_id: u16,
+    name: &'a str,
+  },
+  RatingUpdated {
+    id: i32,
+    rating: u8,
+  },
+  ReaderBookChanged {
+    window_id: u16,
+  },
+
+  #[cfg(any(debug_assertions, feature = "devtools"))]
   LibraryCleared,
-  PageDeleted { window_id: u16, name: &'a str },
-  RatingUpdated { id: i32, rating: u8 },
-  ReaderBookChanged { window_id: u16 },
 }
 
 impl<'a> Event<'a> {
@@ -62,10 +75,12 @@ impl<'a> Event<'a> {
         None => to_all!(()),
       },
       Event::CoverExtracted { id, path } => to_main!(CoverExtracted::new(id, path)?),
-      Event::LibraryCleared => to_main!(()),
       Event::PageDeleted { window_id, name } => to_reader!(window_id, PageDeleted::new(name)),
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated { id, rating }),
       Event::ReaderBookChanged { window_id } => to_reader!(window_id, ()),
+
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      Event::LibraryCleared => to_main!(()),
     }
   }
 }
