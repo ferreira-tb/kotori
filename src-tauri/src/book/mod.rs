@@ -5,6 +5,10 @@ mod metadata;
 mod structs;
 mod title;
 
+use crate::database::BookExt;
+use crate::event::Event;
+use crate::prelude::*;
+use crate::reader;
 pub use active::ActiveBook;
 pub use handle::{BookHandle, MAX_FILE_PERMITS};
 use kotori_entity::prelude::Book;
@@ -13,11 +17,6 @@ pub use structs::{LibraryBook, ReaderBook};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
 pub use title::Title;
 use tokio::sync::oneshot;
-
-use crate::database::BookExt;
-use crate::event::Event;
-use crate::prelude::*;
-use crate::reader;
 
 pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();

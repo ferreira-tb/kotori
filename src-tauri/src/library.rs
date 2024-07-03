@@ -1,12 +1,3 @@
-use std::sync::Arc;
-
-use kotori_entity::book;
-use kotori_entity::prelude::{Book, Folder};
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
-use tokio::fs;
-use tokio::sync::{oneshot, Semaphore};
-use walkdir::WalkDir;
-
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
 use crate::database::{BookExt, FolderExt};
 use crate::event::Event;
@@ -14,6 +5,13 @@ use crate::event::Event;
 use crate::image::Orientation;
 use crate::prelude::*;
 use crate::utils::glob;
+use kotori_entity::book;
+use kotori_entity::prelude::{Book, Folder};
+use std::sync::Arc;
+use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
+use tokio::fs;
+use tokio::sync::{oneshot, Semaphore};
+use walkdir::WalkDir;
 
 pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
 where
@@ -269,9 +267,8 @@ pub async fn add_mock_books(
   size: usize,
   orientation: Orientation,
 ) -> Result<()> {
-  use tokio::task::JoinSet;
-
   use crate::image::create_mock_book;
+  use tokio::task::JoinSet;
 
   let mut set = JoinSet::new();
   for _ in 0..amount {

@@ -1,12 +1,10 @@
-use std::path::Path;
-
-use kotori_entity::book;
-use semver::Version;
-use serde::{Deserialize, Serialize};
-
 use crate::book::Title;
 use crate::prelude::*;
 use crate::VERSION;
+use kotori_entity::book;
+use semver::Version;
+use serde::{Deserialize, Serialize};
+use std::path::Path;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Metadata {

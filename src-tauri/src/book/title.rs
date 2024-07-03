@@ -1,8 +1,6 @@
-use std::fmt;
-
-use serde::{Deserialize, Serialize};
-
 use crate::prelude::*;
+use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Title(pub(super) String);

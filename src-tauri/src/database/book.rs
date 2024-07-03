@@ -1,10 +1,9 @@
-use kotori_entity::book;
-use kotori_entity::prelude::*;
-
 use crate::book::{Metadata, Title};
 use crate::database::prelude::*;
 use crate::database::UniqueViolation;
 use crate::prelude::*;
+use kotori_entity::book;
+use kotori_entity::prelude::*;
 
 pub trait BookExt {
   async fn get_all(app: &AppHandle) -> Result<Vec<book::Model>>;

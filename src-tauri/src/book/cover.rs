@@ -1,7 +1,6 @@
-use image::ImageFormat;
-
 use crate::image::create_thumbnail;
 use crate::prelude::*;
+use image::ImageFormat;
 
 #[derive(Clone, Debug)]
 pub enum Cover {

@@ -88,10 +88,9 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 mod plugin {
+  use crate::window::{WindowExt, WindowManager};
   use tauri::plugin::TauriPlugin;
   use tauri::Wry;
-
-  use crate::window::{WindowExt, WindowManager};
 
   #[cfg(any(debug_assertions, feature = "devtools"))]
   pub fn prevent_default() -> TauriPlugin<Wry> {

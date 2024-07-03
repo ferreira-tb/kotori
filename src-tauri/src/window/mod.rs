@@ -1,14 +1,13 @@
 pub mod app;
 mod reader;
 
-pub use reader::ReaderWindow;
-use strum::{Display, EnumIs, EnumString};
-use tauri::{EventTarget, WebviewUrl};
-
 use crate::prelude::*;
 use crate::reader::WindowMap;
 use crate::utils::store::{ConfigKey, TauriStore};
 use crate::Kotori;
+pub use reader::ReaderWindow;
+use strum::{Display, EnumIs, EnumString};
+use tauri::{EventTarget, WebviewUrl};
 
 #[derive(Debug, Display, EnumIs)]
 #[strum(serialize_all = "kebab-case")]

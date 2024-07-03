@@ -1,13 +1,11 @@
-use std::sync::Mutex;
-
-use kotori_entity::prelude::Book;
-
 use crate::book::ActiveBook;
 use crate::database::BookExt;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
 use crate::{menu_item_or_bail, reader};
+use kotori_entity::prelude::Book;
+use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {

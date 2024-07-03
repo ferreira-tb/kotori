@@ -1,18 +1,16 @@
-use std::path::PathBuf;
-
-use itertools::Itertools;
-use tauri::async_runtime::spawn;
-use tauri::menu::MenuEvent;
-use tauri::DragDropEvent::Dropped;
-use tauri::{AppHandle, WebviewWindowBuilder, Window, WindowEvent};
-use tracing::{info, trace};
-
 use crate::book::ActiveBook;
 use crate::error::Result;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
 use crate::window::{ColorMode, WindowKind};
 use crate::{menu, reader};
+use itertools::Itertools;
+use std::path::PathBuf;
+use tauri::async_runtime::spawn;
+use tauri::menu::MenuEvent;
+use tauri::DragDropEvent::Dropped;
+use tauri::{AppHandle, WebviewWindowBuilder, Window, WindowEvent};
+use tracing::{info, trace};
 
 pub fn create(app: &AppHandle) -> Result<()> {
   let kind = WindowKind::Main;
@@ -30,6 +28,9 @@ pub fn create(app: &AppHandle) -> Result<()> {
   window.on_menu_event(on_menu_event());
   window.on_window_event(on_window_event(app));
 
+  #[cfg(any(debug_assertions, feature = "devtools"))]
+  window.set_title("Kotori DEV")?;
+
   #[cfg(debug_assertions)]
   window.open_devtools();
 
@@ -39,9 +40,7 @@ pub fn create(app: &AppHandle) -> Result<()> {
 /// Calling `on_menu_event` on a window will override previously registered event listeners.
 /// For this reason, all listeners must be registered inside a single call.
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
-  use crate::menu::{
-    context, Listener, {self},
-  };
+  use crate::menu::{self, context, Listener};
   move |window, event| {
     menu::app::Item::execute(window, &event);
     context::library::book::Item::execute(window, &event);

@@ -1,11 +1,9 @@
-use std::fs::File;
-use std::io::Cursor;
-
+use crate::prelude::*;
 use image::codecs::webp::WebPEncoder;
 use image::io::Reader as ImageReader;
 use image::ImageFormat;
-
-use crate::prelude::*;
+use std::fs::File;
+use std::io::Cursor;
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 #[derive(Copy, Clone, Debug)]
@@ -45,10 +43,9 @@ pub async fn create_mock_book(
   size: usize,
   orientation: Orientation,
 ) -> Result<PathBuf> {
-  use std::io::Write;
-
   use image::{Rgb, RgbImage};
   use rand::Rng;
+  use std::io::Write;
   use uuid::Uuid;
   use zip::write::SimpleFileOptions;
   use zip::ZipWriter;

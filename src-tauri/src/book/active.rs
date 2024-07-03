@@ -1,12 +1,3 @@
-use std::cmp::Ordering;
-use std::sync::Arc;
-
-use image::ImageFormat;
-use kotori_entity::book;
-use kotori_entity::prelude::Book;
-use natord::compare_ignore_case;
-use tokio::sync::OnceCell;
-
 use crate::book::cover::Cover;
 use crate::book::handle::{BookHandle, PageMap};
 use crate::book::metadata::Metadata;
@@ -15,6 +6,13 @@ use crate::database::BookExt;
 use crate::event::Event;
 use crate::library;
 use crate::prelude::*;
+use image::ImageFormat;
+use kotori_entity::book;
+use kotori_entity::prelude::Book;
+use natord::compare_ignore_case;
+use std::cmp::Ordering;
+use std::sync::Arc;
+use tokio::sync::OnceCell;
 
 #[derive(Clone, Debug)]
 pub struct ActiveBook {

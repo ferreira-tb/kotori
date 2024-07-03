@@ -10,6 +10,7 @@ mod prelude {
   pub use sea_query::{OnConflict, Query};
 }
 
+use crate::prelude::*;
 pub use book::BookExt;
 pub use collection::CollectionExt;
 pub use folder::FolderExt;
@@ -18,8 +19,6 @@ use sea_orm::error::{DbErr, RuntimeErr};
 use sea_orm::{Database, DatabaseConnection};
 use sqlx::error::Error as SqlxError;
 use tokio::fs;
-
-use crate::prelude::*;
 
 pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   let path = app.path().app_local_data_dir()?;

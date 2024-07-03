@@ -1,10 +1,9 @@
-use kotori_entity::folder;
-use kotori_entity::prelude::*;
-
 use crate::database::prelude::*;
 #[cfg(any(debug_assertions, feature = "devtools"))]
 use crate::database::UniqueViolation;
 use crate::prelude::*;
+use kotori_entity::folder;
+use kotori_entity::prelude::*;
 
 pub trait FolderExt {
   async fn create_many<I>(app: &AppHandle, folders: I) -> Result<()>

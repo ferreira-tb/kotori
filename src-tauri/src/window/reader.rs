@@ -1,7 +1,3 @@
-use tauri::menu::{Menu, MenuEvent};
-use tauri::DragDropEvent::Dropped;
-use tauri::{WebviewWindowBuilder, WindowEvent};
-
 use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::menu::reader::{build as build_menu, Item};
@@ -9,6 +5,9 @@ use crate::menu::MenuExt;
 use crate::prelude::*;
 use crate::utils::glob;
 use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
+use tauri::menu::{Menu, MenuEvent};
+use tauri::DragDropEvent::Dropped;
+use tauri::{WebviewWindowBuilder, WindowEvent};
 
 pub struct ReaderWindow {
   pub id: u16,

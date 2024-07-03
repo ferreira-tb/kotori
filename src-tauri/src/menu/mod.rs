@@ -4,18 +4,16 @@ mod macros;
 pub mod reader;
 
 mod prelude {
+  pub use crate::menu_item;
   pub use strum::{Display, EnumString};
   pub use tauri::menu::{
     CheckMenuItemBuilder, Menu, MenuBuilder, MenuEvent, MenuId, MenuItemKind, PredefinedMenuItem,
     Submenu, SubmenuBuilder,
   };
-
-  pub use crate::menu_item;
 }
 
-use prelude::*;
-
 use crate::prelude::*;
+use prelude::*;
 
 pub trait Listener {
   fn execute(window: &Window, event: &MenuEvent);

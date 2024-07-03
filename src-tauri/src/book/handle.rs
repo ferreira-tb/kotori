@@ -1,21 +1,19 @@
-use std::fs::File;
-use std::io::{Read, Seek, Write};
-use std::sync::{Arc, Mutex};
-use std::{fmt, thread};
-
-use ahash::{HashMap, HashMapExt};
-use natord::compare_ignore_case;
-use strum::Display;
-use tokio::sync::{mpsc, oneshot, Notify, Semaphore, SemaphorePermit};
-use zip::result::{ZipError, ZipResult};
-use zip::write::SimpleFileOptions as ZipSimpleFileOptions;
-use zip::{ZipArchive, ZipWriter};
-
 use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::utils::glob;
 use crate::utils::temp::Tempfile;
+use ahash::{HashMap, HashMapExt};
+use natord::compare_ignore_case;
+use std::fs::File;
+use std::io::{Read, Seek, Write};
+use std::sync::{Arc, Mutex};
+use std::{fmt, thread};
+use strum::Display;
+use tokio::sync::{mpsc, oneshot, Notify, Semaphore, SemaphorePermit};
+use zip::result::{ZipError, ZipResult};
+use zip::write::SimpleFileOptions as ZipSimpleFileOptions;
+use zip::{ZipArchive, ZipWriter};
 
 type TxResult<T> = oneshot::Sender<Result<T>>;
 
