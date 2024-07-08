@@ -1829,8 +1829,8 @@ dependencies = [
 
 [[package]]
 name = "future-iter"
-version = "0.1.0"
-source = "git+https://github.com/ferreira-tb/future-iter?branch=master#e00e92b80f196076c603e10b2c32dce90d7160ff"
+version = "0.1.3"
+source = "git+https://github.com/ferreira-tb/future-iter?branch=master#10bd8bb490f7a0c9c8860b0b84de6f90604ec4e2"
 dependencies = [
  "tokio",
 ]
