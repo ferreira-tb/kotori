@@ -29,5 +29,5 @@ version = "0.12.15"
 features = ["macros", "runtime-tokio-rustls", "sqlx-sqlite"]
 
 [dependencies.serde]
-version = "1.0.203"
+version = "1.0.204"
 features = ["derive"]
