@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { showWindow } from '@/lib/commands';
+import Rating from './components/Rating.vue';
 import Sidebar from './components/Sidebar.vue';
 import { Button } from '@/components/ui/button';
 import { setGlobalSensors } from '@/lib/sensors';
-import { useConfigStore } from '@/stores/config';
 import { Separator } from '@/components/ui/separator';
 import { loadStores, useLibraryStore } from './stores';
-
-const config = useConfigStore();
-useIntervalFn(config.save, 30_000);
 
 const libraryStore = useLibraryStore();
 const { library, selected } = storeToRefs(libraryStore);
@@ -34,14 +31,14 @@ onMounted(() => {
         </div>
       </div>
       <Separator class="w-full" />
-      <footer v-show="library.size > 0" class="flex flex-col overflow-hidden">
+      <footer v-show="library.size > 0 && selected" class="flex flex-col overflow-hidden">
         <div class="flex h-16 items-center">
           <div v-if="selected" class="flex w-full justify-between px-2">
             <div class="flex items-center gap-2">
               <img v-if="selected.cover" :src="selected.cover" :alt="selected.title" class="h-10" />
-              <div class="flex flex-col overflow-hidden">
+              <div class="flex flex-col gap-1 overflow-hidden">
                 <div class="ellipsis">{{ selected.title }}</div>
-                <div class="ellipsis text-xs">{{ selected.path }}</div>
+                <Rating />
               </div>
             </div>
             <div class="flex items-center pr-2">

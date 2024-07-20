@@ -226,49 +226,6 @@ pub mod result {
   }
 }
 
-pub mod store {
-  use crate::error::Result;
-  use std::path::PathBuf;
-  use strum::{AsRefStr, Display, EnumString};
-  use tauri::{AppHandle, Manager, Wry};
-  use tauri_plugin_store::{with_store, Store, StoreCollection};
-
-  type StoreResult<T> = std::result::Result<T, tauri_plugin_store::Error>;
-
-  pub trait TauriStore: Manager<Wry> {
-    fn with_store<F, T>(&self, path: impl AsRef<str>, f: F) -> Result<T>
-    where
-      F: FnOnce(&mut Store<Wry>) -> StoreResult<T>,
-    {
-      let app = self.app_handle().clone();
-      let path = PathBuf::from(path.as_ref());
-      let collection = self.state::<StoreCollection<Wry>>();
-      with_store(app, collection, path, f).map_err(Into::into)
-    }
-
-    fn with_config_store<F, T>(&self, f: F) -> Result<T>
-    where
-      F: FnOnce(&mut Store<Wry>) -> StoreResult<T>,
-    {
-      self.with_store("config.json", f)
-    }
-  }
-
-  impl TauriStore for AppHandle {}
-
-  #[derive(AsRefStr, Debug, Display, EnumString)]
-  #[strum(serialize_all = "kebab-case")]
-  pub enum ConfigKey {
-    ColorMode,
-  }
-
-  impl From<ConfigKey> for String {
-    fn from(value: ConfigKey) -> Self {
-      value.to_string()
-    }
-  }
-}
-
 pub mod temp {
   use crate::error::Result;
   use std::fs::{remove_file, File};

@@ -21,7 +21,8 @@ pub async fn show_reader_page_context_menu(
   window_id: u16,
   name: String,
 ) -> Result<()> {
-  use crate::menu::context::reader::page::{self, Context, ReaderPageContextMenu};
+  use crate::menu::context::reader::page::{build, Context, ReaderPageContextMenu};
+  use std::sync::Mutex;
 
   debug!(
     command = "show_reader_page_context_menu",
@@ -44,10 +45,10 @@ pub async fn show_reader_page_context_menu(
     *state.ctx.lock().unwrap() = ctx;
     window.popup_menu(&state.menu)?;
   } else {
-    let menu = page::build(app)?;
+    let menu = build(app)?;
     window.popup_menu(&menu)?;
 
-    let ctx = std::sync::Mutex::new(ctx);
+    let ctx = Mutex::new(ctx);
     window.manage(ReaderPageContextMenu { menu, ctx });
   }
 

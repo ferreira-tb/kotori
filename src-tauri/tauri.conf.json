@@ -1,7 +1,7 @@
 {
   "productName": "kotori",
   "version": "0.1.0",
-  "identifier": "tbdev.kotori",
+  "identifier": "tsukilabs.kotori",
   "build": {
     "beforeDevCommand": "pnpm run vite-dev",
     "beforeBuildCommand": "pnpm run vite-build",

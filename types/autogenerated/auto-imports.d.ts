@@ -6,7 +6,7 @@
 export {}
 declare global {
   const computed: typeof import('vue')['computed']
-  const computedAsync: typeof import('@vueuse/core')['computedAsync']
+  const computedAsync: typeof import('manatsu')['computedAsync']
   const computedInject: typeof import('@vueuse/core')['computedInject']
   const computedWithControl: typeof import('@vueuse/core')['computedWithControl']
   const convertFileSrc: typeof import('@tauri-apps/api/core')['convertFileSrc']
@@ -42,8 +42,6 @@ declare global {
   const isRef: typeof import('vue')['isRef']
   const listen: typeof import('@tauri-apps/api/event')['listen']
   const markRaw: typeof import('vue')['markRaw']
-  const navigateOnKeyDown: typeof import('manatsu')['navigateOnKeyDown']
-  const navigateOnKeyStroke: typeof import('manatsu')['navigateOnKeyStroke']
   const nextTick: typeof import('vue')['nextTick']
   const noop: typeof import('@tb-dev/utils')['noop']
   const onActivated: typeof import('vue')['onActivated']
@@ -241,8 +239,8 @@ declare global {
   export type { ComputedSymbol, MaybeNullishRef, RefSymbol, ShallowRefSymbol, WritableRefSymbol, WritableShallowRefSymbol } from 'manatsu'
   import('manatsu')
   // @ts-ignore
-  export type { Fn, MaybeArray, MaybePromise, Nullish, PartialNullish } from '@tb-dev/utility-types'
-  import('@tb-dev/utility-types')
+  export type { Fn, MaybeArray, MaybePromise, Nullish, PartialNullish } from '@tb-dev/utils'
+  import('@tb-dev/utils')
   // @ts-ignore
   export type { CSSProperties, Component, ComponentInstance, ComponentPublicInstance, ComputedRef, InjectionKey, MaybeRefOrGetter, Ref, ShallowRef, VNode } from 'vue'
   import('vue')

@@ -8,11 +8,10 @@ use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::async_runtime::spawn;
 use tauri::menu::MenuEvent;
-use tauri::DragDropEvent::Dropped;
-use tauri::{AppHandle, WebviewWindowBuilder, Window, WindowEvent};
+use tauri::{AppHandle, DragDropEvent, WebviewWindowBuilder, Window, WindowEvent};
 use tracing::{info, trace};
 
-pub fn create(app: &AppHandle) -> Result<()> {
+pub fn open(app: &AppHandle) -> Result<()> {
   let kind = WindowKind::Main;
   let window = WebviewWindowBuilder::new(app, kind.label(), kind.url())
     .data_directory(kind.data_dir(app)?)
@@ -54,7 +53,7 @@ fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
       info!("main window destroyed, exiting");
       app.exit(0);
     }
-    WindowEvent::DragDrop(Dropped { paths, .. }) => {
+    WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
       trace!(?paths, "dropped files");
       handle_drop_event(&app, paths);
     }

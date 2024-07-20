@@ -11,9 +11,7 @@
     "event:allow-listen",
     "event:allow-unlisten",
     "manatsu:default",
-    "store:allow-get",
-    "store:allow-save",
-    "store:allow-set",
+    "pinia:default",
     "window-state:allow-save-window-state",
     {
       "identifier": "http:default",

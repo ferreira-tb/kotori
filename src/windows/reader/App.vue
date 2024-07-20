@@ -9,7 +9,7 @@ setSensors();
 
 onMounted(() => {
   useReaderStore().reader.load().catch(handleError);
-  useConfigStore().load().then(flushPromises).then(showWindow).catch(handleError);
+  useConfigStore().$tauri.start().then(flushPromises).then(showWindow).catch(handleError);
 });
 </script>
 

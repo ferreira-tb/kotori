@@ -40,9 +40,9 @@ pub enum Error {
   #[error(transparent)]
   Manatsu(#[from] tauri_plugin_manatsu::Error),
   #[error(transparent)]
-  Tauri(#[from] tauri::Error),
+  Pinia(#[from] tauri_plugin_pinia::Error),
   #[error(transparent)]
-  TauriStore(#[from] tauri_plugin_store::Error),
+  Tauri(#[from] tauri::Error),
   #[error(transparent)]
   TauriWindowState(#[from] tauri_plugin_window_state::Error),
   #[error(transparent)]

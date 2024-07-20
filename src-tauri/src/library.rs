@@ -5,6 +5,7 @@ use crate::event::Event;
 use crate::image::Orientation;
 use crate::prelude::*;
 use crate::utils::glob;
+use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
 use kotori_entity::book;
 use kotori_entity::prelude::{Book, Folder};
 use std::sync::Arc;
@@ -103,7 +104,7 @@ where
   I: IntoIterator<Item = PathBuf>,
 {
   let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
-  let mut set = books.into_iter().into_join_set_by(|path| {
+  let mut set = books.into_iter().join_set_by(|path| {
     let app = app.clone();
     let semaphore = Arc::clone(&semaphore);
     async move {
@@ -129,7 +130,6 @@ where
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
   let mut set = Book::get_all(app)
     .await?
-    .into_iter()
     .into_join_set_by(|model| {
       let app = app.clone();
       async move {

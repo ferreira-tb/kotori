@@ -7,7 +7,7 @@ use payload::{BookRemoved, CoverExtracted, PageDeleted, RatingUpdated};
 use serde::Serialize;
 use std::fmt;
 use strum::{AsRefStr, Display};
-use tauri::EventTarget;
+use tauri::{Emitter, EventTarget};
 
 #[allow(clippy::enum_variant_names)]
 #[derive(AsRefStr, Clone, Display)]

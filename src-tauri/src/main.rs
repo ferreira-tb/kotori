@@ -37,8 +37,8 @@ fn main() {
     .plugin(tauri_plugin_http::init())
     .plugin(tauri_plugin_manatsu::init())
     .plugin(tauri_plugin_persisted_scope::init())
+    .plugin(tauri_plugin_pinia::init())
     .plugin(tauri_plugin_shell::init())
-    .plugin(tauri_plugin_store::Builder::new().build())
     .plugin(plugin::prevent_default())
     .plugin(plugin::single_instance())
     .plugin(plugin::window_state())
@@ -82,7 +82,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   });
 
   server::serve(app)?;
-  window::app::create(app)?;
+  window::app::open(app)?;
 
   Ok(())
 }

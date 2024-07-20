@@ -3,11 +3,11 @@ mod reader;
 
 use crate::prelude::*;
 use crate::reader::WindowMap;
-use crate::utils::store::{ConfigKey, TauriStore};
 use crate::Kotori;
 pub use reader::ReaderWindow;
 use strum::{Display, EnumIs, EnumString};
 use tauri::{EventTarget, WebviewUrl};
+use tauri_plugin_pinia::PiniaExt;
 
 #[derive(Debug, Display, EnumIs)]
 #[strum(serialize_all = "kebab-case")]
@@ -93,24 +93,29 @@ pub enum ColorMode {
 }
 
 impl ColorMode {
-  pub fn get(app: &AppHandle) -> Result<Self> {
-    app.with_config_store(|store| {
-      let mode = store
-        .get(ConfigKey::ColorMode)
-        .and_then(|it| it.as_str())
-        .and_then(|it| ColorMode::try_from(it).ok())
-        .unwrap_or_default();
+  const KEY: &'static str = "colorMode";
 
-      Ok(mode)
-    })
+  pub fn get(app: &AppHandle) -> Result<Self> {
+    app
+      .with_store("config", |store| {
+        let mode = store
+          .get(Self::KEY)
+          .and_then(|it| it.as_str())
+          .and_then(|it| ColorMode::try_from(it).ok())
+          .unwrap_or_default();
+
+        Ok(mode)
+      })
+      .map_err(Into::into)
   }
 
   pub fn set(&self, app: &AppHandle) -> Result<()> {
-    app.with_config_store(|store| {
-      let mode = self.to_string();
-      store.insert(ConfigKey::ColorMode.into(), mode.into())?;
-      store.save()
-    })
+    app
+      .with_store("config", |store| {
+        let mode = self.to_string();
+        store.set(Self::KEY, mode.into())
+      })
+      .map_err(Into::into)
   }
 }
 

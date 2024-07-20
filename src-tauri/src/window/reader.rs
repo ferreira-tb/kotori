@@ -6,8 +6,7 @@ use crate::prelude::*;
 use crate::utils::glob;
 use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
 use tauri::menu::{Menu, MenuEvent};
-use tauri::DragDropEvent::Dropped;
-use tauri::{WebviewWindowBuilder, WindowEvent};
+use tauri::{DragDropEvent, WebviewWindowBuilder, WindowEvent};
 
 pub struct ReaderWindow {
   pub id: u16,
@@ -123,7 +122,7 @@ fn on_window_event(app: &AppHandle, window_id: u16) -> impl Fn(&WindowEvent) {
       trace!(close_requested = WindowKind::Reader(window_id).label());
       handle_close_requested_event(&app, window_id);
     }
-    WindowEvent::DragDrop(Dropped { paths, .. }) => {
+    WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
       trace!(dropped = ?paths);
       handle_drop_event(&app, window_id, paths);
     }
