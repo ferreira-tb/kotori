@@ -32,7 +32,7 @@
     "radix-vue": "^1.9.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "tauri-plugin-pinia": "^0.1.9",
+    "tauri-plugin-pinia": "^0.1.10",
     "vue": "^3.4.33",
     "vue-router": "^4.4.0"
   }

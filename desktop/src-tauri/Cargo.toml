@@ -37,7 +37,7 @@ tauri-plugin-shell = "2.0.0-beta.9"
 tauri-plugin-window-state = "2.0.0-beta.11"
 thiserror = "1.0.63"
 walkdir = "2.5.0"
-zip = "2.1.4"
+zip = "2.1.5"
 
 [dependencies.kotori-entity]
 path = "../crates/entity"
@@ -83,7 +83,7 @@ version = "2.0.0-beta.12"
 features = ["rustls-tls"]
 
 [dependencies.tauri-plugin-pinia]
-version = "0.1.9"
+version = "0.1.10"
 features = ["ahash"]
 
 [dependencies.tokio]

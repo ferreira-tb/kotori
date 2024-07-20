@@ -69,7 +69,7 @@ pub trait WindowManager: Manager<Wry> {
 impl WindowManager for AppHandle {}
 
 pub trait WindowExt {
-  /// Like [`WebviewWindow::set_focus`], but unminimize the window before focusing.
+  /// Same as [`WebviewWindow::set_focus`], but unminimize the window before focusing.
   fn set_foreground_focus(&self) -> Result<()>;
 }
 

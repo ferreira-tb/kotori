@@ -88,6 +88,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 mod plugin {
+  use crate::utils::result::ResultExt;
   use crate::window::{WindowExt, WindowManager};
   use tauri::plugin::TauriPlugin;
   use tauri::Wry;
@@ -108,7 +109,10 @@ mod plugin {
 
   pub fn single_instance() -> TauriPlugin<Wry> {
     tauri_plugin_single_instance::init(|app, _, _| {
-      let _ = app.main_window().set_foreground_focus();
+      app
+        .main_window()
+        .set_foreground_focus()
+        .dialog(app);
     })
   }
 

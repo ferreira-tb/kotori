@@ -6176,9 +6176,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-pinia"
-version = "0.1.9"
+version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "081bcb97c0eea406328c87d5c2d6db5beb7a22430a73c2cc30f74c5fe8725b91"
+checksum = "0ce7cffbf7cb245cb2cb9fc4a24d77ab38cde1b2a2780b2739518c884485ebad"
 dependencies = [
  "ahash 0.8.11",
  "serde",
@@ -7754,9 +7754,9 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.1.4"
+version = "2.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e29ab4097989787b2029a5981c41b7bfb427b5a601e23f455daacb4d0360a9e9"
+checksum = "b895748a3ebcb69b9d38dcfdf21760859a4b0d0b0015277640c2ef4c69640e6f"
 dependencies = [
  "aes",
  "arbitrary",
