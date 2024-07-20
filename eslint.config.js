@@ -2,8 +2,8 @@ import config from '@tb-dev/eslint-config';
 
 export default config({
   vue: true,
-  project: ['tsconfig.json'],
-  ignores: ['src/components/ui/*'],
+  project: ['desktop/tsconfig.json'],
+  ignores: ['desktop/src/components/ui/*'],
   overrides: {
     javascript: {
       'no-undefined': 'off'

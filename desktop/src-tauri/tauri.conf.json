@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "identifier": "tsukilabs.kotori",
   "build": {
-    "beforeDevCommand": "pnpm run vite-dev",
-    "beforeBuildCommand": "pnpm run vite-build",
+    "beforeDevCommand": "pnpm run vite:dev",
+    "beforeBuildCommand": "pnpm run vite:build",
     "frontendDist": "../dist",
     "devUrl": "http://localhost:1420"
   },
@@ -23,8 +23,8 @@
     "withGlobalTauri": false,
     "security": {
       "assetProtocol": {
-        "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"],
-        "enable": true
+        "enable": true,
+        "scope": ["$APPCACHE/**", "$APPCONFIG/**", "$APPDATA/**"]
       },
       "csp": {
         "default-src": "'self'",

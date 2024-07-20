@@ -3,22 +3,7 @@ name = "kotori"
 version = "0.1.0"
 publish = false
 
-[package.homepage]
-workspace = true
-
-[package.repository]
-workspace = true
-
-[package.authors]
-workspace = true
-
-[package.license]
-workspace = true
-
 [package.edition]
-workspace = true
-
-[package.rust-version]
 workspace = true
 
 [lints]

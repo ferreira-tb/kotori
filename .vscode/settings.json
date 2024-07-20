@@ -20,7 +20,14 @@
     "*.css": "tailwindcss"
   },
   "files.exclude": {
-    ".eslintcache": true
+    "**/*.gradle.kts": true,
+    "**/*.properties": true,
+    "**/.eslintcache": true,
+    "**/.gradle": true,
+    "**/android/**/build": true,
+    "**/gradle": true,
+    "**/gradlew*": true,
+    "desktop/src-tauri/gen": true
   },
   "logViewer.logLevel": "trace",
   "logViewer.watch": ["kotori.log"],
@@ -39,6 +46,16 @@
       "extensions": ["store", "stores"],
       "format": "svg",
       "icon": "story"
+    },
+    {
+      "extensions": ["desktop"],
+      "format": "svg",
+      "icon": "windows"
+    },
+    {
+      "extensions": ["windows"],
+      "format": "svg",
+      "icon": "client"
     }
   ]
 }
