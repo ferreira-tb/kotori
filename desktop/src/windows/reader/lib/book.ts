@@ -7,6 +7,10 @@ export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
   public readonly path: string;
 
   readonly #pages = new Map<number, ReaderBookPageImpl>();
+
+  // Normally, we fetch pages in order, from the first to the last.
+  // However, if the user jumps to a page, we need to prioritize fetching that page.
+  // Pages in this stack have said priority.
   readonly #stack: number[] = [0];
 
   constructor(book: ReaderBook) {
@@ -54,7 +58,10 @@ export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
         const index = this.#stack.pop();
         if (typeof index === 'number') {
           const page = this.#pages.get(index);
-          if (page) yield page.fetch();
+          if (page) {
+            yield page.fetch();
+            continue;
+          }
         }
       }
 
