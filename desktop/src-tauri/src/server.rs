@@ -24,27 +24,22 @@ pub fn serve(app: &AppHandle) -> Result<()> {
         .route("/kotori/reader/:window_id", post(book_page))
         .with_state(app);
 
-      let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
-      let port = listener
-        .local_addr()
-        .inspect(|it| info!(local_addr = %it))
-        .unwrap()
-        .port();
-
-      let _ = tx.send(port);
+      let listener = TcpListener::bind("0.0.0.0:0").await.unwrap();
+      let port = listener.local_addr().unwrap().port();
+      tx.send(port).unwrap();
 
       axum::serve(listener, router).await.unwrap();
     });
   });
 
   let port = block_on(rx)?;
-  let _ = PORT.set(port);
+  PORT.set(port).unwrap();
 
   Ok(())
 }
 
 pub fn port() -> u16 {
-  *PORT.get().unwrap()
+  *PORT.get().expect("port should already be set")
 }
 
 #[derive(Deserialize)]
