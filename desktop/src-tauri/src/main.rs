@@ -1,5 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg(not(any(target_os = "android", target_os = "ios")))]
 #![feature(let_chains, try_blocks)]
 
 mod book;
@@ -111,14 +112,14 @@ mod plugin {
       app
         .main_window()
         .set_foreground_focus()
-        .dialog(app);
+        .into_err_dialog(app);
     })
   }
 
   pub fn window_state() -> TauriPlugin<Wry> {
     use tauri_plugin_window_state::StateFlags as Flags;
 
-    let builder = tauri_plugin_window_state::Builder::new()
+    tauri_plugin_window_state::Builder::new()
       .with_state_flags(Flags::MAXIMIZED | Flags::POSITION | Flags::SIZE)
       .map_label(|label| {
         if label.starts_with("reader") {
@@ -126,8 +127,7 @@ mod plugin {
         } else {
           label
         }
-      });
-
-    builder.build()
+      })
+      .build()
   }
 }

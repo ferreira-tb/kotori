@@ -179,29 +179,34 @@ fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
 async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
   library::add_mock_books(app, 15, 20, orientation)
     .await
-    .dialog(app);
+    .into_err_dialog(app);
 }
 
 async fn add_to_library_with_dialog(app: &AppHandle) {
-  library::add_with_dialog(app).await.dialog(app);
+  library::add_with_dialog(app)
+    .await
+    .into_err_dialog(app);
 }
 
 async fn open_file(app: &AppHandle) {
   crate::book::open_with_dialog(app)
     .await
-    .dialog(app);
+    .into_err_dialog(app);
 }
 
 fn open_discord(app: &AppHandle) {
   app
     .shell()
     .open("https://discord.gg/aAje8qb49f", None)
-    .dialog(app);
+    .into_err_dialog(app);
 }
 
 fn open_repository(app: &AppHandle) {
   const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
-  app.shell().open(REPOSITORY, None).dialog(app);
+  app
+    .shell()
+    .open(REPOSITORY, None)
+    .into_err_dialog(app);
 }
 
 async fn open_random_book(app: &AppHandle) {
@@ -211,7 +216,7 @@ async fn open_random_book(app: &AppHandle) {
     }
   };
 
-  result.dialog(app);
+  result.into_err_dialog(app);
 }
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
@@ -229,12 +234,16 @@ async fn remove_all_books(app: &AppHandle) {
     });
 
   if let Ok(true) = rx.await {
-    library::remove_all(app).await.dialog(app);
+    library::remove_all(app)
+      .await
+      .into_err_dialog(app);
   }
 }
 
 async fn scan_book_folders(app: &AppHandle) {
-  library::scan_book_folders(app).await.dialog(app);
+  library::scan_book_folders(app)
+    .await
+    .into_err_dialog(app);
 }
 
 async fn set_color_mode(app: &AppHandle, mode: ColorMode) {

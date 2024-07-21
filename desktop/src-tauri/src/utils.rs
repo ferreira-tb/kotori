@@ -95,7 +95,7 @@ pub mod log {
       .add_directive("kotori=trace".parse().unwrap())
       .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
 
-    let appender = rolling::never("../", "kotori.log");
+    let appender = rolling::never("../../", "kotori.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
     app.manage(TracingGuard { guard });
 
@@ -200,15 +200,15 @@ pub mod result {
   use tracing::error;
 
   pub trait ResultExt<T, E: Error> {
-    /// Saves an error log, consuming `self`, and discarding the success value, if any.
-    fn log(self, app: &AppHandle);
+    /// Create an error log, consuming `self`, and discarding the success value, if any.
+    fn into_err_log(self, app: &AppHandle);
 
-    /// Shows an error dialog, consuming `self`, and discarding the success value, if any.
-    fn dialog(self, app: &AppHandle);
+    /// Show an error dialog, consuming `self`, and discarding the success value, if any.
+    fn into_err_dialog(self, app: &AppHandle);
   }
 
   impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
-    fn log(self, app: &AppHandle) {
+    fn into_err_log(self, app: &AppHandle) {
       if let Err(err) = self {
         let message = err.to_string();
         let _ = Log::new("Error", message)
@@ -217,10 +217,10 @@ pub mod result {
       }
     }
 
-    fn dialog(self, app: &AppHandle) {
+    fn into_err_dialog(self, app: &AppHandle) {
       if let Err(err) = &self {
         dialog::show_error(app, err);
-        self.log(app);
+        self.into_err_log(app);
       }
     }
   }
@@ -233,13 +233,14 @@ pub mod temp {
   use tracing::trace;
   use uuid::Uuid;
 
+  /// Temporary file that is deleted when dropped.
   pub struct Tempfile {
     pub path: PathBuf,
     pub file: File,
   }
 
   impl Tempfile {
-    // Create a new temporary file in the specified directory.
+    /// Create a new temporary file in the specified directory.
     pub fn new_in(dir: impl AsRef<Path>) -> Result<Self> {
       let path = dir.as_ref().join(filename());
       let file = File::create(&path)?;

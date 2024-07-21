@@ -25,6 +25,7 @@ impl Reader {
 }
 
 pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
+  // If the book is already open, bring it to the foreground.
   {
     let windows = app.reader_windows();
     let windows = windows.read().await;
@@ -38,6 +39,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     }
   }
 
+  // Otherwise, open a new window.
   {
     let window = ReaderWindow::open(app, book)?;
     let windows = app.reader_windows();
@@ -66,7 +68,7 @@ pub async fn close_all(app: &AppHandle) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
     if let Some(webview) = window.webview(app) {
-      webview.close().log(app);
+      webview.close().into_err_log(app);
     }
   }
 
@@ -78,7 +80,7 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   for window in windows.read().await.values() {
     if window.id != window_id {
       if let Some(webview) = window.webview(app) {
-        webview.close().log(app);
+        webview.close().into_err_log(app);
       }
     }
   }

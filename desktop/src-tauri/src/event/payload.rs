@@ -24,9 +24,8 @@ pub struct PageDeleted {
 }
 
 impl PageDeleted {
-  pub fn new(name: impl AsRef<str>) -> Self {
-    let name = name.as_ref().to_owned();
-    Self { name }
+  pub fn new(name: &str) -> Self {
+    Self { name: name.to_owned() }
   }
 }
 

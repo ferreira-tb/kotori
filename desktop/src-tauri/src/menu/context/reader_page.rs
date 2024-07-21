@@ -3,7 +3,7 @@ use crate::database::BookExt;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{menu_item_or_bail, popup_ctx_menu, reader};
+use crate::{menu_item_or_bail, popup_context_menu, reader};
 use kotori_entity::prelude::Book;
 use std::sync::Mutex;
 
@@ -42,25 +42,21 @@ pub struct ReaderPageContextMenu {
 
 impl ReaderPageContextMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
-    let menu = build(app)?;
+    let menu = MenuBuilder::new(app)
+      .items(&[
+        &menu_item!(app, Item::SetAsCover, "Set as cover")?,
+        &PredefinedMenuItem::separator(app)?,
+        &menu_item!(app, Item::DeletePage, "Delete page")?,
+      ])
+      .build()?;
+
     let ctx = Mutex::new(ctx);
     Ok(Self { menu, ctx })
   }
 
   pub fn popup(window: &Window, ctx: Context) -> Result<()> {
-    popup_ctx_menu!(window, ReaderPageContextMenu, ctx)
+    popup_context_menu!(window, ReaderPageContextMenu, ctx)
   }
-}
-
-fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
-  MenuBuilder::new(app)
-    .items(&[
-      &menu_item!(app, Item::SetAsCover, "Set as cover")?,
-      &PredefinedMenuItem::separator(app)?,
-      &menu_item!(app, Item::DeletePage, "Delete page")?,
-    ])
-    .build()
-    .map_err(Into::into)
 }
 
 async fn delete_page(app: &AppHandle) {
@@ -72,7 +68,7 @@ async fn delete_page(app: &AppHandle) {
 
   reader::delete_page_with_dialog(app, window_id, &name)
     .await
-    .dialog(app);
+    .into_err_dialog(app);
 }
 
 async fn set_as_cover(app: &AppHandle) {
@@ -92,7 +88,7 @@ async fn set_as_cover(app: &AppHandle) {
       book
         .update_cover(app, name.as_str())
         .await
-        .dialog(app);
+        .into_err_dialog(app);
     }
   };
 }

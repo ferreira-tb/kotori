@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{library, menu_item_or_bail, popup_ctx_menu, reader};
+use crate::{library, menu_item_or_bail, popup_context_menu, reader};
 use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
@@ -38,24 +38,20 @@ pub struct LibraryBookContextMenu {
 
 impl LibraryBookContextMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
-    let menu = build(app)?;
+    let menu = MenuBuilder::new(app)
+      .items(&[
+        &menu_item!(app, Item::OpenBook, "Open")?,
+        &menu_item!(app, Item::RemoveBook, "Remove")?,
+      ])
+      .build()?;
+
     let ctx = Mutex::new(ctx);
     Ok(Self { menu, ctx })
   }
 
   pub fn popup(window: &Window, ctx: Context) -> Result<()> {
-    popup_ctx_menu!(window, LibraryBookContextMenu, ctx)
+    popup_context_menu!(window, LibraryBookContextMenu, ctx)
   }
-}
-
-fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
-  MenuBuilder::new(app)
-    .items(&[
-      &menu_item!(app, Item::OpenBook, "Open")?,
-      &menu_item!(app, Item::RemoveBook, "Remove")?,
-    ])
-    .build()
-    .map_err(Into::into)
 }
 
 async fn open_book(app: &AppHandle) {
@@ -63,7 +59,9 @@ async fn open_book(app: &AppHandle) {
   let id = state.ctx.lock().unwrap().book_id;
 
   if let Ok(book) = ActiveBook::from_id(app, id).await {
-    reader::open_book(app, book).await.dialog(app);
+    reader::open_book(app, book)
+      .await
+      .into_err_dialog(app);
   }
 }
 
@@ -73,5 +71,5 @@ async fn remove_book(app: &AppHandle) {
 
   library::remove_with_dialog(app, id)
     .await
-    .dialog(app);
+    .into_err_dialog(app);
 }

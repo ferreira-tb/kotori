@@ -115,24 +115,24 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
       }
     };
 
-    result.dialog(app);
+    result.into_err_dialog(app);
   };
 }
 
 fn close_reader_window(app: &AppHandle, label: &str) {
   if let Some(window) = app.get_webview_window(label) {
-    window.close().dialog(app);
+    window.close().into_err_dialog(app);
   }
 }
 
 async fn close_all_reader_windows(app: &AppHandle) {
-  reader::close_all(app).await.dialog(app);
+  reader::close_all(app).await.into_err_dialog(app);
 }
 
 async fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
   reader::close_others(app, window_id)
     .await
-    .dialog(app);
+    .into_err_dialog(app);
 }
 
 async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
@@ -141,7 +141,10 @@ async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
     .and_then(|it| it.try_string().ok());
 
   if let Some(path) = path {
-    app.clipboard().write_text(path).dialog(app);
+    app
+      .clipboard()
+      .write_text(path)
+      .into_err_dialog(app);
   }
 }
 
@@ -151,6 +154,6 @@ async fn open_book_folder(app: &AppHandle, window_id: u16) {
     .and_then(|it| it.parent().map(ToOwned::to_owned));
 
   if matches!(dir, Some(ref it) if it.is_dir()) {
-    open::that_detached(dir.unwrap()).dialog(app);
+    open::that_detached(dir.unwrap()).into_err_dialog(app);
   }
 }

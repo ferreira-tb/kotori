@@ -182,7 +182,7 @@ checksum = "9fb4009533e8ff8f1450a5bcbc30f4242a1d34442221f72314bea1f5dc9c7f89"
 dependencies = [
  "clipboard-win",
  "core-graphics",
- "image 0.25.1",
+ "image 0.25.2",
  "log",
  "objc2",
  "objc2-app-kit",
@@ -2637,12 +2637,12 @@ dependencies = [
 
 [[package]]
 name = "image"
-version = "0.25.1"
+version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fd54d660e773627692c524beaad361aca785a4f9f5730ce91f42aabe5bce3d11"
+checksum = "99314c8a2152b8ddb211f924cdae532d8c5e4c8bb54728e12fff1b0cd5963a10"
 dependencies = [
  "bytemuck",
- "byteorder",
+ "byteorder-lite",
  "color_quant",
  "exr",
  "gif",
@@ -2922,7 +2922,7 @@ dependencies = [
  "future-iter",
  "futures",
  "globset",
- "image 0.25.1",
+ "image 0.25.2",
  "indexmap 2.2.6",
  "itertools 0.13.0",
  "kotori-entity",
@@ -6191,9 +6191,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-prevent-default"
-version = "0.1.10"
+version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "104ee6ddcbab5bc8a87d3403efa07d2ed797139cdc505393729ba03f4d2c0319"
+checksum = "cb7eb5c015d53c97ceadb6c41dfd82d7eda9715ba9b255b801859833c4cfb457"
 dependencies = [
  "bitflags 2.6.0",
  "tauri",

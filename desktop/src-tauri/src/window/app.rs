@@ -72,7 +72,9 @@ fn handle_drop_event(app: &AppHandle, paths: &[PathBuf]) {
   if !books.is_empty() {
     let app = app.clone();
     spawn(async move {
-      reader::open_many(&app, books).await.dialog(&app);
+      reader::open_many(&app, books)
+        .await
+        .into_err_dialog(&app);
     });
   }
 }

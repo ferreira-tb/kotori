@@ -3,13 +3,12 @@ pub mod mock;
 
 use crate::prelude::*;
 use image::codecs::webp::WebPEncoder;
-use image::io::Reader as ImageReader;
-use image::ImageFormat;
+use image::{ImageFormat, ImageReader};
 use std::fs::File;
 use std::io::Cursor;
 
 /// Scales an image down to thumbnail size, writing it to `path`.
-/// This is primarily use to create the cover thumbnails used by the library.
+/// This is primarily used to create the cover thumbnails used by the library.
 pub async fn create_thumbnail<P>(buf: Vec<u8>, format: ImageFormat, path: P) -> Result<()>
 where
   P: AsRef<Path>,

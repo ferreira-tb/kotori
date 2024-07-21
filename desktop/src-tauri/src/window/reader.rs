@@ -148,7 +148,7 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
     // This will read lock the windows.
     ReaderWindow::update_all_menus(&app)
       .await
-      .log(&app);
+      .into_err_log(&app);
 
     reader_arc
       .read()
@@ -158,7 +158,7 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
       .or_else(|| Some(app.main_window()))
       .map(|webview| webview.set_foreground_focus())
       .transpose()
-      .log(&app);
+      .into_err_log(&app);
   });
 }
 
@@ -188,7 +188,7 @@ fn handle_drop_event(app: &AppHandle, window_id: u16, paths: &[PathBuf]) {
         ReaderWindow::update_all_menus(&app).await?;
       };
 
-      result.dialog(&app);
+      result.into_err_dialog(&app);
     });
   }
 }

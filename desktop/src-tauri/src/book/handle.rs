@@ -63,6 +63,7 @@ impl BookHandle {
     Self { sender }
   }
 
+  /// Close the book file, removing it from the cache.
   pub async fn close(&self, path: impl AsRef<Path>) {
     let path = path.as_ref().to_owned();
     send_notify!(self, Close { path });
@@ -166,13 +167,13 @@ enum Message {
 }
 
 struct Actor {
-  books: HashMap<PathBuf, BookFile>,
+  cache: HashMap<PathBuf, BookFile>,
   receiver: mpsc::Receiver<Message>,
 }
 
 impl Actor {
   fn new(receiver: mpsc::Receiver<Message>) -> Self {
-    Self { books: HashMap::new(), receiver }
+    Self { cache: HashMap::new(), receiver }
   }
 
   async fn run(&mut self) {
@@ -183,10 +184,10 @@ impl Actor {
   }
 
   async fn handle_message(&mut self, message: Message) {
-    trace!(%message, books = self.books.len());
+    debug!(%message, books = self.cache.len());
     match message {
       Message::Close { path, nt } => {
-        self.books.remove(&path);
+        self.cache.remove(&path);
         nt.notify_one();
       }
       Message::GetPages { path, tx } => {
@@ -198,6 +199,7 @@ impl Actor {
         let _ = tx.send(result);
       }
       Message::ReadPage { path, page, tx } => {
+        trace!(read_page = %page);
         let result = self
           .get_book(&path)
           .and_then(|it| it.read_page(&page))
@@ -206,6 +208,7 @@ impl Actor {
         let _ = tx.send(result);
       }
       Message::DeletePage { path, page, tx } => {
+        trace!(delete_page = %page);
         let result = self
           .remove_book(&path)
           .and_then(|it| it.delete_page(page))
@@ -222,6 +225,7 @@ impl Actor {
         let _ = tx.send(result);
       }
       Message::SetMetadata { path, metadata, tx } => {
+        trace!(set_metadata = ?metadata);
         let result = self
           .remove_book(&path)
           .and_then(|it| it.write_metadata(metadata))
@@ -241,20 +245,20 @@ impl Actor {
   }
 
   async fn get_book(&mut self, path: &PathBuf) -> Result<&BookFile> {
-    if !self.books.contains_key(path) {
+    if !self.cache.contains_key(path) {
       let book = BookFile::open(&path).await?;
-      self.books.insert(path.clone(), book);
+      self.cache.insert(path.clone(), book);
     }
 
     self
-      .books
+      .cache
       .get(path)
       .map(Ok)
       .expect("book should have been added if it was missing")
   }
 
   async fn remove_book(&mut self, path: &PathBuf) -> Result<BookFile> {
-    if let Some(book) = self.books.remove(path) {
+    if let Some(book) = self.cache.remove(path) {
       Ok(book)
     } else {
       BookFile::open(&path).await
