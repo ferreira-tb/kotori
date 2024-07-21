@@ -3,7 +3,7 @@ use crate::database::BookExt;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{menu_item_or_bail, reader};
+use crate::{menu_item_or_bail, popup_ctx_menu, reader};
 use kotori_entity::prelude::Book;
 use std::sync::Mutex;
 
@@ -28,11 +28,6 @@ impl Listener for Item {
   }
 }
 
-pub struct ReaderPageContextMenu {
-  pub menu: Menu<Wry>,
-  pub ctx: Mutex<Context>,
-}
-
 #[derive(Clone, Debug)]
 pub struct Context {
   pub window_id: u16,
@@ -40,7 +35,24 @@ pub struct Context {
   pub name: String,
 }
 
-pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
+pub struct ReaderPageContextMenu {
+  pub menu: Menu<Wry>,
+  pub ctx: Mutex<Context>,
+}
+
+impl ReaderPageContextMenu {
+  fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
+    let menu = build(app)?;
+    let ctx = Mutex::new(ctx);
+    Ok(Self { menu, ctx })
+  }
+
+  pub fn popup(window: &Window, ctx: Context) -> Result<()> {
+    popup_ctx_menu!(window, ReaderPageContextMenu, ctx)
+  }
+}
+
+fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
   MenuBuilder::new(app)
     .items(&[
       &menu_item!(app, Item::SetAsCover, "Set as cover")?,

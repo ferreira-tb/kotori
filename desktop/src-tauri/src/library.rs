@@ -1,8 +1,6 @@
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
 use crate::database::{BookExt, FolderExt};
 use crate::event::Event;
-#[cfg(any(debug_assertions, feature = "devtools"))]
-use crate::image::Orientation;
 use crate::prelude::*;
 use crate::utils::glob;
 use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
@@ -259,21 +257,21 @@ fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
 }
 
 /// Adds mock books to the library.
-/// This should only be used for testing purposes.
+/// This should only be used for testing.
 #[cfg(any(debug_assertions, feature = "devtools"))]
 pub async fn add_mock_books(
   app: &AppHandle,
   amount: u8,
   size: usize,
-  orientation: Orientation,
+  orientation: crate::image::mock::Orientation,
 ) -> Result<()> {
-  use crate::image::create_mock_book;
+  use crate::image::mock::create_book;
   use tokio::task::JoinSet;
 
   let mut set = JoinSet::new();
   for _ in 0..amount {
     let app = app.clone();
-    set.spawn(async move { create_mock_book(&app, size, orientation).await });
+    set.spawn(async move { create_book(&app, size, orientation).await });
   }
 
   let mut books = Vec::with_capacity(amount.into());

@@ -1,6 +1,6 @@
 use crate::book::ActiveBook;
 #[cfg(any(debug_assertions, feature = "devtools"))]
-use crate::image::Orientation;
+use crate::image::mock::Orientation;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
@@ -258,7 +258,7 @@ async fn set_color_mode(app: &AppHandle, mode: ColorMode) {
     let _ = app.save_window_state(StateFlags::all());
     let _ = app.write_logs_to_disk();
 
-    // Kotori may crash in dev mode after restarting.
+    // Kotori will crash in dev mode after restarting.
     app.restart();
   }
 }

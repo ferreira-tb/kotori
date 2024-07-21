@@ -21,8 +21,7 @@ pub async fn show_reader_page_context_menu(
   window_id: u16,
   name: String,
 ) -> Result<()> {
-  use crate::menu::context::reader::page::{build, Context, ReaderPageContextMenu};
-  use std::sync::Mutex;
+  use crate::menu::context::reader_page::{Context, ReaderPageContextMenu};
 
   debug!(
     command = "show_reader_page_context_menu",
@@ -40,19 +39,7 @@ pub async fn show_reader_page_context_menu(
 
   let book_id = reader_window.book.try_id(app).await.ok();
   let ctx = Context { window_id, book_id, name };
-
-  if let Some(state) = window.try_state::<ReaderPageContextMenu>() {
-    *state.ctx.lock().unwrap() = ctx;
-    window.popup_menu(&state.menu)?;
-  } else {
-    let menu = build(app)?;
-    window.popup_menu(&menu)?;
-
-    let ctx = Mutex::new(ctx);
-    window.manage(ReaderPageContextMenu { menu, ctx });
-  }
-
-  Ok(())
+  ReaderPageContextMenu::popup(&window, ctx)
 }
 
 #[tauri::command]

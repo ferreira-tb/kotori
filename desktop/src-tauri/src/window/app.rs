@@ -42,7 +42,7 @@ fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
   use crate::menu::{self, context, Listener};
   move |window, event| {
     menu::app::Item::execute(window, &event);
-    context::library::book::Item::execute(window, &event);
+    context::library_book::Item::execute(window, &event);
   }
 }
 

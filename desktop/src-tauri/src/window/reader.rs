@@ -111,7 +111,7 @@ fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
 
   move |window, event| {
     menu::reader::Item::execute(window, &event);
-    context::reader::page::Item::execute(window, &event);
+    context::reader_page::Item::execute(window, &event);
   }
 }
 

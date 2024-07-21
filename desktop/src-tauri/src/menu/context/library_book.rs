@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{library, menu_item_or_bail, reader};
+use crate::{library, menu_item_or_bail, popup_ctx_menu, reader};
 use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
@@ -26,17 +26,29 @@ impl Listener for Item {
   }
 }
 
-pub struct LibraryBookContextMenu {
-  pub menu: Menu<Wry>,
-  pub ctx: Mutex<Context>,
-}
-
 #[derive(Clone, Debug)]
 pub struct Context {
   pub book_id: i32,
 }
 
-pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
+pub struct LibraryBookContextMenu {
+  pub menu: Menu<Wry>,
+  pub ctx: Mutex<Context>,
+}
+
+impl LibraryBookContextMenu {
+  fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
+    let menu = build(app)?;
+    let ctx = Mutex::new(ctx);
+    Ok(Self { menu, ctx })
+  }
+
+  pub fn popup(window: &Window, ctx: Context) -> Result<()> {
+    popup_ctx_menu!(window, LibraryBookContextMenu, ctx)
+  }
+}
+
+fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
   MenuBuilder::new(app)
     .items(&[
       &menu_item!(app, Item::OpenBook, "Open")?,
@@ -46,7 +58,7 @@ pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
     .map_err(Into::into)
 }
 
-pub async fn open_book(app: &AppHandle) {
+async fn open_book(app: &AppHandle) {
   let state = app.state::<LibraryBookContextMenu>();
   let id = state.ctx.lock().unwrap().book_id;
 
@@ -55,7 +67,7 @@ pub async fn open_book(app: &AppHandle) {
   }
 }
 
-pub async fn remove_book(app: &AppHandle) {
+async fn remove_book(app: &AppHandle) {
   let state = app.state::<LibraryBookContextMenu>();
   let id = state.ctx.lock().unwrap().book_id;
 
