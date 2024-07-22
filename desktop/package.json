@@ -27,12 +27,12 @@
     "es-iterator-helpers": "^1.0.19",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.414.0",
-    "manatsu": "^0.13.1",
+    "manatsu": "^0.14.0",
     "pinia": "^2.1.7",
     "radix-vue": "^1.9.2",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
-    "tauri-plugin-pinia": "^0.1.10",
+    "tauri-plugin-pinia": "^0.1.11",
     "vue": "^3.4.33",
     "vue-router": "^4.4.0"
   }

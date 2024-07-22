@@ -1,6 +1,6 @@
 import { RouteName } from './routes';
 import { LibraryMode } from './query';
-import { type LocationQueryRaw, createMemoryHistory, createRouter } from 'vue-router';
+import { createMemoryHistory, createRouter, type LocationQueryRaw } from 'vue-router';
 
 const router = createRouter({
   history: createMemoryHistory(),
@@ -35,4 +35,4 @@ function navigateToTags() {
   navigate(RouteName.BookTag);
 }
 
-export { LibraryMode, RouteName, navigate, navigateToLibrary, navigateToTags, router };
+export { LibraryMode, navigate, navigateToLibrary, navigateToTags, RouteName, router };

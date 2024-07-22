@@ -1,5 +1,5 @@
 import { pull } from 'lodash-es';
-import { BookPageStatus, ReaderBookPageImpl, isNotStarted } from './page';
+import { BookPageStatus, isNotStarted, ReaderBookPageImpl } from './page';
 
 export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
   public readonly id?: number;
