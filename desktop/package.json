@@ -27,7 +27,7 @@
     "es-iterator-helpers": "^1.0.19",
     "lodash-es": "^4.17.21",
     "lucide-vue-next": "^0.414.0",
-    "manatsu": "^0.13.1",
+    "manatsu": "^0.14.0",
     "pinia": "^2.1.7",
     "radix-vue": "^1.9.2",
     "tailwind-merge": "^2.4.0",

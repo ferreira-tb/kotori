@@ -23,7 +23,7 @@
     "update": "miho update -t"
   },
   "devDependencies": {
-    "@tb-dev/auto-import-config": "^3.0.1",
+    "@tb-dev/auto-import-config": "^3.1.0",
     "@tb-dev/eslint-config": "^4.0.0",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20.14.11",
