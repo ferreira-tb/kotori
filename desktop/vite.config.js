@@ -40,7 +40,7 @@ export default defineConfig({
   },
   build: {
     target: os.platform() === 'win32' ? 'esnext' : 'es2015',
-    minify: true,
+    minify: false,
     emptyOutDir: true,
     rollupOptions: {
       input: {

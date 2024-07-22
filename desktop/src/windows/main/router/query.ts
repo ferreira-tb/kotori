@@ -1,3 +1,3 @@
-export enum LibraryMode {
+export const enum LibraryMode {
   Favorites = 'favorites'
 }

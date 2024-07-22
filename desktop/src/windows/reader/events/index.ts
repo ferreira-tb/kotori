@@ -2,7 +2,7 @@ import { handleError } from 'manatsu';
 import { useReaderStore } from '../stores';
 import { listen } from '@tauri-apps/api/event';
 
-export enum Event {
+export const enum Event {
   PageDeleted = 'page_deleted',
   ReaderBookChanged = 'reader_book_changed'
 }

@@ -2,7 +2,7 @@ import { handleError } from 'manatsu';
 import { useLibraryStore } from '../stores';
 import { listen } from '@tauri-apps/api/event';
 
-export enum Event {
+export const enum Event {
   BookAdded = 'book_added',
   BookRemoved = 'book_removed',
   CoverExtracted = 'cover_extracted',

@@ -1,4 +1,4 @@
-export enum Command {
+export const enum Command {
   AddToLibraryWithDialog = 'add_to_library_with_dialog',
   CloseWindow = 'close_window',
   DeletePageWithDialog = 'delete_page_with_dialog',

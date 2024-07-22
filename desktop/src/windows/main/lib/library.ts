@@ -1,4 +1,4 @@
-import { getLibraryBooks, openBook } from '@/lib/commands';
+import * as commands from '@/lib/commands';
 
 class LibraryBookImpl implements LibraryBook {
   public readonly id: number;
@@ -49,7 +49,7 @@ class LibraryBookImpl implements LibraryBook {
   }
 
   public open() {
-    openBook(this.id).catch(handleError);
+    commands.openBook(this.id).catch(handleError);
   }
 }
 
@@ -71,7 +71,7 @@ export class Library {
   }
 
   public async load() {
-    const books = await getLibraryBooks();
+    const books = await commands.getLibraryBooks();
     this.#books.clear();
 
     for (const book of books) {

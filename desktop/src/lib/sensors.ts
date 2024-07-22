@@ -1,14 +1,9 @@
-import {
-  addToLibraryWithDialog,
-  openBookWithDialog,
-  switchReaderFocus,
-  toggleFullscreen
-} from './commands';
+import * as commands from './commands';
 
 export function setGlobalSensors() {
-  onKeyDown('Tab', switchReaderFocus);
-  onKeyDown('F11', toggleFullscreen);
+  onKeyDown('Tab', commands.switchReaderFocus);
+  onKeyDown('F11', commands.toggleFullscreen);
 
-  onCtrlKeyDown('o', openBookWithDialog);
-  onCtrlShiftKeyDown(['a', 'A'], addToLibraryWithDialog);
+  onCtrlKeyDown('o', commands.openBookWithDialog);
+  onCtrlShiftKeyDown(['a', 'A'], commands.addToLibraryWithDialog);
 }

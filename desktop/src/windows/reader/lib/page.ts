@@ -3,7 +3,7 @@ import { Reader } from './reader';
 import { getBookPage } from '@/lib/server';
 import { deletePageWithDialog } from '@/lib/commands';
 
-export enum BookPageStatus {
+export const enum BookPageStatus {
   NotStarted = 1,
   Pending = 2,
   Done = 3,
