@@ -6142,9 +6142,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-manatsu"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87fb269c85f341c96e206e1696b0ce436535c17c4235d99380d8cde82cc31c4a"
+checksum = "87ebb5265ef4998a5a402c9bce44d676f80c9a0c299f001abf90e3591a77d43b"
 dependencies = [
  "anyhow",
  "chrono",
