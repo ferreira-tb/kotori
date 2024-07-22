@@ -6,7 +6,7 @@ import { showReaderPageContextMenu, toggleReaderMenu } from '@/lib/commands';
 
 const store = useReaderStore();
 const { reader } = storeToRefs(store);
-reader.value.load().catch(handleError);
+void reader.value.load();
 
 // Using `alt` doesn't seem to be a good idea.
 // What could be a better way to toggle the menu?

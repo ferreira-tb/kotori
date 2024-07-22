@@ -108,3 +108,10 @@ features = ["v4", "v7", "fast-rng"]
 
 [features]
 devtools = ["tauri/devtools"]
+
+tracing-level-off = ["tracing/max_level_off"]
+tracing-level-error = ["tracing/max_level_error"]
+tracing-level-warn = ["tracing/max_level_warn"]
+tracing-level-info = ["tracing/max_level_info"]
+tracing-level-debug = ["tracing/max_level_debug"]
+tracing-level-trace = ["tracing/max_level_trace"]

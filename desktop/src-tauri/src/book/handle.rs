@@ -178,13 +178,13 @@ impl Actor {
 
   async fn run(&mut self) {
     while let Some(message) = self.receiver.recv().await {
-      debug!(queued_messages = self.receiver.len());
+      trace!(queued_messages = self.receiver.len());
       self.handle_message(message).await;
     }
   }
 
   async fn handle_message(&mut self, message: Message) {
-    debug!(%message, books = self.cache.len());
+    trace!(%message, books = self.cache.len());
     match message {
       Message::Close { path, nt } => {
         self.cache.remove(&path);
@@ -254,7 +254,7 @@ impl Actor {
       .cache
       .get(path)
       .map(Ok)
-      .expect("book should have been added if it was missing")
+      .expect("book should be in the cache")
   }
 
   async fn remove_book(&mut self, path: &PathBuf) -> Result<BookFile> {

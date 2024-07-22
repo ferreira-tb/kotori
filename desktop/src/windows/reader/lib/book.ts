@@ -66,7 +66,9 @@ export class ReaderBookImpl implements Omit<ReaderBook, 'pages'> {
       }
 
       const page = this.#pages.values().find(isNotStarted);
-      if (page) yield page.fetch();
+      if (page) {
+        yield page.fetch();
+      }
     }
   }
 

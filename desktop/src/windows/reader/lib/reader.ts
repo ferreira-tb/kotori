@@ -3,6 +3,7 @@ import { getCurrentReaderBook } from '@/lib/commands';
 
 export class Reader {
   #book: Nullish<ReaderBookImpl>;
+  #loading = false;
   readonly #trigger: Fn;
 
   #current = 0;
@@ -12,13 +13,24 @@ export class Reader {
   }
 
   public async load() {
-    const book = await getCurrentReaderBook(Reader.windowId);
-    this.#book = new ReaderBookImpl(book);
-    this.#current = 0;
-    this.#trigger();
+    if (!this.#loading) {
+      this.#loading = true;
+      try {
+        const book = await getCurrentReaderBook(Reader.windowId);
+        this.#book = new ReaderBookImpl(book);
+        this.#current = 0;
+        this.#trigger();
 
-    for await (const index of this.#book.fetch()) {
-      if (this.#book.has(index)) {
+        for await (const index of this.#book.fetch()) {
+          if (this.#book.has(index)) {
+            this.#trigger();
+            await flushPromises();
+          }
+        }
+      } catch (err) {
+        handleError(err);
+      } finally {
+        this.#loading = false;
         this.#trigger();
       }
     }
@@ -96,6 +108,10 @@ export class Reader {
 
   get current() {
     return this.#book?.get(this.#current);
+  }
+
+  get loading() {
+    return this.#loading;
   }
 
   get size() {

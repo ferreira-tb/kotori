@@ -24,7 +24,7 @@ impl ReaderWindow {
     trace!(?kind, ?url);
     trace!(%script);
 
-    let webview = WebviewWindowBuilder::new(app, label, url)
+    let window = WebviewWindowBuilder::new(app, label, url)
       .initialization_script(&script)
       .data_directory(kind.data_dir(app)?)
       .title(book.title.to_string())
@@ -35,15 +35,18 @@ impl ReaderWindow {
       .visible(false)
       .build()?;
 
-    webview.on_window_event(on_window_event(app, window_id));
+    window.on_window_event(on_window_event(app, window_id));
 
     let menu = build_menu(app, window_id)?;
-    webview.set_menu(menu)?;
-    webview.on_menu_event(on_menu_event());
+    window.set_menu(menu)?;
+    window.on_menu_event(on_menu_event());
 
     // We should keep this hidden by default.
     // The user may toggle it visible, however.
-    webview.hide_menu()?;
+    window.hide_menu()?;
+
+    #[cfg(debug_assertions)]
+    window.open_devtools();
 
     Ok(ReaderWindow { id: window_id, book })
   }
@@ -66,19 +69,19 @@ impl ReaderWindow {
     Ok(())
   }
 
-  pub fn webview(&self, app: &AppHandle) -> Option<WebviewWindow> {
+  pub fn webview_window(&self, app: &AppHandle) -> Option<WebviewWindow> {
     get_reader_window(app, self.id)
   }
 
   fn menu(&self, app: &AppHandle) -> Result<Menu<Wry>> {
     self
-      .webview(app)
+      .webview_window(app)
       .and_then(|it| it.menu())
       .ok_or_else(|| err!(WindowMenuNotFound))
   }
 
   fn set_book(&mut self, app: &AppHandle, book: ActiveBook) -> Result<()> {
-    if let Some(webview) = self.webview(app) {
+    if let Some(webview) = self.webview_window(app) {
       webview.set_title(book.title.as_str())?;
     };
 
@@ -154,7 +157,7 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
       .read()
       .await
       .get_index(previous_window_id)
-      .and_then(|(_, window)| window.webview(&app))
+      .and_then(|(_, window)| window.webview_window(&app))
       .or_else(|| Some(app.main_window()))
       .map(|webview| webview.set_foreground_focus())
       .transpose()

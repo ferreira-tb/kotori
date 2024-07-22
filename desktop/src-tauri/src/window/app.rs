@@ -3,7 +3,7 @@ use crate::error::Result;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
 use crate::window::{ColorMode, WindowKind};
-use crate::{menu, reader};
+use crate::{menu, reader, VERSION};
 use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::async_runtime::spawn;
@@ -28,7 +28,7 @@ pub fn open(app: &AppHandle) -> Result<()> {
   window.on_window_event(on_window_event(app));
 
   #[cfg(any(debug_assertions, feature = "devtools"))]
-  window.set_title("Kotori DEV")?;
+  window.set_title(&format!("Kotori DEV {VERSION}"))?;
 
   #[cfg(debug_assertions)]
   window.open_devtools();

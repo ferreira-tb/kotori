@@ -40,6 +40,8 @@ impl ReaderBook {
       .ok_or_else(|| err!(ReaderWindowNotFound, "{window_id}"))
       .map(|it| &it.book)?;
 
+    trace!(book = ?book);
+
     Self::from_active(app, book).await
   }
 }

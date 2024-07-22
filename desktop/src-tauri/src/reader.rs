@@ -32,7 +32,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
     let webview = windows
       .values()
       .find(|it| it.book == book)
-      .and_then(|it| it.webview(app));
+      .and_then(|it| it.webview_window(app));
 
     if let Some(webview) = webview {
       return webview.set_foreground_focus();
@@ -67,7 +67,7 @@ where
 pub async fn close_all(app: &AppHandle) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
-    if let Some(webview) = window.webview(app) {
+    if let Some(webview) = window.webview_window(app) {
       webview.close().into_err_log(app);
     }
   }
@@ -79,7 +79,7 @@ pub async fn close_others(app: &AppHandle, window_id: u16) -> Result<()> {
   let windows = app.reader_windows();
   for window in windows.read().await.values() {
     if window.id != window_id {
-      if let Some(webview) = window.webview(app) {
+      if let Some(webview) = window.webview_window(app) {
         webview.close().into_err_log(app);
       }
     }
@@ -103,7 +103,7 @@ pub async fn get_window_id_by_label(app: &AppHandle, label: &str) -> Option<u16>
     .iter()
     .find(|(_, window)| {
       window
-        .webview(app)
+        .webview_window(app)
         .is_some_and(|it| it.label() == label)
     })
     .map(|(_, window)| window.id)
@@ -117,7 +117,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
 
     let webview = windows
       .first()
-      .and_then(|(_, window)| window.webview(app));
+      .and_then(|(_, window)| window.webview_window(app));
 
     if let Some(webview) = webview {
       webview.set_foreground_focus()?;
@@ -149,7 +149,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
         .skip(1)
         .find(|window| windows.contains_key(&window.id))
         .and_then(|window| windows.get(&window.id))
-        .and_then(|window| window.webview(app));
+        .and_then(|window| window.webview_window(app));
 
       if let Some(webview) = webview {
         webview.set_foreground_focus()?;
@@ -172,7 +172,7 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, name: &str) -> Result<
     window.book.delete_page(app, name).await?;
 
     if window.book.pages().await?.is_empty() {
-      if let Some(webview) = window.webview(app) {
+      if let Some(webview) = window.webview_window(app) {
         return webview.close().map_err(Into::into);
       }
     }
