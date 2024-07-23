@@ -31,6 +31,17 @@ pub struct Context {
   pub book_id: i32,
 }
 
+impl Context {
+  fn book_id(app: &AppHandle) -> i32 {
+    app
+      .state::<LibraryBookContextMenu>()
+      .ctx
+      .lock()
+      .unwrap()
+      .book_id
+  }
+}
+
 pub struct LibraryBookContextMenu {
   pub menu: Menu<Wry>,
   pub ctx: Mutex<Context>,
@@ -55,9 +66,7 @@ impl LibraryBookContextMenu {
 }
 
 async fn open_book(app: &AppHandle) {
-  let state = app.state::<LibraryBookContextMenu>();
-  let id = state.ctx.lock().unwrap().book_id;
-
+  let id = Context::book_id(app);
   if let Ok(book) = ActiveBook::from_id(app, id).await {
     reader::open_book(app, book)
       .await
@@ -66,9 +75,7 @@ async fn open_book(app: &AppHandle) {
 }
 
 async fn remove_book(app: &AppHandle) {
-  let state = app.state::<LibraryBookContextMenu>();
-  let id = state.ctx.lock().unwrap().book_id;
-
+  let id = Context::book_id(app);
   library::remove_with_dialog(app, id)
     .await
     .into_err_dialog(app);
