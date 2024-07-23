@@ -9,6 +9,6 @@ export function loadStores() {
   return Promise.all([
     useConfigStore().$tauri.start(),
     useLibraryStore().load(),
-    useCollectionStore().load()
+    useCollectionStore().load(),
   ]);
 }

@@ -8,19 +8,19 @@ const router = createRouter({
     {
       path: '/',
       name: RouteName.Library,
-      component: () => import('../views/Library.vue')
+      component: () => import('../views/Library.vue'),
     },
     {
       path: '/collection',
       name: RouteName.Collection,
-      component: () => import('../views/Collection.vue')
+      component: () => import('../views/Collection.vue'),
     },
     {
       path: '/tag',
       name: RouteName.BookTag,
-      component: () => import('../views/BookTag.vue')
-    }
-  ]
+      component: () => import('../views/BookTag.vue'),
+    },
+  ],
 });
 
 function navigate(name: RouteName, query?: LocationQueryRaw) {

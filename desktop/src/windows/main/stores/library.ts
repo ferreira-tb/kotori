@@ -10,6 +10,6 @@ export const useLibraryStore = defineStore('library', () => {
     library,
     filter,
     selected,
-    load: () => library.value.load()
+    load: () => library.value.load(),
   };
 });

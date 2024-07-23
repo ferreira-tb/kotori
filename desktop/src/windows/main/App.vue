@@ -13,7 +13,10 @@ const { library, selected } = storeToRefs(libraryStore);
 setGlobalSensors();
 
 onMounted(() => {
-  loadStores().then(flushPromises).then(showWindow).catch(handleError);
+  loadStores()
+    .then(flushPromises)
+    .then(showWindow)
+    .catch(handleError);
 });
 </script>
 
@@ -35,7 +38,7 @@ onMounted(() => {
         <div class="flex h-16 items-center">
           <div v-if="selected" class="flex w-full justify-between px-2">
             <div class="flex items-center gap-2">
-              <img v-if="selected.cover" :src="selected.cover" :alt="selected.title" class="h-10" />
+              <img v-if="selected.cover" :src="selected.cover" :alt="selected.title" class="h-10">
               <div class="flex flex-col gap-1 overflow-hidden">
                 <div class="ellipsis">{{ selected.title }}</div>
                 <Rating />

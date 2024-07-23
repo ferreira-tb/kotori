@@ -4,7 +4,7 @@ import { listen } from '@tauri-apps/api/event';
 
 export const enum Event {
   PageDeleted = 'page_deleted',
-  ReaderBookChanged = 'reader_book_changed'
+  ReaderBookChanged = 'reader_book_changed',
 }
 
 export function setupEventListeners() {

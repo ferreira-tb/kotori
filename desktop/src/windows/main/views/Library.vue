@@ -20,7 +20,7 @@ const books = computed(() => {
   <div class="size-full">
     <div v-if="library.size > 0" class="relative size-full overflow-hidden">
       <div class="absolute inset-0 overflow-y-auto overflow-x-hidden p-2">
-        <BookGrid :books :filter @select="(it) => (selected = it)" />
+        <BookGrid :books :filter @select="(it) => selected = it" />
       </div>
     </div>
   </div>

@@ -17,7 +17,7 @@ export const enum Command {
   SwitchReaderFocus = 'switch_reader_focus',
   ToggleFullscreen = 'toggle_fullscreen',
   ToggleReaderMenu = 'toggle_reader_menu',
-  UpdateBookRating = 'update_book_rating'
+  UpdateBookRating = 'update_book_rating',
 }
 
 export async function addToLibraryWithDialog() {

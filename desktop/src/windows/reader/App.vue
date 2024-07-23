@@ -7,7 +7,10 @@ import { showWindow } from '@/lib/commands';
 setSensors();
 
 onMounted(() => {
-  useConfigStore().$tauri.start().then(flushPromises).then(showWindow).catch(handleError);
+  useConfigStore().$tauri.start()
+    .then(flushPromises)
+    .then(showWindow)
+    .catch(handleError);
 });
 </script>
 

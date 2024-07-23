@@ -24,7 +24,8 @@ onKeyDown('Delete', () => reader.value.current?.delete());
 useEventListener(window, 'wheel', (event: WheelEvent) => {
   if (event.deltaY < 0) {
     reader.value.previous();
-  } else {
+  }
+  else {
     reader.value.next();
   }
 });
@@ -48,7 +49,7 @@ function showContextMenu() {
         :src="reader.current.url"
         class="size-full object-scale-down"
         @contextmenu="showContextMenu"
-      />
+      >
     </div>
   </div>
 </template>
