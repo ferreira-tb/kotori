@@ -93,7 +93,7 @@ pub enum ColorMode {
 }
 
 impl ColorMode {
-  const KEY: &'static str = "colorMode";
+  const KEY: &str = "colorMode";
 
   pub fn get(app: &AppHandle) -> Result<Self> {
     app

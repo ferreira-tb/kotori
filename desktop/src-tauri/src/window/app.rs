@@ -30,7 +30,7 @@ pub fn open(app: &AppHandle) -> Result<()> {
   #[cfg(any(debug_assertions, feature = "devtools"))]
   window.set_title(&format!("Kotori DEV {VERSION}"))?;
 
-  #[cfg(debug_assertions)]
+  #[cfg(feature = "open-main-devtools")]
   window.open_devtools();
 
   Ok(())

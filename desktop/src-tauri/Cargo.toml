@@ -108,6 +108,12 @@ features = ["v4", "v7", "fast-rng"]
 
 [features]
 devtools = ["tauri/devtools"]
+
+# Open devtools after the window is created
+open-main-devtools = ["devtools"]
+open-reader-devtools = ["devtools"]
+
+# Tracing levels
 tracing-level-off = ["tracing/max_level_off"]
 tracing-level-error = ["tracing/max_level_error"]
 tracing-level-warn = ["tracing/max_level_warn"]

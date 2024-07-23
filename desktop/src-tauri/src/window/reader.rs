@@ -45,7 +45,7 @@ impl ReaderWindow {
     // The user may toggle it visible, however.
     window.hide_menu()?;
 
-    #[cfg(debug_assertions)]
+    #[cfg(feature = "open-reader-devtools")]
     window.open_devtools();
 
     Ok(ReaderWindow { id: window_id, book })
