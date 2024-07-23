@@ -8,7 +8,7 @@ class LibraryBookImpl implements LibraryBook {
   #cover?: string | undefined;
   #rating: number;
 
-  /** Used to force reload the image when needed. */
+  /** Used to force reload the image. */
   #version = 0;
 
   constructor(book: LibraryBook) {

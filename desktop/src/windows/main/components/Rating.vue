@@ -2,21 +2,18 @@
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-vue-next';
 
-const rating = ref(3);
-
-function update(value: number) {
-  rating.value = value;
-}
+defineProps<{ rating: number; }>();
+defineEmits<(e: 'update', rating: number) => void>();
 </script>
 
 <template>
   <div class="flex gap-1">
     <Star
-      v-for="idx of 5"
-      :key="idx"
-      :fill="idx <= rating ? 'currentColor' : 'none'"
-      :class="cn('size-4 cursor-pointer transition-all', idx > rating && 'hover:scale-105')"
-      @click="update(idx)"
+      v-for="amount of 5"
+      :key="amount"
+      :fill="amount <= rating ? 'currentColor' : 'none'"
+      :class="cn('size-4 cursor-pointer transition-all', amount > rating && 'hover:scale-105')"
+      @click="$emit('update', amount)"
     />
   </div>
 </template>

@@ -2,12 +2,13 @@
 import { LibraryMode } from '../router';
 import { useLibraryStore } from '../stores';
 import BookGrid from '../components/BookGrid.vue';
+import type { LibraryBookImpl } from '../lib/library';
 
 const store = useLibraryStore();
 const { library, filter, selected } = storeToRefs(store);
 
 const mode = useRouteQuery('mode');
-const books = computed(() => {
+const books = computed<Iterable<LibraryBookImpl>>(() => {
   if (mode.value === LibraryMode.Favorites) {
     return library.value.favorites();
   }

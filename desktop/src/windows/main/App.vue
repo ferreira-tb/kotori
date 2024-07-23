@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { showWindow } from '@/lib/commands';
+import * as commands from '@/lib/commands';
 import Rating from './components/Rating.vue';
 import Sidebar from './components/Sidebar.vue';
 import { Button } from '@/components/ui/button';
@@ -15,7 +15,7 @@ setGlobalSensors();
 onMounted(() => {
   loadStores()
     .then(flushPromises)
-    .then(showWindow)
+    .then(commands.showWindow)
     .catch(handleError);
 });
 </script>
@@ -33,6 +33,7 @@ onMounted(() => {
           </RouterView>
         </div>
       </div>
+
       <Separator class="w-full" />
       <footer v-show="library.size > 0 && selected" class="flex flex-col overflow-hidden">
         <div class="flex h-16 items-center">
@@ -41,7 +42,10 @@ onMounted(() => {
               <img v-if="selected.cover" :src="selected.cover" :alt="selected.title" class="h-10">
               <div class="flex flex-col gap-1 overflow-hidden">
                 <div class="ellipsis">{{ selected.title }}</div>
-                <Rating />
+                <Rating
+                  :rating="selected.rating"
+                  @update="commands.updateBookRating(selected.id, $event)"
+                />
               </div>
             </div>
             <div class="flex items-center pr-2">
