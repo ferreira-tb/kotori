@@ -22,6 +22,6 @@ export async function getBookPage(windowId: number, name: string) {
   return fetch(`reader/${windowId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name })
+    body: JSON.stringify({ name }),
   });
 }

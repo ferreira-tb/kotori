@@ -10,7 +10,7 @@ import { LibraryMode, navigateToLibrary, navigateToTags } from '../router';
       <h2 class="mb-2 px-4 text-lg font-semibold tracking-tight">Library</h2>
       <div class="space-y-1">
         <Button variant="ghost" class="w-full justify-start" @click="navigateToLibrary()">
-          <Library class="mr-2 h-4 w-4" />
+          <Library class="mr-2 size-4" />
           <span>Books</span>
         </Button>
         <Button
@@ -18,11 +18,11 @@ import { LibraryMode, navigateToLibrary, navigateToTags } from '../router';
           class="w-full justify-start"
           @click="navigateToLibrary({ mode: LibraryMode.Favorites })"
         >
-          <Star class="mr-2 h-4 w-4" />
+          <Star class="mr-2 size-4" />
           <span>Favorites</span>
         </Button>
         <Button variant="ghost" class="w-full justify-start" @click="navigateToTags()">
-          <Tag class="mr-2 h-4 w-4" />
+          <Tag class="mr-2 size-4" />
           <span>Tags</span>
         </Button>
       </div>
@@ -31,7 +31,7 @@ import { LibraryMode, navigateToLibrary, navigateToTags } from '../router';
       <h2 class="mb-2 px-4 text-lg font-semibold tracking-tight">Collections</h2>
       <div class="flex items-center justify-center">
         <Button variant="outline">
-          <Plus class="mr-2 h-4 w-4" />
+          <Plus class="mr-2 size-4" />
           <span>New collection</span>
         </Button>
       </div>

@@ -26,8 +26,8 @@ defineEmits<(e: 'select', book: LibraryBookImpl) => void>();
           :alt="book.title"
           decoding="async"
           loading="lazy"
-          class="h-auto w-auto object-cover transition-all hover:scale-110"
-        />
+          class="size-auto object-cover transition-all hover:scale-110"
+        >
       </div>
     </template>
   </div>

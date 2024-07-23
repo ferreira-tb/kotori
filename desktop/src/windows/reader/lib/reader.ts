@@ -27,9 +27,11 @@ export class Reader {
             await flushPromises();
           }
         }
-      } catch (err) {
+      }
+      catch (err) {
         handleError(err);
-      } finally {
+      }
+      finally {
         this.#loading = false;
         this.#trigger();
       }
@@ -128,7 +130,7 @@ export class Reader {
         },
         set(_) {
           noop();
-        }
+        },
       };
     });
   }

@@ -7,7 +7,7 @@ export const enum BookPageStatus {
   NotStarted = 1,
   Pending = 2,
   Done = 3,
-  Error = 4
+  Error = 4,
 }
 
 export class ReaderBookPageImpl implements ReaderBookPage {
@@ -26,7 +26,8 @@ export class ReaderBookPageImpl implements ReaderBookPage {
         const blob = await getBookPage(Reader.windowId, this.name);
         this.#url = URL.createObjectURL(blob);
         this.#status = BookPageStatus.Done;
-      } catch (err) {
+      }
+      catch (err) {
         this.#status = BookPageStatus.Error;
         handleError(err);
       }

@@ -7,7 +7,7 @@ export const enum Event {
   BookRemoved = 'book_removed',
   CoverExtracted = 'cover_extracted',
   LibraryCleared = 'library_cleared',
-  RatingUpdated = 'rating_updated'
+  RatingUpdated = 'rating_updated',
 }
 
 export function setupEventListeners() {
@@ -16,7 +16,7 @@ export function setupEventListeners() {
     onBookRemoved(),
     onCoverExtracted(),
     onLibraryCleared(),
-    onRatingUpdated()
+    onRatingUpdated(),
   ]);
 
   promises.catch(handleError);

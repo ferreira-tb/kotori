@@ -5,6 +5,6 @@ export const useReaderStore = defineStore('reader', () => {
   const reader = Reader.createRef();
 
   return {
-    reader
+    reader,
   };
 });

@@ -15,7 +15,7 @@ function update(value: number) {
       v-for="idx of 5"
       :key="idx"
       :fill="idx <= rating ? 'currentColor' : 'none'"
-      :class="cn('h-4 w-4 cursor-pointer transition-all', idx > rating && 'hover:scale-105')"
+      :class="cn('size-4 cursor-pointer transition-all', idx > rating && 'hover:scale-105')"
       @click="update(idx)"
     />
   </div>

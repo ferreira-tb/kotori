@@ -4,6 +4,6 @@ export const useConfigStore = defineStore('config', () => {
   const colorMode = useColorMode({ storageKey: null });
 
   return {
-    colorMode
+    colorMode,
   };
 });

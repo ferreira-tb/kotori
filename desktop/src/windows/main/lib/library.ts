@@ -33,7 +33,8 @@ class LibraryBookImpl implements LibraryBook {
       const url = new URL(convertFileSrc(path));
       url.searchParams.set('v', (++this.#version).toString(10));
       this.#cover = url.toString();
-    } catch {
+    }
+    catch {
       this.#cover = convertFileSrc(path);
     }
   }
@@ -131,7 +132,7 @@ export class Library {
         },
         set(_) {
           noop();
-        }
+        },
       };
     });
   }

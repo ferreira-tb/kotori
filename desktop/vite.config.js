@@ -11,32 +11,36 @@ import autoImport from '@tb-dev/auto-import-config';
 export default defineConfig({
   clearScreen: false,
   plugins: [
-    vue(),
+    vue({
+      features: {
+        optionsAPI: false,
+      },
+    }),
     dev(),
     autoImport({
       presets: {
         manatsu: true,
         tauri: true,
-        vueuseRouter: true
-      }
-    })
+        vueuseRouter: true,
+      },
+    }),
   ],
   css: {
     postcss: {
-      plugins: [tailwind(), autoprefixer()]
-    }
+      plugins: [tailwind(), autoprefixer()],
+    },
   },
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('src', import.meta.url))
-    }
+      '@': fileURLToPath(new URL('src', import.meta.url)),
+    },
   },
   server: {
     port: 1420,
     strictPort: true,
     watch: {
-      ignored: ['**/src-tauri/**']
-    }
+      ignored: ['**/src-tauri/**'],
+    },
   },
   build: {
     target: os.platform() === 'win32' ? 'esnext' : 'es2015',
@@ -45,10 +49,10 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: entry('main'),
-        reader: entry('reader')
-      }
-    }
-  }
+        reader: entry('reader'),
+      },
+    },
+  },
 });
 
 function entry(name) {

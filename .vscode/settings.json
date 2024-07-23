@@ -5,16 +5,14 @@
   "[toml]": {
     "editor.defaultFormatter": "tamasfe.even-better-toml"
   },
-  "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
   "conventionalCommits.promptScopes": false,
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.defaultFormatter": "dbaeumer.vscode-eslint",
   "editor.formatOnSave": true,
   "eslint.codeActionsOnSave.mode": "problems",
+  "eslint.format.enable": true,
   "eslint.useFlatConfig": true,
   "files.associations": {
     "*.css": "tailwindcss"
@@ -30,11 +28,16 @@
     "desktop/src-tauri/gen": true
   },
   "logViewer.logLevel": "trace",
-  "logViewer.watch": ["kotori.log"],
-  "prettier.requireConfig": true,
+  "logViewer.watch": [
+    "kotori.log"
+  ],
   "rust-analyzer.imports.granularity.enforce": true,
   "rust-analyzer.showUnlinkedFileNotification": false,
-  "tailwindCSS.classAttributes": ["class", "header-class", "input-class"],
+  "tailwindCSS.classAttributes": [
+    "class",
+    "header-class",
+    "input-class"
+  ],
   "typescript.tsdk": "node_modules\\typescript\\lib",
   "vsicons.associations.folders": [
     {
@@ -43,7 +46,7 @@
       "icon": "theme"
     },
     {
-      "extensions": ["store", "stores"],
+      "extensions": ["store","stores"],
       "format": "svg",
       "icon": "story"
     },

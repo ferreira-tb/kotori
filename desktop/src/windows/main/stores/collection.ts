@@ -3,11 +3,11 @@ import { Command } from '@/lib/commands';
 
 export const useCollectionStore = defineStore('collection', () => {
   const collections = useInvoke<BookCollection[]>(Command.GetCollections, [], {
-    lazy: true
+    lazy: true,
   });
 
   return {
     collections: collections.state,
-    load: collections.execute
+    load: collections.execute,
   };
 });
