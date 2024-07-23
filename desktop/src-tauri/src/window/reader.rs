@@ -1,7 +1,6 @@
 use crate::book::ActiveBook;
 use crate::event::Event;
-use crate::menu::reader::{build as build_menu, Item};
-use crate::menu::MenuExt;
+use crate::menu::{MenuExt, ReaderMenu, ReaderMenuItem};
 use crate::prelude::*;
 use crate::utils::glob;
 use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
@@ -37,7 +36,7 @@ impl ReaderWindow {
 
     window.on_window_event(on_window_event(app, window_id));
 
-    let menu = build_menu(app, window_id)?;
+    let menu = ReaderMenu::build(app, window_id)?;
     window.set_menu(menu)?;
     window.on_menu_event(on_menu_event());
 
@@ -58,11 +57,11 @@ impl ReaderWindow {
     for window in windows.values() {
       let menu = window.menu(app)?;
 
-      let item = Item::AddBookToLibrary.to_menu_id(window.id);
+      let item = ReaderMenuItem::AddBookToLibrary.to_menu_id(window.id);
       let book_id = window.book.try_id(app).await.ok();
       menu.set_item_enabled(&item, book_id.is_none())?;
 
-      let item = Item::CloseOthers.to_menu_id(window.id);
+      let item = ReaderMenuItem::CloseOthers.to_menu_id(window.id);
       menu.set_item_enabled(&item, windows.len() > 1)?;
     }
 
@@ -109,12 +108,11 @@ fn initialization_script(id: u16) -> String {
 }
 
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
-  use crate::menu;
-  use crate::menu::{context, Listener};
+  use crate::menu::{Listener, ReaderMenuItem, ReaderPageContextMenuItem};
 
   move |window, event| {
-    menu::reader::Item::execute(window, &event);
-    context::reader_page::Item::execute(window, &event);
+    ReaderMenuItem::execute(window, &event);
+    ReaderPageContextMenuItem::execute(window, &event);
   }
 }
 

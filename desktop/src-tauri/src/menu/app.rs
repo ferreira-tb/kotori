@@ -73,106 +73,106 @@ impl Listener for Item {
   }
 }
 
-pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
-  let menu = Menu::new(app)?;
-  menu.append(&file_menu(app)?)?;
-  menu.append(&read_menu(app)?)?;
-  menu.append(&view_menu(app)?)?;
-  menu.append(&help_menu(app)?)?;
+pub struct AppMenu;
+
+impl AppMenu {
+  pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
+    let menu = Menu::new(app)?;
+    menu.append(&Self::file_menu(app)?)?;
+    menu.append(&Self::read_menu(app)?)?;
+    menu.append(&Self::view_menu(app)?)?;
+    menu.append(&Self::help_menu(app)?)?;
+
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    menu.append(&Self::dev_menu(app)?)?;
+
+    Ok(menu)
+  }
+
+  fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    let mut menu = SubmenuBuilder::new(app, "File")
+      .items(&[
+        &mi!(app, Item::OpenFile, "Open file")?,
+        &mi!(app, Item::AddToLibrary, "Add to library")?,
+      ])
+      .separator()
+      .items(&[&mi!(app, Item::ScanBookFolders, "Scan book folders")?]);
+
+    if !cfg!(target_os = "linux") {
+      menu = menu.separator().quit();
+    }
+
+    menu.build().map_err(Into::into)
+  }
+
+  fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    SubmenuBuilder::new(app, "Read")
+      .items(&[&mi!(app, Item::RandomBook, "Random book")?])
+      .build()
+      .map_err(Into::into)
+  }
+
+  fn view_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    let current_color_mode = ColorMode::get(app.app_handle())?;
+    let color_mode = SubmenuBuilder::new(app, "Color mode")
+      .items(&[
+        &CheckMenuItemBuilder::with_id(Item::ColorModeAuto, "Auto")
+          .checked(current_color_mode == ColorMode::Auto)
+          .build(app)?,
+        &CheckMenuItemBuilder::with_id(Item::ColorModeLight, "Light")
+          .checked(current_color_mode == ColorMode::Light)
+          .build(app)?,
+        &CheckMenuItemBuilder::with_id(Item::ColorModeDark, "Dark")
+          .checked(current_color_mode == ColorMode::Dark)
+          .build(app)?,
+      ])
+      .build()?;
+
+    SubmenuBuilder::new(app, "View")
+      .items(&[&color_mode])
+      .build()
+      .map_err(Into::into)
+  }
+
+  fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    let mut metadata = AboutMetadataBuilder::new()
+      .name("Kotori".into())
+      .version(VERSION.into())
+      .copyright("Copyright © 2024 Andrew Ferreira".into());
+
+    if !cfg!(target_os = "macos") {
+      const LICENSE: &str = env!("CARGO_PKG_LICENSE");
+      metadata = metadata.license(LICENSE.into());
+    }
+
+    let metadata = metadata.build();
+    let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
+    SubmenuBuilder::new(app, "Help")
+      .items(&[
+        &mi!(app, Item::Discord, "Discord")?,
+        &mi!(app, Item::Repository, "Repository")?,
+      ])
+      .item(&about)
+      .build()
+      .map_err(Into::into)
+  }
 
   #[cfg(any(debug_assertions, feature = "devtools"))]
-  menu.append(&dev_menu(app)?)?;
+  fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    let mocks = SubmenuBuilder::new(app, "Mocks")
+      .items(&[
+        &mi!(app, Item::AddMockBooksPortrait, "Portrait")?,
+        &mi!(app, Item::AddMockBooksLandscape, "Landscape")?,
+      ])
+      .build()?;
 
-  Ok(menu)
-}
-
-fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  let mut menu = SubmenuBuilder::new(app, "File")
-    .items(&[
-      &menu_item!(app, Item::OpenFile, "Open file")?,
-      &menu_item!(app, Item::AddToLibrary, "Add to library")?,
-    ])
-    .separator()
-    .items(&[&menu_item!(
-      app,
-      Item::ScanBookFolders,
-      "Scan book folders"
-    )?]);
-
-  if !cfg!(target_os = "linux") {
-    menu = menu.separator().quit();
+    SubmenuBuilder::new(app, "Developer")
+      .items(&[&mocks])
+      .separator()
+      .items(&[&mi!(app, Item::RemoveAllBooks, "Remove all books")?])
+      .build()
+      .map_err(Into::into)
   }
-
-  menu.build().map_err(Into::into)
-}
-
-fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  SubmenuBuilder::new(app, "Read")
-    .items(&[&menu_item!(app, Item::RandomBook, "Random book")?])
-    .build()
-    .map_err(Into::into)
-}
-
-fn view_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  let current_color_mode = ColorMode::get(app.app_handle())?;
-  let color_mode = SubmenuBuilder::new(app, "Color mode")
-    .items(&[
-      &CheckMenuItemBuilder::with_id(Item::ColorModeAuto, "Auto")
-        .checked(current_color_mode == ColorMode::Auto)
-        .build(app)?,
-      &CheckMenuItemBuilder::with_id(Item::ColorModeLight, "Light")
-        .checked(current_color_mode == ColorMode::Light)
-        .build(app)?,
-      &CheckMenuItemBuilder::with_id(Item::ColorModeDark, "Dark")
-        .checked(current_color_mode == ColorMode::Dark)
-        .build(app)?,
-    ])
-    .build()?;
-
-  SubmenuBuilder::new(app, "View")
-    .items(&[&color_mode])
-    .build()
-    .map_err(Into::into)
-}
-
-fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  let mut metadata = AboutMetadataBuilder::new()
-    .name("Kotori".into())
-    .version(VERSION.into())
-    .copyright("Copyright © 2024 Andrew Ferreira".into());
-
-  if !cfg!(target_os = "macos") {
-    const LICENSE: &str = env!("CARGO_PKG_LICENSE");
-    metadata = metadata.license(LICENSE.into());
-  }
-
-  let metadata = metadata.build();
-  let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
-  SubmenuBuilder::new(app, "Help")
-    .items(&[
-      &menu_item!(app, Item::Discord, "Discord")?,
-      &menu_item!(app, Item::Repository, "Repository")?,
-    ])
-    .item(&about)
-    .build()
-    .map_err(Into::into)
-}
-
-#[cfg(any(debug_assertions, feature = "devtools"))]
-fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
-  let mocks = SubmenuBuilder::new(app, "Mocks")
-    .items(&[
-      &menu_item!(app, Item::AddMockBooksPortrait, "Portrait")?,
-      &menu_item!(app, Item::AddMockBooksLandscape, "Landscape")?,
-    ])
-    .build()?;
-
-  SubmenuBuilder::new(app, "Developer")
-    .items(&[&mocks])
-    .separator()
-    .items(&[&menu_item!(app, Item::RemoveAllBooks, "Remove all books")?])
-    .build()
-    .map_err(Into::into)
 }
 
 #[cfg(any(debug_assertions, feature = "devtools"))]

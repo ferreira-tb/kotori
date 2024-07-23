@@ -44,9 +44,9 @@ impl ReaderPageContextMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
     let menu = MenuBuilder::new(app)
       .items(&[
-        &menu_item!(app, Item::SetAsCover, "Set as cover")?,
+        &mi!(app, Item::SetAsCover, "Set as cover")?,
         &PredefinedMenuItem::separator(app)?,
-        &menu_item!(app, Item::DeletePage, "Delete page")?,
+        &mi!(app, Item::DeletePage, "Delete page")?,
       ])
       .build()?;
 

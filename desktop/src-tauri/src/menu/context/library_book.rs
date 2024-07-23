@@ -40,8 +40,8 @@ impl LibraryBookContextMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
     let menu = MenuBuilder::new(app)
       .items(&[
-        &menu_item!(app, Item::OpenBook, "Open")?,
-        &menu_item!(app, Item::RemoveBook, "Remove")?,
+        &mi!(app, Item::OpenBook, "Open")?,
+        &mi!(app, Item::RemoveBook, "Remove")?,
       ])
       .build()?;
 

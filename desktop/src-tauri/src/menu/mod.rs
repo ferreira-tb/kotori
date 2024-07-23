@@ -1,10 +1,10 @@
-pub mod app;
+mod app;
 pub mod context;
 mod macros;
-pub mod reader;
+mod reader;
 
 mod prelude {
-  pub use crate::menu_item;
+  pub use crate::mi;
   pub use strum::{Display, EnumString};
   pub use tauri::menu::{
     CheckMenuItemBuilder, Menu, MenuBuilder, MenuEvent, MenuId, MenuItemKind, PredefinedMenuItem,
@@ -13,7 +13,11 @@ mod prelude {
 }
 
 use crate::prelude::*;
+pub use app::{AppMenu, Item as AppMenuItem};
+pub use context::library_book::Item as LibraryBookContextMenuItem;
+pub use context::reader_page::Item as ReaderPageContextMenuItem;
 use prelude::*;
+pub use reader::{Item as ReaderMenuItem, ReaderMenu};
 
 pub trait Listener {
   fn execute(window: &Window, event: &MenuEvent);

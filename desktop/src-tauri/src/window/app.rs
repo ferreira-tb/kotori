@@ -1,9 +1,10 @@
 use crate::book::ActiveBook;
 use crate::error::Result;
+use crate::menu::AppMenu;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
 use crate::window::{ColorMode, WindowKind};
-use crate::{menu, reader, VERSION};
+use crate::{reader, VERSION};
 use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::async_runtime::spawn;
@@ -23,7 +24,7 @@ pub fn open(app: &AppHandle) -> Result<()> {
     .visible(false)
     .build()?;
 
-  window.set_menu(menu::app::build(app)?)?;
+  window.set_menu(AppMenu::build(app)?)?;
   window.on_menu_event(on_menu_event());
   window.on_window_event(on_window_event(app));
 
@@ -39,10 +40,10 @@ pub fn open(app: &AppHandle) -> Result<()> {
 /// Calling `on_menu_event` on a window will override previously registered event listeners.
 /// For this reason, all listeners must be registered inside a single call.
 fn on_menu_event() -> impl Fn(&Window, MenuEvent) {
-  use crate::menu::{self, context, Listener};
+  use crate::menu::{AppMenuItem, LibraryBookContextMenuItem, Listener};
   move |window, event| {
-    menu::app::Item::execute(window, &event);
-    context::library_book::Item::execute(window, &event);
+    AppMenuItem::execute(window, &event);
+    LibraryBookContextMenuItem::execute(window, &event);
   }
 }
 

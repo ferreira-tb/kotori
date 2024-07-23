@@ -65,41 +65,45 @@ impl Listener for Item {
   }
 }
 
-pub fn build<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Menu<Wry>> {
-  let menu = Menu::new(app)?;
-  menu.append(&file_menu(app, window_id)?)?;
+pub struct ReaderMenu;
 
-  Ok(menu)
-}
+impl ReaderMenu {
+  pub fn build<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Menu<Wry>> {
+    let menu = Menu::new(app)?;
+    menu.append(&Self::file_menu(app, window_id)?)?;
 
-fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
-  SubmenuBuilder::new(app, "File")
-    .items(&[
-      &menu_item!(app, Item::Close.to_menu_id(window_id), "Close")?,
-      &menu_item!(app, Item::CloseAll.to_menu_id(window_id), "Close all")?,
-      &menu_item!(app, Item::CloseOthers.to_menu_id(window_id), "Close others")?,
-    ])
-    .separator()
-    .items(&[&menu_item!(
-      app,
-      Item::AddBookToLibrary.to_menu_id(window_id),
-      "Add to library"
-    )?])
-    .separator()
-    .items(&[
-      &menu_item!(
+    Ok(menu)
+  }
+
+  fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
+    SubmenuBuilder::new(app, "File")
+      .items(&[
+        &mi!(app, Item::Close.to_menu_id(window_id), "Close")?,
+        &mi!(app, Item::CloseAll.to_menu_id(window_id), "Close all")?,
+        &mi!(app, Item::CloseOthers.to_menu_id(window_id), "Close others")?,
+      ])
+      .separator()
+      .items(&[&mi!(
         app,
-        Item::CopyBookPathToClipboard.to_menu_id(window_id),
-        "Copy book path"
-      )?,
-      &menu_item!(
-        app,
-        Item::OpenBookFolder.to_menu_id(window_id),
-        "Open book folder"
-      )?,
-    ])
-    .build()
-    .map_err(Into::into)
+        Item::AddBookToLibrary.to_menu_id(window_id),
+        "Add to library"
+      )?])
+      .separator()
+      .items(&[
+        &mi!(
+          app,
+          Item::CopyBookPathToClipboard.to_menu_id(window_id),
+          "Copy book path"
+        )?,
+        &mi!(
+          app,
+          Item::OpenBookFolder.to_menu_id(window_id),
+          "Open book folder"
+        )?,
+      ])
+      .build()
+      .map_err(Into::into)
+  }
 }
 
 async fn add_to_library(app: &AppHandle, window_id: u16) {
