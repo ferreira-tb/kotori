@@ -1,21 +1,3 @@
-pub mod app {
-  use crate::book::BookHandle;
-  use crate::Kotori;
-  use tauri::{AppHandle, Manager, State, Wry};
-
-  pub trait AppHandleExt: Manager<Wry> {
-    fn kotori(&self) -> State<Kotori> {
-      self.state::<Kotori>()
-    }
-
-    fn book_handle(&self) -> BookHandle {
-      self.kotori().book_handle.clone()
-    }
-  }
-
-  impl AppHandleExt for AppHandle {}
-}
-
 pub mod collections {
   use ahash::AHasher;
   use indexmap::IndexMap;
@@ -118,6 +100,26 @@ pub mod log {
 
     tracing::subscriber::set_global_default(subscriber).unwrap();
   }
+}
+
+pub mod manager {
+  use crate::book::BookHandle;
+  use crate::Kotori;
+  use tauri::{AppHandle, Manager, State, WebviewWindow, Window, Wry};
+
+  pub trait ManagerExt: Manager<Wry> {
+    fn kotori(&self) -> State<Kotori> {
+      self.state::<Kotori>()
+    }
+
+    fn book_handle(&self) -> BookHandle {
+      self.kotori().book_handle.clone()
+    }
+  }
+
+  impl ManagerExt for AppHandle {}
+  impl ManagerExt for WebviewWindow {}
+  impl ManagerExt for Window {}
 }
 
 pub mod path {

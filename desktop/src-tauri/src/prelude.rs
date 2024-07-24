@@ -1,5 +1,5 @@
 pub use crate::error::Result;
-pub use crate::utils::app::AppHandleExt as _;
+pub use crate::utils::manager::ManagerExt as _;
 pub use crate::utils::path::{PathExt as _, PathResolverExt as _};
 pub use crate::utils::result::ResultExt as _;
 pub use crate::{bail, err};

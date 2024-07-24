@@ -22,10 +22,10 @@ pub(super) type PageMap = OrderedMap<usize, String>;
 pub const MAX_FILE_PERMITS: usize = 50;
 static FILE_SEMAPHORE: Semaphore = Semaphore::const_new(MAX_FILE_PERMITS);
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
-const METADATA: &str = "kotori-dev.json";
 #[cfg(not(any(debug_assertions, feature = "devtools")))]
 const METADATA: &str = "kotori.json";
+#[cfg(any(debug_assertions, feature = "devtools"))]
+const METADATA: &str = "kotori-dev.json";
 
 /// Send a message to the actor, awaiting its response with a oneshot channel.
 macro_rules! send_tx {

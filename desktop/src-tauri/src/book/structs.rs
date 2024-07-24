@@ -1,6 +1,6 @@
-use crate::book::active::ActiveBook;
-use crate::book::cover::Cover;
-use crate::book::title::Title;
+use super::active::ActiveBook;
+use super::cover::Cover;
+use super::title::Title;
 use crate::prelude::*;
 use crate::window::WindowManager;
 use kotori_entity::book;

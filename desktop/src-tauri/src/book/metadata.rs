@@ -1,4 +1,4 @@
-use crate::book::Title;
+use super::title::Title;
 use crate::prelude::*;
 use crate::VERSION;
 use kotori_entity::book;

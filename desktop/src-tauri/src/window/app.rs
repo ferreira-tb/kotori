@@ -1,9 +1,9 @@
+use super::{ColorMode, WindowKind};
 use crate::book::ActiveBook;
 use crate::error::Result;
 use crate::menu::AppMenu;
 use crate::utils::glob;
 use crate::utils::result::ResultExt;
-use crate::window::{ColorMode, WindowKind};
 use crate::{reader, VERSION};
 use itertools::Itertools;
 use std::path::PathBuf;

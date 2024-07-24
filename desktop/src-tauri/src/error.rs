@@ -42,6 +42,8 @@ pub enum Error {
   #[error(transparent)]
   Pinia(#[from] tauri_plugin_pinia::Error),
   #[error(transparent)]
+  Strum(#[from] strum::ParseError),
+  #[error(transparent)]
   Tauri(#[from] tauri::Error),
   #[error(transparent)]
   TauriWindowState(#[from] tauri_plugin_window_state::Error),

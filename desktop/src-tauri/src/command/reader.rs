@@ -30,13 +30,13 @@ pub async fn show_reader_page_context_menu(
     name
   );
 
-  let app = window.app_handle();
-  let windows = app.reader_windows();
+  let windows = window.reader_windows();
   let windows = windows.read().await;
   let Some(reader_window) = windows.get(&window_id) else {
     return Ok(());
   };
 
+  let app = window.app_handle();
   let book_id = reader_window.book.try_id(app).await.ok();
   let ctx = Context { window_id, book_id, name };
   ReaderPageContextMenu::popup(&window, ctx)

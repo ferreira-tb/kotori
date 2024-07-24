@@ -1,9 +1,9 @@
+use super::{ColorMode, WindowExt, WindowKind, WindowManager};
 use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::menu::{MenuExt, ReaderMenu, ReaderMenuItem};
 use crate::prelude::*;
 use crate::utils::glob;
-use crate::window::{ColorMode, WindowExt, WindowKind, WindowManager};
 use tauri::menu::{Menu, MenuEvent};
 use tauri::{DragDropEvent, WebviewWindowBuilder, WindowEvent};
 
