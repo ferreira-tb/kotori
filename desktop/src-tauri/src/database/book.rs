@@ -273,3 +273,17 @@ impl Builder {
     result.map(Some).map_err(Into::into)
   }
 }
+
+pub trait BookModelExt {
+  async fn save_as_metadata(&self, app: &AppHandle) -> Result<()>;
+}
+
+impl BookModelExt for book::Model {
+  async fn save_as_metadata(&self, app: &AppHandle) -> Result<()> {
+    let metadata = Metadata::try_from(self)?;
+    app
+      .book_handle()
+      .set_metadata(&self.path, metadata)
+      .await
+  }
+}

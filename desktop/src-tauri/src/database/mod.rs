@@ -11,7 +11,7 @@ mod prelude {
 }
 
 use crate::prelude::*;
-pub use book::BookExt;
+pub use book::{BookExt, BookModelExt};
 pub use collection::CollectionExt;
 pub use folder::FolderExt;
 use kotori_migration::{Migrator, MigratorTrait};

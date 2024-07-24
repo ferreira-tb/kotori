@@ -5,7 +5,7 @@ mod metadata;
 mod structs;
 mod title;
 
-use crate::database::BookExt;
+use crate::database::{BookExt, BookModelExt};
 use crate::event::Event;
 use crate::prelude::*;
 use crate::reader;
@@ -44,7 +44,19 @@ pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   Ok(())
 }
 
+/// Set the specified page as the book cover, extracting it afterwards.
+pub async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<()>
+where
+  N: AsRef<str>,
+{
+  let model = Book::update_cover(app, id, name).await?;
+  let book = ActiveBook::from_model(app, &model)?;
+  book.extract_cover(app).await?;
+  model.save_as_metadata(app).await
+}
+
 pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
-  Book::update_rating(app, id, rating).await?;
-  Event::RatingUpdated { id, rating }.emit(app)
+  let model = Book::update_rating(app, id, rating).await?;
+  Event::RatingUpdated { id, rating }.emit(app)?;
+  model.save_as_metadata(app).await
 }

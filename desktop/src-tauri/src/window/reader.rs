@@ -131,6 +131,9 @@ fn on_window_event(app: &AppHandle, window_id: u16) -> impl Fn(&WindowEvent) {
   }
 }
 
+/// When a reader window is closed, it should be removed from the list of windows.
+/// After that, all remaining windows should have their menus updated to reflect this change.
+/// The previous reader window should also be focused, or the main window if there are no more reader windows left.
 fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
   let app = app.clone();
   spawn(async move {
@@ -163,6 +166,8 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
   });
 }
 
+/// Check for books among the dropped files and open the first one found.
+/// If a book is opened successfully, update the menus for all reader windows.
 fn handle_drop_event(app: &AppHandle, window_id: u16, paths: &[PathBuf]) {
   let globset = glob::book();
   let books = paths

@@ -2,7 +2,7 @@ import { defineConfig } from '@tb-dev/eslint-config';
 
 export default defineConfig({
   project: ['desktop/tsconfig.json'],
-  ignores: ['desktop/src/components/ui/*'],
+  ignores: ['desktop/src/components/ui/*', 'desktop/src-tauri/gen/*'],
   features: {
     vue: true,
     stylistic: true,

@@ -7,9 +7,9 @@ use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
-  #[strum(serialize = "kt-ctx-book-open-book")]
+  #[strum(serialize = "kt-ctx-library-book-open-book")]
   OpenBook,
-  #[strum(serialize = "kt-ctx-book-remove-book")]
+  #[strum(serialize = "kt-ctx-library-book-remove-book")]
   RemoveBook,
 }
 

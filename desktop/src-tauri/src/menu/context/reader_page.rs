@@ -1,17 +1,14 @@
-use crate::book::ActiveBook;
-use crate::database::BookExt;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
 use crate::{menu_item_or_bail, popup_context_menu, reader};
-use kotori_entity::prelude::Book;
 use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
 pub enum Item {
-  #[strum(serialize = "kt-ctx-page-delete-page")]
+  #[strum(serialize = "kt-ctx-reader-page-delete-page")]
   DeletePage,
-  #[strum(serialize = "kt-ctx-page-set-as-cover")]
+  #[strum(serialize = "kt-ctx-reader-page-set-as-cover")]
   SetAsCover,
 }
 
@@ -72,6 +69,8 @@ async fn delete_page(app: &AppHandle) {
 }
 
 async fn set_as_cover(app: &AppHandle) {
+  use crate::book::update_cover;
+
   let (book_id, name) = {
     let state = app.state::<ReaderPageContextMenu>();
     let ctx = state.ctx.lock().unwrap();
@@ -79,16 +78,8 @@ async fn set_as_cover(app: &AppHandle) {
   };
 
   if let Some(book_id) = book_id {
-    let book = Book::get_by_id(app, book_id)
+    update_cover(app, book_id, name)
       .await
-      .ok()
-      .and_then(|model| ActiveBook::from_model(app, &model).ok());
-
-    if let Some(book) = book {
-      book
-        .update_cover(app, name.as_str())
-        .await
-        .into_err_dialog(app);
-    }
+      .into_err_dialog(app);
   };
 }

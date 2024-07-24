@@ -1,7 +1,7 @@
-use crate::book::cover::Cover;
-use crate::book::handle::{BookHandle, PageMap};
-use crate::book::metadata::Metadata;
-use crate::book::title::Title;
+use super::cover::Cover;
+use super::handle::{BookHandle, PageMap};
+use super::title::Title;
+use super::update_cover;
 use crate::database::BookExt;
 use crate::event::Event;
 use crate::library;
@@ -133,22 +133,6 @@ impl ActiveBook {
     Event::CoverExtracted { id, path }.emit(app)
   }
 
-  /// Set the specified page as the book cover, extracting it afterwards.
-  pub async fn update_cover<N>(&self, app: &AppHandle, name: N) -> Result<()>
-  where
-    N: AsRef<str>,
-  {
-    let id = self.try_id(app).await?;
-    let model = Book::update_cover(app, id, name).await?;
-    self.extract_cover(app).await?;
-
-    let metadata = Metadata::try_from(&model)?;
-    app
-      .book_handle()
-      .set_metadata(&model.path, metadata)
-      .await
-  }
-
   pub async fn delete_page(&mut self, app: &AppHandle, name: &str) -> Result<()> {
     // `ActiveBook::get_cover_name` will always fail if the book isn't in the library.
     let is_cover = match self.get_cover_name(app).await {
@@ -173,7 +157,7 @@ impl ActiveBook {
         app
           .book_handle()
           .get_first_page_name(&self.path)
-          .and_then(|name| self.update_cover(app, name))
+          .and_then(|name| update_cover(app, id, name))
           .await?;
       }
     }

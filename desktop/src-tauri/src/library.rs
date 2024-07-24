@@ -208,7 +208,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
       let _ = tx.send(response);
     });
 
-  if let Ok(true) = rx.await {
+  if rx.await? {
     remove(app, id).await?;
   }
 
