@@ -277,6 +277,9 @@ struct BookFile {
 
 impl BookFile {
   async fn open(path: impl AsRef<Path>) -> Result<Self> {
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    let start = std::time::Instant::now();
+
     debug!(available_file_permits = FILE_SEMAPHORE.available_permits());
     let permit = FILE_SEMAPHORE.acquire().await?;
 
@@ -292,6 +295,9 @@ impl BookFile {
         path,
         permit,
       };
+
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      info!("book opened in {:?}", start.elapsed());
 
       Ok(file)
     });
@@ -331,6 +337,9 @@ impl BookFile {
   }
 
   async fn delete_page(self, page: impl AsRef<str>) -> Result<()> {
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    let start = std::time::Instant::now();
+
     let page = page.as_ref().to_owned();
     let join = spawn_blocking(move || {
       let parent = self.path.try_parent()?;
@@ -346,6 +355,9 @@ impl BookFile {
       writer.finish()?;
       std::fs::remove_file(&self.path)?;
       std::fs::rename(&temp.path, self.path)?;
+
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      info!("page deleted in {:?}", start.elapsed());
 
       Ok(())
     });
@@ -363,6 +375,9 @@ impl BookFile {
   }
 
   async fn write_metadata(self, metadata: Metadata) -> Result<()> {
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    let start = std::time::Instant::now();
+
     let join = spawn_blocking(move || {
       let parent = self.path.try_parent()?;
       let mut temp = Tempfile::new_in(parent)?;
@@ -380,6 +395,9 @@ impl BookFile {
       writer.finish()?;
       std::fs::remove_file(&self.path)?;
       std::fs::rename(&temp.path, self.path)?;
+
+      #[cfg(any(debug_assertions, feature = "devtools"))]
+      info!("metadata written in {:?}", start.elapsed());
 
       Ok(())
     });

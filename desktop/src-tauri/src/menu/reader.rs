@@ -114,7 +114,7 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
         ReaderWindow::update_all_menus(app).await?;
 
         ActiveBook::from_model(app, &model)?
-          .extract_cover(app)
+          .extract_cover()
           .await?;
       }
     };

@@ -58,7 +58,7 @@ impl ReaderWindow {
       let menu = window.menu(app)?;
 
       let item = ReaderMenuItem::AddBookToLibrary.to_menu_id(window.id);
-      let book_id = window.book.try_id(app).await.ok();
+      let book_id = window.book.try_id().await.ok();
       menu.set_item_enabled(&item, book_id.is_none())?;
 
       let item = ReaderMenuItem::CloseOthers.to_menu_id(window.id);

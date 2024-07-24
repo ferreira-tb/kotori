@@ -174,7 +174,7 @@ where
     spawn(async move {
       let _permit = semaphore.acquire_owned().await?;
       ActiveBook::from_model(&app, &model)?
-        .extract_cover(&app)
+        .extract_cover()
         .await
     });
   }

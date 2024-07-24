@@ -24,10 +24,10 @@ pub fn connect(app: &AppHandle) -> Result<DatabaseConnection> {
   block_on(async move {
     fs::create_dir_all(&path).await?;
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
-    let path = path.join("kotori-dev.db");
     #[cfg(not(any(debug_assertions, feature = "devtools")))]
     let path = path.join("kotori.db");
+    #[cfg(any(debug_assertions, feature = "devtools"))]
+    let path = path.join("kotori-dev.db");
 
     let url = format!("sqlite://{}?mode=rwc", path.try_str()?);
     let conn = Database::connect(url).await?;

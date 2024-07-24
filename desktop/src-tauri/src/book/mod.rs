@@ -51,7 +51,7 @@ where
 {
   let model = Book::update_cover(app, id, name).await?;
   let book = ActiveBook::from_model(app, &model)?;
-  book.extract_cover(app).await?;
+  book.extract_cover().await?;
   model.save_as_metadata(app).await
 }
 

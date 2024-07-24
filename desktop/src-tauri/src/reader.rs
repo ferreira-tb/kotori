@@ -48,9 +48,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
   }
 
   // This will read lock the windows.
-  ReaderWindow::update_all_menus(app).await?;
-
-  Ok(())
+  ReaderWindow::update_all_menus(app).await
 }
 
 pub async fn open_many<I>(app: &AppHandle, books: I) -> Result<()>
@@ -169,7 +167,7 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, name: &str) -> Result<
   let mut windows = windows.write().await;
 
   if let Some(window) = windows.get_mut(&window_id) {
-    window.book.delete_page(app, name).await?;
+    window.book.delete_page(name).await?;
 
     if window.book.pages().await?.is_empty() {
       if let Some(webview) = window.webview_window(app) {

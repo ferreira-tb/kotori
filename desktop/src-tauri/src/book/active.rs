@@ -1,5 +1,5 @@
 use super::cover::Cover;
-use super::handle::{BookHandle, PageMap};
+use super::handle::PageMap;
 use super::title::Title;
 use super::update_cover;
 use crate::database::BookExt;
@@ -11,16 +11,17 @@ use kotori_entity::book;
 use kotori_entity::prelude::Book;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
+use std::fmt;
 use std::sync::Arc;
 use tokio::sync::OnceCell;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct ActiveBook {
   pub path: PathBuf,
   pub title: Title,
 
+  app: AppHandle,
   id: OnceCell<i32>,
-  handle: BookHandle,
   pages: OnceCell<Arc<PageMap>>,
 }
 
@@ -31,8 +32,8 @@ impl ActiveBook {
       path: path.to_owned(),
       title: Title::try_from(path)?,
 
+      app: app.clone(),
       id: OnceCell::new(),
-      handle: app.book_handle().clone(),
       pages: OnceCell::new(),
     };
 
@@ -63,9 +64,9 @@ impl ActiveBook {
     self.id.get().copied()
   }
 
-  pub async fn try_id(&self, app: &AppHandle) -> Result<i32> {
+  pub async fn try_id(&self) -> Result<i32> {
     let id = self.id.get_or_try_init(|| async {
-      Book::get_by_path(app, &self.path)
+      Book::get_by_path(&self.app, &self.path)
         .await
         .map(|model| model.id)
         .map_err(Into::into)
@@ -77,7 +78,8 @@ impl ActiveBook {
   pub async fn pages(&self) -> Result<Arc<PageMap>> {
     let pages = self.pages.get_or_try_init(|| async {
       self
-        .handle
+        .app
+        .book_handle()
         .get_pages(&self.path)
         .await
         .map_err(Into::into)
@@ -94,53 +96,66 @@ impl ActiveBook {
   }
 
   pub async fn get_page_as_bytes(&self, name: &str) -> Result<Vec<u8>> {
-    self.handle.read_page(&self.path, name).await
+    self
+      .app
+      .book_handle()
+      .read_page(&self.path, name)
+      .await
   }
 
   /// Get cover name if the book is in the library.
-  pub async fn get_cover_name(&self, app: &AppHandle) -> Result<String> {
-    let id = self.try_id(app).await?;
-    let cover = Book::get_cover(app, id).await?;
+  pub async fn get_cover_name(&self) -> Result<String> {
+    let id = self.try_id().await?;
+    let cover = Book::get_cover(&self.app, id).await?;
 
     // The cover saved in the database may have been deleted from the file.
     if self.has_page(&cover).await? {
       return Ok(cover);
     }
 
-    app
+    self
+      .app
       .book_handle()
       .get_first_page_name(&self.path)
       .await
   }
 
-  pub async fn get_cover_as_bytes(&self, app: &AppHandle) -> Result<Vec<u8>> {
-    let name = self.get_cover_name(app).await?;
-    self.handle.read_page(&self.path, name).await
+  pub async fn get_cover_as_bytes(&self) -> Result<Vec<u8>> {
+    let name = self.get_cover_name().await?;
+    self
+      .app
+      .book_handle()
+      .read_page(&self.path, name)
+      .await
   }
 
-  pub async fn extract_cover(&self, app: &AppHandle) -> Result<()> {
-    let name = self.get_cover_name(app).await?;
+  pub async fn extract_cover(&self) -> Result<()> {
+    let name = self.get_cover_name().await?;
     let bytes = self.get_page_as_bytes(&name).await?;
     let format = image::guess_format(&bytes)
       .inspect_err(|error| warn!(%error))
       .or_else(|_| ImageFormat::from_path(name))?;
 
-    let id = self.try_id(app).await?;
-    let path = app.path().cover(id)?;
+    let id = self.try_id().await?;
+    let path = self.app.path().cover(id)?;
     Cover::extract(&path, bytes, format).await?;
 
     let path = path.as_ref();
-    Event::CoverExtracted { id, path }.emit(app)
+    Event::CoverExtracted { id, path }.emit(&self.app)
   }
 
-  pub async fn delete_page(&mut self, app: &AppHandle, name: &str) -> Result<()> {
+  pub async fn delete_page(&mut self, name: &str) -> Result<()> {
     // `ActiveBook::get_cover_name` will always fail if the book isn't in the library.
-    let is_cover = match self.get_cover_name(app).await {
+    let is_cover = match self.get_cover_name().await {
       Ok(cover) => cover == name,
       Err(_) => self.id().is_some(),
     };
 
-    self.handle.delete_page(&self.path, name).await?;
+    self
+      .app
+      .book_handle()
+      .delete_page(&self.path, name)
+      .await?;
 
     // As the page has been removed, we need to reset the cell.
     self.pages.take();
@@ -149,15 +164,16 @@ impl ActiveBook {
     if let Some(id) = self.id() {
       // Remove from library if it was the last page.
       if self.pages().await?.is_empty() {
-        return library::remove(app, id).await;
+        return library::remove(&self.app, id).await;
       }
 
       // Update with a new cover if it was the deleted page.
       if is_cover {
-        app
+        self
+          .app
           .book_handle()
           .get_first_page_name(&self.path)
-          .and_then(|name| update_cover(app, id, name))
+          .and_then(|name| update_cover(&self.app, id, name))
           .await?;
       }
     }
@@ -169,10 +185,19 @@ impl ActiveBook {
 impl Drop for ActiveBook {
   fn drop(&mut self) {
     let path = self.path.clone();
-    let handle = self.handle.clone();
+    let handle = self.app.book_handle();
     spawn(async move { handle.close(path).await });
 
     trace!(active_book_drop = %self.path.display());
+  }
+}
+
+impl fmt::Debug for ActiveBook {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_struct("ActiveBook")
+      .field("path", &self.path)
+      .field("title", &self.title)
+      .finish_non_exhaustive()
   }
 }
 

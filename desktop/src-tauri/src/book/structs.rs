@@ -16,8 +16,8 @@ pub struct ReaderBook {
 }
 
 impl ReaderBook {
-  pub async fn from_active(app: &AppHandle, book: &ActiveBook) -> Result<Self> {
-    let id = book.try_id(app).await.ok();
+  pub async fn from_active(book: &ActiveBook) -> Result<Self> {
+    let id = book.try_id().await.ok();
     let title = book.title.clone();
     let path = book.path.clone();
 
@@ -40,9 +40,9 @@ impl ReaderBook {
       .ok_or_else(|| err!(ReaderWindowNotFound, "{window_id}"))
       .map(|it| &it.book)?;
 
-    trace!(book = ?book);
+    trace!(?book);
 
-    Self::from_active(app, book).await
+    Self::from_active(book).await
   }
 }
 
