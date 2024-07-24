@@ -4,9 +4,7 @@ mod folder;
 
 mod prelude {
   pub use sea_orm::ActiveValue::{NotSet, Set};
-  pub use sea_orm::{
-    ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, IntoActiveModel, QueryFilter,
-  };
+  pub use sea_orm::{ActiveModelTrait, ColumnTrait, ConnectionTrait, EntityTrait, QueryFilter};
   pub use sea_query::{OnConflict, Query};
 }
 

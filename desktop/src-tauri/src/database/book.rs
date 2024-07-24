@@ -70,8 +70,11 @@ impl BookExt for Book {
       .db
       .query_one(builder.build(&stmt))
       .await?
-      .and_then(|it| it.try_get::<String>("", "cover").ok())
       .ok_or_else(|| err!(BookNotFound))
+      .and_then(|it| {
+        let cover = it.try_get::<String>("", "cover")?;
+        Ok(cover)
+      })
   }
 
   async fn get_title(app: &AppHandle, id: i32) -> Result<Title> {
@@ -79,7 +82,7 @@ impl BookExt for Book {
     let builder = kotori.db.get_database_backend();
 
     let stmt = Query::select()
-      .column(book::Column::Path)
+      .column(book::Column::Title)
       .and_where(book::Column::Id.eq(id))
       .from(Book)
       .to_owned();
@@ -88,9 +91,11 @@ impl BookExt for Book {
       .db
       .query_one(builder.build(&stmt))
       .await?
-      .and_then(|it| it.try_get::<String>("", "path").ok())
       .ok_or_else(|| err!(BookNotFound))
-      .and_then(|it| Title::try_from(it.as_str()))
+      .and_then(|it| {
+        let title = it.try_get::<String>("", "title")?;
+        Title::try_from(title.as_str())
+      })
   }
 
   async fn has_path(app: &AppHandle, path: impl AsRef<Path>) -> Result<bool> {
@@ -169,12 +174,18 @@ impl BookExt for Book {
   where
     N: AsRef<str>,
   {
-    let book = Self::get_by_id(app, id).await?;
-    let mut book = book.into_active_model();
-    book.cover = Set(name.as_ref().to_owned());
-
     let kotori = app.kotori();
-    book.update(&kotori.db).await.map_err(Into::into)
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::update()
+      .table(Book)
+      .value(book::Column::Cover, name.as_ref())
+      .and_where(book::Column::Id.eq(id))
+      .to_owned();
+
+    kotori.db.execute(builder.build(&stmt)).await?;
+
+    Self::get_by_id(app, id).await
   }
 
   async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<book::Model> {
@@ -182,12 +193,18 @@ impl BookExt for Book {
       bail!(InvalidRating);
     }
 
-    let book = Self::get_by_id(app, id).await?;
-    let mut book = book.into_active_model();
-    book.rating = Set(i32::from(rating));
-
     let kotori = app.kotori();
-    book.update(&kotori.db).await.map_err(Into::into)
+    let builder = kotori.db.get_database_backend();
+
+    let stmt = Query::update()
+      .table(Book)
+      .value(book::Column::Rating, i32::from(rating))
+      .and_where(book::Column::Id.eq(id))
+      .to_owned();
+
+    kotori.db.execute(builder.build(&stmt)).await?;
+
+    Self::get_by_id(app, id).await
   }
 }
 

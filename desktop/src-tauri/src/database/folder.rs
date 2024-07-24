@@ -94,10 +94,10 @@ impl FolderExt for Folder {
   #[cfg(any(debug_assertions, feature = "devtools"))]
   async fn remove_all(app: &AppHandle) -> Result<()> {
     let kotori = app.kotori();
-    let database = kotori.db.get_database_backend();
+    let builder = kotori.db.get_database_backend();
 
     let stmt = Query::delete().from_table(Folder).to_owned();
-    kotori.db.execute(database.build(&stmt)).await?;
+    kotori.db.execute(builder.build(&stmt)).await?;
 
     Ok(())
   }
