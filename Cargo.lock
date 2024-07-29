@@ -942,9 +942,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.1.6"
+version = "1.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2aba8f4e9906c7ce3c73463f62a7f0c65183ada1a2d47e397cc8810827f9694f"
+checksum = "26a5c3fd7bfa1ce3897a3a3501d362b2d87b7f2583ebcb4a949ec25911025cbc"
 dependencies = [
  "jobserver",
  "libc",
@@ -1829,9 +1829,9 @@ dependencies = [
 
 [[package]]
 name = "future-iter"
-version = "0.1.3"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b6b5fc26ffd2dac98cdd80a6e7d2507143d4414ae9398a7a4f653a318b4eb2a"
+checksum = "7136a809e72450d8a5d60fbe67f4ba0baf3e3bcca044e24868df469a1b321e90"
 dependencies = [
  "tokio",
 ]
@@ -6131,9 +6131,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-manatsu"
-version = "0.14.0"
+version = "1.0.0-alpha.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ebb5265ef4998a5a402c9bce44d676f80c9a0c299f001abf90e3591a77d43b"
+checksum = "b7abca467a79294dc9ba918d99893e65028678118b9375968fdc78b86b6b66a2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -6165,9 +6165,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-plugin-pinia"
-version = "0.2.0"
+version = "0.3.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d13e67b4cef1916056c209abcfce1adc2e3bdb5c3a31b08e2afebffb61673e67"
+checksum = "d0cad99c1629e5acb37045d32dbf1d8f201fc386e59636ea9e166eb0fddbcfb1"
 dependencies = [
  "ahash 0.8.11",
  "serde",

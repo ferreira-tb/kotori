@@ -7,7 +7,6 @@ use crate::Kotori;
 pub use reader::ReaderWindow;
 use strum::{Display, EnumIs, EnumString};
 use tauri::{EventTarget, WebviewUrl};
-use tauri_plugin_pinia::PiniaExt;
 
 #[derive(Debug, Display, EnumIs)]
 #[strum(serialize_all = "kebab-case")]
@@ -98,6 +97,8 @@ impl ColorMode {
   const KEY: &str = "colorMode";
 
   pub fn get(app: &AppHandle) -> Result<Self> {
+    use tauri_plugin_pinia::ManagerExt;
+
     app
       .with_store("config", |store| {
         let mode = store
@@ -112,6 +113,8 @@ impl ColorMode {
   }
 
   pub fn set(&self, app: &AppHandle) -> Result<()> {
+    use tauri_plugin_pinia::ManagerExt;
+    
     app
       .with_store("config", |store| {
         let mode = self.to_string();
