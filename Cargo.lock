@@ -4940,6 +4940,7 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror",
+ "tracing",
 ]
 
 [[package]]

@@ -69,7 +69,8 @@ fn emit_to_main<P>(app: &AppHandle, event: &str, payload: P) -> Result<()>
 where
   P: Serialize + Clone + fmt::Debug,
 {
-  debug!(event, target = "main", ?payload);
+  #[cfg(feature = "tracing")]
+  tracing::debug!(event, target = "main", ?payload);
   app
     .emit_to(WindowKind::Main, event, payload)
     .map_err(Into::into)
@@ -79,7 +80,8 @@ fn emit_to_reader<P>(app: &AppHandle, event: &str, id: u16, payload: P) -> Resul
 where
   P: Serialize + Clone + fmt::Debug,
 {
-  debug!(event, target = "reader", id, ?payload);
+  #[cfg(feature = "tracing")]
+  tracing::debug!(event, target = "reader", id, ?payload);
   app
     .emit_to(WindowKind::Reader(id), event, payload)
     .map_err(Into::into)

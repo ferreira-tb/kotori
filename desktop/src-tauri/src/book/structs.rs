@@ -25,7 +25,7 @@ impl ReaderBook {
       .pages()
       .await?
       .iter()
-      .map(ReaderBookPage::new)
+      .map(|(idx, name)| ReaderBookPage::new((idx, name)))
       .sorted_unstable_by_key(|it| it.index)
       .collect_vec();
 
@@ -40,7 +40,8 @@ impl ReaderBook {
       .ok_or_else(|| err!(ReaderWindowNotFound, "{window_id}"))
       .map(|it| &it.book)?;
 
-    trace!(?book);
+    #[cfg(feature = "tracing")]
+    tracing::trace!(?book);
 
     Self::from_active(book).await
   }
@@ -54,8 +55,8 @@ pub struct ReaderBookPage {
 }
 
 impl ReaderBookPage {
-  fn new((index, name): (&usize, impl AsRef<str>)) -> Self {
-    let name = name.as_ref().to_owned();
+  fn new((index, name): (&usize, &str)) -> Self {
+    let name = name.to_owned();
     ReaderBookPage { index: *index, name }
   }
 }

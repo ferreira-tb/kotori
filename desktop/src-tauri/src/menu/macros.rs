@@ -15,7 +15,9 @@ macro_rules! menu_item_or_bail {
       return;
     };
 
+    #[cfg(feature = "tracing")]
     tracing::debug!(menu_event = %item);
+
     item
   }};
 }

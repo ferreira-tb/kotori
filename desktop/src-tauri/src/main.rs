@@ -10,6 +10,7 @@ mod error;
 mod event;
 mod image;
 mod library;
+mod macros;
 mod menu;
 mod prelude;
 mod reader;
@@ -72,7 +73,7 @@ fn main() {
 fn setup(app: &mut App) -> BoxResult<()> {
   let app = app.handle();
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "tracing")]
   utils::log::setup_tracing(app);
 
   app.manage(Kotori {

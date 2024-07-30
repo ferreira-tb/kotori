@@ -9,7 +9,6 @@ use std::path::PathBuf;
 use tauri::async_runtime::spawn;
 use tauri::menu::MenuEvent;
 use tauri::{AppHandle, DragDropEvent, WebviewWindowBuilder, Window, WindowEvent};
-use tracing::{info, trace};
 
 pub fn open(app: &AppHandle) -> Result<()> {
   let kind = WindowKind::Main;
@@ -50,11 +49,13 @@ fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
   let app = app.clone();
   move |event| match event {
     WindowEvent::Destroyed => {
-      info!("main window destroyed, exiting");
+      #[cfg(feature = "tracing")]
+      tracing::info!("main window destroyed, exiting");
       app.exit(0);
     }
     WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
-      trace!(?paths, "dropped files");
+      #[cfg(feature = "tracing")]
+      tracing::trace!(?paths, "dropped files");
       handle_drop_event(&app, paths);
     }
     _ => {}

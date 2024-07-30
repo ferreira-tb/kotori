@@ -25,10 +25,11 @@ impl Book {
   }
 
   pub async fn save_as_metadata(&self, app: &AppHandle) -> Result<()> {
+    let path = Path::new(&self.path);
     let metadata = Metadata::try_from(self)?;
     app
       .book_handle()
-      .set_metadata(&self.path, metadata)
+      .set_metadata(path, metadata)
       .await
   }
 }

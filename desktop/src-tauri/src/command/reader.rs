@@ -5,13 +5,17 @@ use crate::{book, reader};
 
 #[tauri::command]
 pub async fn delete_page_with_dialog(app: AppHandle, window_id: u16, name: String) -> Result<()> {
-  debug!(command = "delete_page", window_id, name);
+  #[cfg(feature = "tracing")]
+  tracing::debug!(command = "delete_page", window_id, name);
+  
   reader::delete_page_with_dialog(&app, window_id, &name).await
 }
 
 #[tauri::command]
 pub async fn get_current_reader_book(app: AppHandle, window_id: u16) -> Result<ReaderBook> {
-  debug!(command = "get_current_reader_book", window_id);
+  #[cfg(feature = "tracing")]
+  tracing::debug!(command = "get_current_reader_book", window_id);
+
   ReaderBook::from_reader(&app, window_id).await
 }
 
@@ -23,7 +27,8 @@ pub async fn show_reader_page_context_menu(
 ) -> Result<()> {
   use crate::menu::context::reader_page::{Context, ReaderPageContextMenu};
 
-  debug!(
+  #[cfg(feature = "tracing")]
+  tracing::debug!(
     command = "show_reader_page_context_menu",
     window = window.label(),
     window_id,
@@ -43,26 +48,34 @@ pub async fn show_reader_page_context_menu(
 
 #[tauri::command]
 pub async fn switch_reader_focus(app: AppHandle) -> Result<()> {
-  debug!(command = "switch_reader_focus");
+  #[cfg(feature = "tracing")]
+  tracing:: debug!(command = "switch_reader_focus");
+
   reader::switch_focus(&app).await
 }
 
 #[tauri::command]
 pub async fn open_book(app: AppHandle, book_id: i32) -> Result<()> {
-  debug!(command = "open_book", book_id);
+  #[cfg(feature = "tracing")]
+  tracing:: debug!(command = "open_book", book_id);
+
   let book = ActiveBook::from_id(&app, book_id).await?;
   reader::open_book(&app, book).await
 }
 
 #[tauri::command]
 pub async fn open_book_with_dialog(app: AppHandle) -> Result<()> {
-  debug!(command = "open_book_with_dialog");
+  #[cfg(feature = "tracing")]
+  tracing:: debug!(command = "open_book_with_dialog");
+
   book::open_with_dialog(&app).await
 }
 
 #[tauri::command]
 pub async fn toggle_reader_menu(webview: WebviewWindow) -> Result<()> {
-  debug!(command = "toggle_reader_menu", window = webview.label());
+  #[cfg(feature = "tracing")]
+  tracing::debug!(command = "toggle_reader_menu", window = webview.label());
+
   if webview.is_menu_visible()? {
     webview.hide_menu().map_err(Into::into)
   } else {

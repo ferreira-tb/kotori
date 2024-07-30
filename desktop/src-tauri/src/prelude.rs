@@ -7,4 +7,3 @@ pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};
 pub use tauri::async_runtime::{block_on, spawn, spawn_blocking};
 pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
-pub use tracing::{debug, info, trace, warn};

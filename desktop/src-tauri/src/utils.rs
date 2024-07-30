@@ -51,7 +51,7 @@ pub mod glob {
   }
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "tracing")]
 pub mod log {
   use std::io;
   use tauri::{AppHandle, Manager};
@@ -75,7 +75,8 @@ pub mod log {
       .from_env()
       .unwrap()
       .add_directive("kotori=trace".parse().unwrap())
-      .add_directive("tauri_plugin_manatsu=trace".parse().unwrap());
+      .add_directive("tauri_plugin_manatsu=trace".parse().unwrap())
+      .add_directive("tauri_plugin_pinia=trace".parse().unwrap());
 
     let appender = rolling::never("../../", "kotori.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
@@ -205,7 +206,6 @@ pub mod result {
   use tauri::AppHandle;
   use tauri_plugin_manatsu::Log;
   use tokio::sync::oneshot;
-  use tracing::error;
 
   pub type Result<T> = std::result::Result<T, Error>;
   pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -223,9 +223,7 @@ pub mod result {
     fn into_err_log(self, app: &AppHandle) {
       if let Err(err) = self {
         let message = err.to_string();
-        let _ = Log::new("Error", message)
-          .save(app)
-          .inspect_err(|error| error!(%error));
+        let _ = Log::new("Error", message).save(app);
       }
     }
 
@@ -242,7 +240,6 @@ pub mod temp {
   use crate::utils::result::Result;
   use std::fs::{remove_file, File};
   use std::path::{Path, PathBuf};
-  use tracing::trace;
   use uuid::Uuid;
 
   /// Temporary file that is deleted when dropped.
@@ -266,7 +263,8 @@ pub mod temp {
         let _ = remove_file(&self.path);
       }
 
-      trace!(tempfile_drop = %self.path.display());
+      #[cfg(feature = "tracing")]
+      tracing::trace!(tempfile_drop = %self.path.display());
     }
   }
 

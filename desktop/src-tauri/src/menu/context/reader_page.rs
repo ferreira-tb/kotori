@@ -58,27 +58,27 @@ impl ReaderPageContextMenu {
 
 async fn delete_page(app: &AppHandle) {
   let state = app.state::<ReaderPageContextMenu>();
-  let (window_id, name) = {
+  let (window_id, page_name) = {
     let ctx = state.ctx.lock().unwrap();
     (ctx.window_id, ctx.name.clone())
   };
 
-  reader::delete_page_with_dialog(app, window_id, &name)
+  reader::delete_page_with_dialog(app, window_id, &page_name)
     .await
     .into_err_dialog(app);
 }
 
 async fn set_as_cover(app: &AppHandle) {
-  use crate::book::update_cover;
-
-  let (book_id, name) = {
+  let (book_id, page_name) = {
     let state = app.state::<ReaderPageContextMenu>();
     let ctx = state.ctx.lock().unwrap();
     (ctx.book_id, ctx.name.clone())
   };
 
   if let Some(book_id) = book_id {
-    update_cover(app, book_id, name)
+    app
+      .database_handle()
+      .update_book_cover(book_id, &page_name)
       .await
       .into_err_dialog(app);
   };

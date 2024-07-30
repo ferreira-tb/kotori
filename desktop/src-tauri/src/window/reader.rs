@@ -20,8 +20,11 @@ impl ReaderWindow {
     let url = kind.url();
     let script = initialization_script(window_id);
 
-    trace!(?kind, ?url);
-    trace!(%script);
+    #[cfg(feature = "tracing")]
+    {
+      tracing::trace!(?kind, ?url);
+      tracing::trace!(%script);
+    }
 
     let window = WebviewWindowBuilder::new(app, label, url)
       .initialization_script(&script)
@@ -120,11 +123,13 @@ fn on_window_event(app: &AppHandle, window_id: u16) -> impl Fn(&WindowEvent) {
   let app = app.clone();
   move |event| match event {
     WindowEvent::CloseRequested { .. } => {
-      trace!(close_requested = WindowKind::Reader(window_id).label());
+      #[cfg(feature = "tracing")]
+      tracing::trace!(close_requested = WindowKind::Reader(window_id).label());
       handle_close_requested_event(&app, window_id);
     }
     WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
-      trace!(dropped = ?paths);
+      #[cfg(feature = "tracing")]
+      tracing::trace!(dropped = ?paths);
       handle_drop_event(&app, window_id, paths);
     }
     _ => {}

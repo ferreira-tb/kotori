@@ -1,12 +1,10 @@
 [package]
 name = "kotori"
 version = "0.1.0"
+license = "MIT"
 publish = false
 
 [package.edition]
-workspace = true
-
-[package.license]
 workspace = true
 
 [lints]
@@ -87,14 +85,16 @@ features = ["full"]
 
 [dependencies.tracing]
 version = "0.1.40"
-features = ["release_max_level_off"]
+optional = true
 
 [dependencies.tracing-appender]
 version = "0.2.3"
+optional = true
 features = ["parking_lot"]
 
 [dependencies.tracing-subscriber]
 version = "0.3.18"
+optional = true
 features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [dependencies.uuid]
@@ -105,9 +105,15 @@ features = ["v4", "v7", "fast-rng"]
 devtools = ["tauri/devtools"]
 open-main-devtools = ["devtools"]
 open-reader-devtools = ["devtools"]
-tracing-level-off = ["tracing/max_level_off"]
-tracing-level-error = ["tracing/max_level_error"]
-tracing-level-warn = ["tracing/max_level_warn"]
-tracing-level-info = ["tracing/max_level_info"]
-tracing-level-debug = ["tracing/max_level_debug"]
-tracing-level-trace = ["tracing/max_level_trace"]
+tracing = [
+  "dep:tracing",
+  "dep:tracing-appender",
+  "dep:tracing-subscriber",
+  "tauri-plugin-manatsu/tracing",
+  "tauri-plugin-pinia/tracing",
+]
+tracing-level-error = ["tracing", "tracing/max_level_error"]
+tracing-level-warn = ["tracing", "tracing/max_level_warn"]
+tracing-level-info = ["tracing", "tracing/max_level_info"]
+tracing-level-debug = ["tracing", "tracing/max_level_debug"]
+tracing-level-trace = ["tracing", "tracing/max_level_trace"]
