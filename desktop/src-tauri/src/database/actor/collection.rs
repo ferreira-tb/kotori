@@ -1,6 +1,6 @@
 use crate::database::actor::Db;
 use crate::database::model::Collection;
-use crate::database::schema::collections::dsl::collections;
+use crate::database::schema::collections::dsl::*;
 use crate::utils::result::Result;
 use diesel::prelude::*;
 

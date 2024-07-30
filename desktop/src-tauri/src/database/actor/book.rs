@@ -2,7 +2,7 @@ use crate::bail;
 use crate::book::Title;
 use crate::database::actor::Db;
 use crate::database::model::{Book, NewBook};
-use crate::database::schema::books::dsl::{books, cover, id, path, rating, title};
+use crate::database::schema::books::dsl::*;
 use crate::utils::path::PathExt;
 use crate::utils::result::Result;
 use diesel::prelude::*;

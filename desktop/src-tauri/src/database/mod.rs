@@ -45,7 +45,7 @@ impl DatabaseHandle {
 
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
-
+    
     thread::spawn(move || actor.run());
 
     Ok(Self { sender })
