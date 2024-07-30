@@ -1,0 +1,7 @@
+CREATE TABLE books (
+    id INTEGER PRIMARY KEY NOT NULL,
+    path TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    cover TEXT NOT NULL,
+    rating INTEGER NOT NULL DEFAULT 0
+)

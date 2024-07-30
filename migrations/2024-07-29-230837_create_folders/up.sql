@@ -1,0 +1,4 @@
+CREATE TABLE folders (
+    id INTEGER PRIMARY KEY NOT NULL,
+    path TEXT NOT NULL UNIQUE
+)

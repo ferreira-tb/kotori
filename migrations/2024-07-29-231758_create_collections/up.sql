@@ -1,0 +1,4 @@
+CREATE TABLE collections (
+    id INTEGER PRIMARY KEY NOT NULL,
+    name TEXT NOT NULL UNIQUE
+)

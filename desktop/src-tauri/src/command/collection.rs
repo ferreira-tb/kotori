@@ -1,10 +1,8 @@
-use crate::database::CollectionExt;
+use crate::database::model::Collection;
 use crate::prelude::*;
-use kotori_entity::collection;
-use kotori_entity::prelude::Collection;
 
 #[tauri::command]
-pub async fn get_collections(app: AppHandle) -> Result<Vec<collection::Model>> {
+pub async fn get_collections(app: AppHandle) -> Result<Vec<Collection>> {
   debug!(command = "get_collections");
-  Collection::get_all(&app).await
+  app.database_handle().get_all_collections().await
 }

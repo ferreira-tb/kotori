@@ -20,8 +20,7 @@
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --cache --fix",
     "prepare": "husky",
-    "type-check": "pnpm run -r --bail type-check",
-    "update": "miho update -t"
+    "type-check": "pnpm run -r --bail type-check"
   },
   "devDependencies": {
     "@tb-dev/auto-import-config": "^4.0.0",

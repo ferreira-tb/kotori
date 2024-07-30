@@ -1,10 +1,10 @@
 use super::title::Title;
 use crate::prelude::*;
 use crate::VERSION;
-use kotori_entity::book;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
+use crate::database::model::Book;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Metadata {
@@ -22,15 +22,15 @@ impl Metadata {
   }
 }
 
-impl TryFrom<&book::Model> for Metadata {
+impl TryFrom<&Book> for Metadata {
   type Error = crate::error::Error;
 
-  fn try_from(model: &book::Model) -> Result<Self> {
-    let title = Title::new(&model.title);
-    let rating = u8::try_from(model.rating)?;
-    Builder::new(&model.path)
+  fn try_from(book: &Book) -> Result<Self> {
+    let title = Title::new(&book.title);
+    let rating = u8::try_from(book.rating)?;
+    Builder::new(&book.path)
       .title(title)
-      .cover(&model.cover)
+      .cover(&book.cover)
       .rating(rating)
       .map(Builder::build)
   }

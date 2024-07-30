@@ -1,11 +1,9 @@
 use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
-use crate::database::{BookExt, FolderExt};
+use crate::database::model::{Book, NewFolder};
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
 use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
-use kotori_entity::book;
-use kotori_entity::prelude::{Book, Folder};
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
 use tokio::fs;
@@ -21,7 +19,7 @@ where
   }
 
   let mut books = Vec::new();
-  let library_folders = Folder::get_all(app).await?;
+  let library_folders = app.database_handle().get_all_folders().await?;
   let mut current_folders = Vec::with_capacity(folders.len());
 
   for folder in folders {
@@ -42,7 +40,16 @@ where
   }
 
   if !current_folders.is_empty() {
-    Folder::create_many(app, current_folders).await?;
+    let folders = current_folders
+      .into_iter()
+      .filter_map(|path| path.try_string().ok())
+      .map(|path| NewFolder { path })
+      .collect_vec();
+
+    app
+      .database_handle()
+      .save_folders(folders)
+      .await?;
   }
 
   if !books.is_empty() {
@@ -64,16 +71,11 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   add_folders(app, &folders).await
 }
 
-pub async fn save<P>(app: &AppHandle, path: P) -> Result<Option<book::Model>>
+pub async fn save<P>(app: &AppHandle, path: P) -> Result<Book>
 where
   P: AsRef<Path>,
 {
-  if Book::has_path(app, &path).await? {
-    return Ok(None);
-  }
-
   let mut builder = Book::builder(&path);
-
   let book_handle = app.book_handle();
   let cover = book_handle.get_first_page_name(&path).await?;
   builder = builder.cover(cover);
@@ -82,15 +84,13 @@ where
     builder = builder.metadata(metadata);
   }
 
-  // This will be `None` if an unique constraint violation occurs.
-  let model = builder.build(app).await?;
+  let new_book = builder.build(app).await?;
+  let model = app.database_handle().save_book(new_book).await?;
 
   // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
   // but that doesn't seem like a good idea. After all, the data would only be default values.
-  if let Some(model) = &model {
-    let book = LibraryBook::from_model(app, model)?;
-    Event::BookAdded(&book).emit(app)?;
-  }
+  let book = LibraryBook::from_model(app, &model)?;
+  Event::BookAdded(&book).emit(app)?;
 
   book_handle.close(path).await;
 
@@ -113,7 +113,7 @@ where
 
   let mut models = Vec::with_capacity(set.len());
   while let Some(result) = set.join_next().await {
-    if let Ok(Some(model)) = result? {
+    if let Ok(model) = result? {
       models.push(model);
     }
   }
@@ -126,7 +126,9 @@ where
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
-  let mut set = Book::get_all(app)
+  let mut set = app
+    .database_handle()
+    .get_all_books()
     .await?
     .into_join_set_by(|model| {
       let app = app.clone();
@@ -164,7 +166,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
 
 fn schedule_cover_extraction<I>(app: &AppHandle, models: I)
 where
-  I: IntoIterator<Item = book::Model>,
+  I: IntoIterator<Item = Book>,
 {
   let permits = MAX_FILE_PERMITS / 5;
   let semaphore = Arc::new(Semaphore::new(permits));
@@ -181,7 +183,7 @@ where
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
-  Book::remove(app, id).await?;
+  app.database_handle().remove_book(id).await?;
   Event::BookRemoved(id).emit(app)?;
 
   if let Ok(cover) = app.path().cover(id) {
@@ -197,7 +199,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 
-  let title = Book::get_title(app, id).await?;
+  let title = app.database_handle().get_book_title(id).await?;
   let message = format!("{title} will be removed from the library.");
 
   MessageDialogBuilder::new(dialog, "Remove book", message)
@@ -217,8 +219,10 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
 
 #[cfg(any(debug_assertions, feature = "devtools"))]
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
-  Book::remove_all(app).await?;
-  Folder::remove_all(app).await?;
+  let handle = app.database_handle();
+  handle.remove_all_books().await?;
+  handle.remove_all_folders().await?;
+
   Event::LibraryCleared.emit(app)?;
 
   let path = app.path().cover_dir()?;
@@ -231,7 +235,8 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 
 pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
   let mut books = Vec::new();
-  for folder in Folder::get_all(app).await? {
+  let folders = app.database_handle().get_all_folders().await?;
+  for folder in folders {
     walk_folder(&mut books, &folder);
   }
 
@@ -280,8 +285,12 @@ pub async fn add_mock_books(
   }
 
   if !books.is_empty() {
-    let path = app.path().mocks_dir()?;
-    Folder::create(app, path).await?;
+    let path = app.path().mocks_dir()?.try_string()?;
+    app
+      .database_handle()
+      .save_folders([NewFolder { path }])
+      .await?;
+
     save_many(app, books).await?;
   }
 

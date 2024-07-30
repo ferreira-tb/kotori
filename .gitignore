@@ -55,6 +55,7 @@ render.experimental.xml
 *.hprof
 
 # Others
+*.env
 .DS_Store
 .temp/
 coverage/

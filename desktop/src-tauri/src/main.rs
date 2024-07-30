@@ -18,15 +18,15 @@ mod utils;
 mod window;
 
 use book::BookHandle;
-use error::BoxResult;
+use database::DatabaseHandle;
 use reader::Reader;
-use sea_orm::DatabaseConnection;
 use tauri::{App, Manager};
+use utils::result::BoxResult;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 pub struct Kotori {
-  pub db: DatabaseConnection,
+  pub database_handle: DatabaseHandle,
   pub book_handle: BookHandle,
   pub reader: Reader,
 }
@@ -76,7 +76,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   utils::log::setup_tracing(app);
 
   app.manage(Kotori {
-    db: database::connect(app)?,
+    database_handle: DatabaseHandle::new(app)?,
     book_handle: BookHandle::new(),
     reader: Reader::new(),
   });

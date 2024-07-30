@@ -3,9 +3,6 @@ use axum::response::{IntoResponse, Response};
 use serde::ser::Serializer;
 use serde::Serialize;
 
-pub type Result<T> = std::result::Result<T, Error>;
-pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
   #[error("book not found")]
@@ -28,7 +25,9 @@ pub enum Error {
   #[error(transparent)]
   ChronoParse(#[from] chrono::ParseError),
   #[error(transparent)]
-  Database(#[from] sea_orm::error::DbErr),
+  DatabaseConnection(#[from] diesel::ConnectionError),
+  #[error(transparent)]
+  Diesel(#[from] diesel::result::Error),
   #[error(transparent)]
   Glob(#[from] globset::Error),
   #[error(transparent)]
