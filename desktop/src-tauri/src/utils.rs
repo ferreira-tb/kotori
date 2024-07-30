@@ -104,6 +104,7 @@ pub mod log {
 
 pub mod manager {
   use crate::book::BookHandle;
+  use crate::database::DatabaseHandle;
   use crate::Kotori;
   use tauri::{AppHandle, Manager, State, WebviewWindow, Window, Wry};
 
@@ -115,6 +116,10 @@ pub mod manager {
     fn book_handle(&self) -> BookHandle {
       self.kotori().book_handle.clone()
     }
+
+    fn database_handle(&self) -> DatabaseHandle {
+      self.kotori().database_handle.clone()
+    }
   }
 
   impl ManagerExt for AppHandle {}
@@ -124,7 +129,7 @@ pub mod manager {
 
 pub mod path {
   use crate::err;
-  use crate::error::Result;
+  use crate::utils::result::Result;
   use std::path::{Path, PathBuf};
   use tauri::path::PathResolver;
   use tauri::Wry;
@@ -195,13 +200,18 @@ pub mod path {
 }
 
 pub mod result {
+  use crate::error::Error;
   use crate::utils::dialog;
-  use std::error::Error;
   use tauri::AppHandle;
   use tauri_plugin_manatsu::Log;
+  use tokio::sync::oneshot;
   use tracing::error;
 
-  pub trait ResultExt<T, E: Error> {
+  pub type Result<T> = std::result::Result<T, Error>;
+  pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
+  pub type TxResult<T> = oneshot::Sender<Result<T>>;
+
+  pub trait ResultExt<T, E: std::error::Error> {
     /// Create an error log, consuming `self`, and discarding the success value, if any.
     fn into_err_log(self, app: &AppHandle);
 
@@ -209,7 +219,7 @@ pub mod result {
     fn into_err_dialog(self, app: &AppHandle);
   }
 
-  impl<T, E: Error> ResultExt<T, E> for Result<T, E> {
+  impl<T, E: std::error::Error> ResultExt<T, E> for std::result::Result<T, E> {
     fn into_err_log(self, app: &AppHandle) {
       if let Err(err) = self {
         let message = err.to_string();
@@ -229,7 +239,7 @@ pub mod result {
 }
 
 pub mod temp {
-  use crate::error::Result;
+  use crate::utils::result::Result;
   use std::fs::{remove_file, File};
   use std::path::{Path, PathBuf};
   use tracing::trace;

@@ -1,9 +1,9 @@
-use super::active::ActiveBook;
-use super::cover::Cover;
-use super::title::Title;
+use crate::book::active::ActiveBook;
+use crate::book::cover::Cover;
+use crate::book::title::Title;
+use crate::database::model::Book;
 use crate::prelude::*;
 use crate::window::WindowManager;
-use kotori_entity::book;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -71,11 +71,11 @@ pub struct LibraryBook {
 }
 
 impl LibraryBook {
-  pub fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
+  pub fn from_model(app: &AppHandle, model: &Book) -> Result<Self> {
     let book = Self {
       id: model.id,
       path: PathBuf::from(&model.path),
-      title: Title::try_from(model.path.as_str())?,
+      title: Title::new(&model.title),
       rating: u8::try_from(model.rating)?,
       cover: Cover::from_id(app, model.id)?.path_buf(),
     };

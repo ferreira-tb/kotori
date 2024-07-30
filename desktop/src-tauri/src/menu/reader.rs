@@ -109,14 +109,14 @@ impl ReaderMenu {
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
     let result: Result<()> = try {
-      if let Some(model) = library::save(app, path).await? {
-        // Disable the menu item after adding the book to the library.
-        ReaderWindow::update_all_menus(app).await?;
+      let book = library::save(app, path).await?;
 
-        ActiveBook::from_model(app, &model)?
-          .extract_cover()
-          .await?;
-      }
+      // Disable the menu item after adding the book to the library.
+      ReaderWindow::update_all_menus(app).await?;
+
+      ActiveBook::from_model(app, &book)?
+        .extract_cover()
+        .await?;
     };
 
     result.into_err_dialog(app);

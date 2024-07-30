@@ -1,14 +1,12 @@
-use super::cover::Cover;
-use super::handle::PageMap;
-use super::title::Title;
-use super::update_cover;
-use crate::database::BookExt;
+use crate::book::cover::Cover;
+use crate::book::handle::PageMap;
+use crate::book::title::Title;
+use crate::book::update_cover;
+use crate::database::model::Book;
 use crate::event::Event;
 use crate::library;
 use crate::prelude::*;
 use image::ImageFormat;
-use kotori_entity::book;
-use kotori_entity::prelude::Book;
 use natord::compare_ignore_case;
 use std::cmp::Ordering;
 use std::fmt;
@@ -41,19 +39,22 @@ impl ActiveBook {
   }
 
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
-    Book::get_by_id(app, id)
+    app
+      .database_handle()
+      .get_book_by_id(id)
       .await
-      .and_then(|model| Self::from_model(app, &model))
+      .and_then(|book| Self::from_model(app, &book))
   }
 
-  pub fn from_model(app: &AppHandle, model: &book::Model) -> Result<Self> {
-    let book = Self::new(app, &model.path)?;
-    let _ = book.id.set(model.id);
-    Ok(book)
+  pub fn from_model(app: &AppHandle, book: &Book) -> Result<Self> {
+    let active = Self::new(app, &book.path)?;
+    let _ = active.id.set(book.id);
+    Ok(active)
   }
 
   pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
-    if let Some(book) = Book::random(app).await? {
+    let random = app.database_handle().random_book().await?;
+    if let Some(book) = random {
       Self::from_model(app, &book).map(Some)
     } else {
       Ok(None)
@@ -66,7 +67,10 @@ impl ActiveBook {
 
   pub async fn try_id(&self) -> Result<i32> {
     let id = self.id.get_or_try_init(|| async {
-      Book::get_by_path(&self.app, &self.path)
+      self
+        .app
+        .database_handle()
+        .get_book_by_path(&self.path)
         .await
         .map(|model| model.id)
         .map_err(Into::into)
@@ -106,9 +110,13 @@ impl ActiveBook {
   /// Get cover name if the book is in the library.
   pub async fn get_cover_name(&self) -> Result<String> {
     let id = self.try_id().await?;
-    let cover = Book::get_cover(&self.app, id).await?;
+    let cover = self
+      .app
+      .database_handle()
+      .get_book_cover(id)
+      .await?;
 
-    // The cover saved in the database may have been deleted from the file.
+    // The cover saved in the database may have been deleted from the book file.
     if self.has_page(&cover).await? {
       return Ok(cover);
     }
