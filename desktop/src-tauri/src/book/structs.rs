@@ -3,7 +3,6 @@ use crate::book::cover::Cover;
 use crate::book::title::Title;
 use crate::database::model::Book;
 use crate::prelude::*;
-use crate::window::WindowManager;
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]

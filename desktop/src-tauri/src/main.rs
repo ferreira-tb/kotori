@@ -68,7 +68,6 @@ fn main() {
       command::reader::open_book_with_dialog,
       command::reader::show_reader_page_context_menu,
       command::reader::switch_reader_focus,
-      command::reader::toggle_reader_menu
     ])
     .run(tauri::generate_context!())
     .expect("could not start kotori");
@@ -93,8 +92,9 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 mod plugin {
+  use crate::manager::ManagerExt;
   use crate::result::ResultExt;
-  use crate::window::{WindowExt, WindowManager};
+  use crate::window::WindowExt;
   use tauri::plugin::TauriPlugin;
   use tauri::Wry;
 

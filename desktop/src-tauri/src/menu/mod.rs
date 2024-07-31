@@ -5,7 +5,7 @@ mod reader;
 
 mod prelude {
   pub(super) use crate::menu::MenuExt;
-  pub(super) use crate::mi;
+  pub(super) use crate::{impl_deref_menu, menu_item_or_bail, mi, popup_context_menu};
   pub(super) use strum::{Display, EnumString};
   pub(super) use tauri::menu::{
     CheckMenuItemBuilder, Menu, MenuBuilder, MenuEvent, MenuId, MenuItemKind, PredefinedMenuItem,
@@ -21,13 +21,16 @@ use prelude::*;
 pub use reader::{Item as ReaderMenuItem, ReaderMenu};
 
 // Currently, there's no way to set handlers from Rust.
+// When it's possible, we should remove this trait.
 // See: https://github.com/tauri-apps/tauri/pull/9380
 pub trait Listener {
   fn execute(window: &Window, event: &MenuEvent);
 }
 
 trait MenuExt {
+  /// Search for a menu item by its id and set its checked state.
   fn set_item_checked(&self, id: &MenuId, checked: bool) -> Result<()>;
+  /// Search for a menu item by its id and set its enabled state.
   fn set_item_enabled(&self, id: &MenuId, enabled: bool) -> Result<()>;
 }
 

@@ -2,7 +2,6 @@ use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::window::WindowManager;
 use crate::{library, reader};
 use tauri::menu::MenuId;
 
@@ -66,44 +65,23 @@ impl Listener for Item {
   }
 }
 
+/// Build a menu item for the reader window.
+macro_rules! mi {
+  ($app:expr, $id:ident, $window_id:expr, $text:expr) => {{
+    tauri::menu::MenuItemBuilder::new($text)
+      .id(Item::$id.to_menu_id($window_id))
+      .build($app)
+  }};
+}
+
 pub struct ReaderMenu;
 
 impl ReaderMenu {
   pub fn build<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Menu<Wry>> {
     let menu = Menu::new(app)?;
-    menu.append(&Self::file_menu(app, window_id)?)?;
+    menu.append(&*FileMenu::new(app, window_id)?)?;
 
     Ok(menu)
-  }
-
-  fn file_menu<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Submenu<Wry>> {
-    SubmenuBuilder::new(app, "File")
-      .items(&[
-        &mi!(app, Item::Close.to_menu_id(window_id), "Close")?,
-        &mi!(app, Item::CloseAll.to_menu_id(window_id), "Close all")?,
-        &mi!(app, Item::CloseOthers.to_menu_id(window_id), "Close others")?,
-      ])
-      .separator()
-      .items(&[&mi!(
-        app,
-        Item::AddBookToLibrary.to_menu_id(window_id),
-        "Add to library"
-      )?])
-      .separator()
-      .items(&[
-        &mi!(
-          app,
-          Item::CopyBookPathToClipboard.to_menu_id(window_id),
-          "Copy book path"
-        )?,
-        &mi!(
-          app,
-          Item::OpenBookFolder.to_menu_id(window_id),
-          "Open book folder"
-        )?,
-      ])
-      .build()
-      .map_err(Into::into)
   }
 
   pub async fn update(app: &AppHandle) -> Result<()> {
@@ -124,6 +102,31 @@ impl ReaderMenu {
     Ok(())
   }
 }
+
+struct FileMenu(Submenu<Wry>);
+
+impl FileMenu {
+  fn new<M: Manager<Wry>>(app: &M, window_id: u16) -> Result<Self> {
+    SubmenuBuilder::new(app, "File")
+      .items(&[
+        &mi!(app, Close, window_id, "Close")?,
+        &mi!(app, CloseAll, window_id, "Close all")?,
+        &mi!(app, CloseOthers, window_id, "Close others")?,
+      ])
+      .separator()
+      .items(&[&mi!(app, AddBookToLibrary, window_id, "Add to library")?])
+      .separator()
+      .items(&[
+        &mi!(app, CopyBookPathToClipboard, window_id, "Copy book path")?,
+        &mi!(app, OpenBookFolder, window_id, "Open book folder")?,
+      ])
+      .build()
+      .map(Self)
+      .map_err(Into::into)
+  }
+}
+
+impl_deref_menu!(FileMenu);
 
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {

@@ -1,4 +1,4 @@
-use super::{ColorMode, WindowExt, WindowKind, WindowManager};
+use super::{ColorMode, WindowExt, WindowKind};
 use crate::book::ActiveBook;
 use crate::event::Event;
 use crate::menu::ReaderMenu;
@@ -43,10 +43,6 @@ impl ReaderWindow {
     let menu = ReaderMenu::build(app, window_id)?;
     window.set_menu(menu)?;
     window.on_menu_event(on_menu_event());
-
-    // We should keep this hidden by default.
-    // The user may toggle it visible, however.
-    window.hide_menu()?;
 
     #[cfg(feature = "open-reader-devtools")]
     window.open_devtools();

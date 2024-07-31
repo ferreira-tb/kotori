@@ -1,6 +1,5 @@
 use crate::book::{ActiveBook, ReaderBook};
 use crate::prelude::*;
-use crate::window::WindowManager;
 use crate::{book, reader};
 
 #[tauri::command]
@@ -42,7 +41,7 @@ pub async fn show_reader_page_context_menu(
   };
 
   let book_id = reader_window.book.try_id().await.ok();
-  let ctx = Context { window_id, book_id, name };
+  let ctx = Context { window_id, book_id, page_name: name };
   ReaderPageContextMenu::popup(&window, ctx)
 }
 
@@ -69,16 +68,4 @@ pub async fn open_book_with_dialog(app: AppHandle) -> Result<()> {
   debug!(command = "open_book_with_dialog");
 
   book::open_with_dialog(&app).await
-}
-
-#[tauri::command]
-pub async fn toggle_reader_menu(webview: WebviewWindow) -> Result<()> {
-  #[cfg(feature = "tracing")]
-  debug!(command = "toggle_reader_menu", window = webview.label());
-
-  if webview.is_menu_visible()? {
-    webview.hide_menu().map_err(Into::into)
-  } else {
-    webview.show_menu().map_err(Into::into)
-  }
 }

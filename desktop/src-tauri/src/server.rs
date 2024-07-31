@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use crate::window::WindowManager;
 use axum::extract::{Json, Path, State};
 use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};

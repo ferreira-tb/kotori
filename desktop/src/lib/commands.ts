@@ -16,7 +16,6 @@ export const enum Command {
   ShowWindow = 'show_window',
   SwitchReaderFocus = 'switch_reader_focus',
   ToggleFullscreen = 'toggle_fullscreen',
-  ToggleReaderMenu = 'toggle_reader_menu',
   UpdateBookRating = 'update_book_rating',
 }
 
@@ -83,10 +82,6 @@ export async function openBookWithDialog() {
 
 export function toggleFullscreen() {
   invoke(Command.ToggleFullscreen).catch(handleError);
-}
-
-export function toggleReaderMenu() {
-  invoke(Command.ToggleReaderMenu).catch(handleError);
 }
 
 export function updateBookRating(bookId: number, rating: number) {

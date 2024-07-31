@@ -4,7 +4,7 @@ pub mod reader;
 
 use crate::prelude::*;
 use crate::server;
-use crate::window::{WindowExt, WindowManager};
+use crate::window::WindowExt;
 
 #[tauri::command]
 pub async fn close_window(window: WebviewWindow) -> Result<()> {

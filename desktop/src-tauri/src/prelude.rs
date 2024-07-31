@@ -1,4 +1,5 @@
 pub use crate::err;
+pub use crate::error::Error;
 pub use crate::manager::ManagerExt as _;
 pub use crate::path::{PathExt as _, PathResolverExt as _};
 pub use crate::result::{Result, ResultExt as _};

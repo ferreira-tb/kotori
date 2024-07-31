@@ -2,8 +2,6 @@ pub mod app;
 mod reader;
 
 use crate::prelude::*;
-use crate::reader::WindowMap;
-use crate::Kotori;
 pub use reader::ReaderWindow;
 use strum::{Display, EnumIs, EnumString};
 use tauri::{EventTarget, WebviewUrl};
@@ -46,28 +44,6 @@ impl From<WindowKind> for EventTarget {
     EventTarget::WebviewWindow { label }
   }
 }
-
-pub trait WindowManager: Manager<Wry> {
-  fn get_focused_window(&self) -> Option<WebviewWindow> {
-    self
-      .webview_windows()
-      .into_values()
-      .find(|it| it.is_focused().unwrap_or(false))
-  }
-
-  fn main_window(&self) -> WebviewWindow {
-    let label = WindowKind::Main.label();
-    self.get_webview_window(&label).unwrap()
-  }
-
-  fn reader_windows(&self) -> WindowMap {
-    self.state::<Kotori>().reader.windows()
-  }
-}
-
-impl WindowManager for AppHandle {}
-impl WindowManager for WebviewWindow {}
-impl WindowManager for Window {}
 
 pub trait WindowExt {
   /// Same as [`WebviewWindow::set_focus`], but unminimize the window before focusing.

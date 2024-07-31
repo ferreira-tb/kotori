@@ -5,8 +5,7 @@ use crate::menu::context::ContextMenuUpdate;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::{library, menu_item_or_bail, popup_context_menu, reader};
-use std::ops::Deref;
+use crate::{library, reader};
 use std::sync::Mutex;
 
 #[derive(Debug, Display, EnumString)]
@@ -38,7 +37,7 @@ impl Listener for Item {
         Item::MarkAsRead => mark_as_read(&app, true).await,
         Item::MarkAsUnread => mark_as_read(&app, false).await,
         Item::OpenBook => open_book(&app).await,
-        Item::OpenBookFolder => open_book_folder(&app).await,
+        Item::OpenBookFolder => open_book_folder(&app),
         Item::RemoveBook => remove_book(&app).await,
       }
     });
@@ -58,16 +57,6 @@ impl Context {
       .await
       .map(|book| Self { book })
   }
-
-  fn book_id<M: Manager<Wry>>(manager: &M) -> i32 {
-    manager
-      .state::<LibraryBookContextMenu>()
-      .ctx
-      .lock()
-      .unwrap()
-      .book
-      .id
-  }
 }
 
 pub struct LibraryBookContextMenu {
@@ -79,16 +68,22 @@ impl LibraryBookContextMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: Context) -> Result<Self> {
     let menu = MenuBuilder::new(app)
       .items(&[
-        &mi!(app, Item::OpenBook, "Open")?,
-        &mi!(app, Item::RemoveBook, "Remove")?,
+        &mi!(app, OpenBook, "Open")?,
+        &mi!(app, RemoveBook, "Remove")?,
       ])
       .separator()
-      .items(&[&*MarkAsSubmenu::new(app, &ctx)?])
+      .items(&[&*MarkAsMenu::new(app, &ctx)?])
       .separator()
-      .items(&[&mi!(app, Item::OpenBookFolder, "Open folder")?])
+      .items(&[&mi!(app, OpenBookFolder, "Open folder")?])
       .build()?;
 
     Ok(Self { menu, ctx: Mutex::new(ctx) })
+  }
+
+  fn context(app: &AppHandle) -> Context {
+    let state = app.state::<Self>();
+    let ctx = state.ctx.lock().unwrap();
+    ctx.clone()
   }
 
   pub fn popup(window: &Window, ctx: Context) -> Result<()> {
@@ -110,9 +105,9 @@ impl ContextMenuUpdate for LibraryBookContextMenu {
   }
 }
 
-struct MarkAsSubmenu(Submenu<Wry>);
+struct MarkAsMenu(Submenu<Wry>);
 
-impl MarkAsSubmenu {
+impl MarkAsMenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: &Context) -> Result<Self> {
     let submenu = SubmenuBuilder::new(app, "Mark as")
       .items(&[
@@ -129,16 +124,10 @@ impl MarkAsSubmenu {
   }
 }
 
-impl Deref for MarkAsSubmenu {
-  type Target = Submenu<Wry>;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
+impl_deref_menu!(MarkAsMenu);
 
 async fn mark_as_read(app: &AppHandle, read: bool) {
-  let id = Context::book_id(app);
+  let id = LibraryBookContextMenu::context(app).book.id;
   app
     .database_handle()
     .update_book_read(id, read)
@@ -147,29 +136,23 @@ async fn mark_as_read(app: &AppHandle, read: bool) {
 }
 
 async fn open_book(app: &AppHandle) {
-  let id = Context::book_id(app);
-  if let Ok(book) = ActiveBook::from_id(app, id).await {
+  let ctx = LibraryBookContextMenu::context(app);
+  if let Ok(book) = ActiveBook::from_model(app, &ctx.book) {
     reader::open_book(app, book)
       .await
       .into_err_dialog(app);
   }
 }
 
-async fn open_book_folder(app: &AppHandle) {
-  let id = Context::book_id(app);
-  let result: Result<()> = try {
-    app
-      .database_handle()
-      .get_book_path(id)
-      .await?
-      .open_parent_detached()?
-  };
-
-  result.into_err_dialog(app);
+fn open_book_folder(app: &AppHandle) {
+  let path = LibraryBookContextMenu::context(app).book.path;
+  Path::new(&path)
+    .open_parent_detached()
+    .into_err_dialog(app);
 }
 
 async fn remove_book(app: &AppHandle) {
-  let id = Context::book_id(app);
+  let id = LibraryBookContextMenu::context(app).book.id;
   library::remove_with_dialog(app, id)
     .await
     .into_err_dialog(app);

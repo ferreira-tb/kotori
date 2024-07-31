@@ -5,7 +5,7 @@ use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
 use crate::window::ColorMode;
-use crate::{library, menu_item_or_bail, reader, VERSION};
+use crate::{library, reader, VERSION};
 use tauri::menu::AboutMetadataBuilder;
 use tokio::sync::oneshot;
 
@@ -76,43 +76,64 @@ pub struct AppMenu;
 impl AppMenu {
   pub fn build<M: Manager<Wry>>(app: &M) -> Result<Menu<Wry>> {
     let menu = Menu::new(app)?;
-    menu.append(&Self::file_menu(app)?)?;
-    menu.append(&Self::read_menu(app)?)?;
-    menu.append(&Self::view_menu(app)?)?;
-    menu.append(&Self::help_menu(app)?)?;
+    menu.append(&*FileMenu::new(app)?)?;
+    menu.append(&*ReadMenu::new(app)?)?;
+    menu.append(&*ViewMenu::new(app)?)?;
+    menu.append(&*HelpMenu::new(app)?)?;
 
     #[cfg(feature = "devtools")]
-    menu.append(&Self::dev_menu(app)?)?;
+    menu.append(&*DevMenu::new(app)?)?;
 
     Ok(menu)
   }
+}
 
-  fn file_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+struct FileMenu(Submenu<Wry>);
+
+impl FileMenu {
+  fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
     let mut menu = SubmenuBuilder::new(app, "File")
       .items(&[
-        &mi!(app, Item::OpenFile, "Open file")?,
-        &mi!(app, Item::AddToLibrary, "Add to library")?,
+        &mi!(app, OpenFile, "Open file")?,
+        &mi!(app, AddToLibrary, "Add to library")?,
       ])
       .separator()
-      .items(&[&mi!(app, Item::ScanBookFolders, "Scan book folders")?]);
+      .items(&[&mi!(app, ScanBookFolders, "Scan book folders")?]);
 
     if !cfg!(target_os = "linux") {
       menu = menu.separator().quit();
     }
 
-    menu.build().map_err(Into::into)
+    menu.build().map(Self).map_err(Into::into)
   }
+}
 
-  fn read_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+struct ReadMenu(Submenu<Wry>);
+
+impl ReadMenu {
+  fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
     SubmenuBuilder::new(app, "Read")
-      .items(&[&mi!(app, Item::RandomBook, "Random book")?])
+      .items(&[&mi!(app, RandomBook, "Random book")?])
       .build()
+      .map(Self)
+      .map_err(Into::into)
+  }
+}
+
+struct ViewMenu(Submenu<Wry>);
+
+impl ViewMenu {
+  fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
+    SubmenuBuilder::new(app, "View")
+      .items(&[&ViewMenu::color_mode(app)?])
+      .build()
+      .map(Self)
       .map_err(Into::into)
   }
 
-  fn view_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+  fn color_mode<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     let current_color_mode = ColorMode::get(app.app_handle())?;
-    let color_mode = SubmenuBuilder::new(app, "Color mode")
+    SubmenuBuilder::new(app, "Color mode")
       .items(&[
         &CheckMenuItemBuilder::with_id(Item::ColorModeAuto, "Auto")
           .checked(current_color_mode == ColorMode::Auto)
@@ -124,15 +145,27 @@ impl AppMenu {
           .checked(current_color_mode == ColorMode::Dark)
           .build(app)?,
       ])
-      .build()?;
-
-    SubmenuBuilder::new(app, "View")
-      .items(&[&color_mode])
       .build()
       .map_err(Into::into)
   }
+}
 
-  fn help_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+struct HelpMenu(Submenu<Wry>);
+
+impl HelpMenu {
+  fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
+    SubmenuBuilder::new(app, "Help")
+      .items(&[
+        &mi!(app, Discord, "Discord")?,
+        &mi!(app, Repository, "Repository")?,
+      ])
+      .item(&Self::about(app)?)
+      .build()
+      .map(Self)
+      .map_err(Into::into)
+  }
+
+  fn about<M: Manager<Wry>>(app: &M) -> Result<PredefinedMenuItem<Wry>> {
     let mut metadata = AboutMetadataBuilder::new()
       .name("Kotori".into())
       .version(VERSION.into())
@@ -143,35 +176,38 @@ impl AppMenu {
       metadata = metadata.license(LICENSE.into());
     }
 
-    let metadata = metadata.build();
-    let about = PredefinedMenuItem::about(app, "About".into(), metadata.into())?;
-    SubmenuBuilder::new(app, "Help")
-      .items(&[
-        &mi!(app, Item::Discord, "Discord")?,
-        &mi!(app, Item::Repository, "Repository")?,
-      ])
-      .item(&about)
-      .build()
-      .map_err(Into::into)
+    let metadata = Some(metadata.build());
+    PredefinedMenuItem::about(app, "About".into(), metadata).map_err(Into::into)
   }
+}
 
-  #[cfg(feature = "devtools")]
-  fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+#[cfg(feature = "devtools")]
+struct DevMenu(Submenu<Wry>);
+
+#[cfg(feature = "devtools")]
+impl DevMenu {
+  fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
     let mocks = SubmenuBuilder::new(app, "Mocks")
       .items(&[
-        &mi!(app, Item::AddMockBooksPortrait, "Portrait")?,
-        &mi!(app, Item::AddMockBooksLandscape, "Landscape")?,
+        &mi!(app, AddMockBooksPortrait, "Portrait")?,
+        &mi!(app, AddMockBooksLandscape, "Landscape")?,
       ])
       .build()?;
 
     SubmenuBuilder::new(app, "Developer")
       .items(&[&mocks])
       .separator()
-      .items(&[&mi!(app, Item::RemoveAllBooks, "Remove all books")?])
+      .items(&[&mi!(app, RemoveAllBooks, "Remove all books")?])
       .build()
+      .map(Self)
       .map_err(Into::into)
   }
 }
+
+impl_deref_menu!(FileMenu, ReadMenu, ViewMenu, HelpMenu);
+
+#[cfg(feature = "devtools")]
+impl_deref_menu!(DevMenu);
 
 #[cfg(feature = "devtools")]
 async fn add_mock_books(app: &AppHandle, orientation: Orientation) {

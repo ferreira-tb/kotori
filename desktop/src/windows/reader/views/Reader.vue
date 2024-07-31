@@ -2,15 +2,11 @@
 import { Reader } from '../lib/reader';
 import { useReaderStore } from '../stores';
 import { BookPageStatus } from '../lib/page';
-import { showReaderPageContextMenu, toggleReaderMenu } from '@/lib/commands';
+import { showReaderPageContextMenu } from '@/lib/commands';
 
 const store = useReaderStore();
 const { reader } = storeToRefs(store);
 void reader.value.load();
-
-// Using `alt` doesn't seem to be a good idea.
-// What could be a better way to toggle the menu?
-onAltKeyDown('Alt', toggleReaderMenu);
 
 onKeyDown('ArrowUp', () => reader.value.previous());
 onKeyDown('ArrowLeft', () => reader.value.previous());

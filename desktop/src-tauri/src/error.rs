@@ -15,8 +15,8 @@ pub enum Error {
   InvalidPath(String),
   #[error("rating must be an integer between 0 and 5")]
   InvalidRating,
-  #[error("page not found")]
-  PageNotFound,
+  #[error("page not found: {0}")]
+  PageNotFound(String),
   #[error("reader window not found: {0}")]
   ReaderWindowNotFound(String),
   #[error("window menu not found")]
@@ -78,7 +78,7 @@ impl Serialize for Error {
 impl IntoResponse for Error {
   fn into_response(self) -> Response {
     let status = match self {
-      Error::BookNotFound | Error::PageNotFound | Error::ReaderWindowNotFound(_) => {
+      Error::BookNotFound | Error::PageNotFound(_) | Error::ReaderWindowNotFound(_) => {
         StatusCode::NOT_FOUND
       }
       _ => StatusCode::INTERNAL_SERVER_ERROR,

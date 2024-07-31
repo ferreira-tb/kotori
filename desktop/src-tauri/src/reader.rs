@@ -3,7 +3,7 @@ use crate::event::Event;
 use crate::menu::ReaderMenu;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
-use crate::window::{ReaderWindow, WindowExt, WindowManager};
+use crate::window::{ReaderWindow, WindowExt};
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
 use tokio::sync::{oneshot, RwLock};
@@ -27,26 +27,26 @@ impl Reader {
 
 pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
   // If the book is already open, bring it to the foreground.
-  {
-    let windows = app.reader_windows();
-    let windows = windows.read().await;
-    let webview = windows
-      .values()
-      .find(|it| it.book == book)
-      .and_then(|it| it.webview_window(app));
+  let windows = app.reader_windows();
+  let windows = windows.read().await;
+  let webview = windows
+    .values()
+    .find(|it| it.book == book)
+    .and_then(|it| it.webview_window(app));
 
-    if let Some(webview) = webview {
-      return webview.set_foreground_focus();
-    }
+  drop(windows);
+
+  if let Some(webview) = webview {
+    return webview.set_foreground_focus();
   }
 
   // Otherwise, open a new window.
-  {
-    let window = ReaderWindow::open(app, book)?;
-    let windows = app.reader_windows();
-    let mut windows = windows.write().await;
-    windows.insert(window.id, window);
-  }
+  let window = ReaderWindow::open(app, book)?;
+  let windows = app.reader_windows();
+  let mut windows = windows.write().await;
+  windows.insert(window.id, window);
+
+  drop(windows);
 
   // This will read lock the windows.
   ReaderMenu::update(app).await
