@@ -84,6 +84,11 @@ impl ReaderMenu {
     Ok(menu)
   }
 
+  /// Update the menu items.
+  ///
+  /// **IMPORTANT**: This will **READ LOCK** the reader windows!
+  ///
+  /// *TODO: Can we avoid this lock?*
   pub async fn update(app: &AppHandle) -> Result<()> {
     let windows = app.reader_windows();
     let windows = windows.read().await;
@@ -100,6 +105,16 @@ impl ReaderMenu {
     }
 
     Ok(())
+  }
+
+  /// Spawn a task to update the menu items.
+  ///
+  /// **IMPORTANT**: The task will **READ LOCK** the reader windows!
+  pub fn spawn_update(app: &AppHandle) {
+    let app = app.clone();
+    spawn(async move {
+      Self::update(&app).await.into_err_dialog(&app);
+    });
   }
 }
 
@@ -134,7 +149,7 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
       let book = library::save(app, &path).await?;
 
       // We must disable this menu item after the book is added to the library.
-      ReaderMenu::update(app).await?;
+      ReaderMenu::spawn_update(app);
 
       ActiveBook::from_model(app, &book)?
         .extract_cover()

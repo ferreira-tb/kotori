@@ -59,6 +59,12 @@ impl Actor {
       Message::GetBookTitle { book_id, tx } => {
         send!(tx, book::get_title(&mut self.db, book_id));
       }
+      Message::HasAnyBook { tx } => {
+        send!(tx, book::is_empty(&mut self.db));
+      }
+      Message::HasAnyFolder { tx } => {
+        send!(tx, folder::is_empty(&mut self.db));
+      }
       Message::RandomBook { tx } => {
         send!(tx, book::random(&mut self.db));
       }

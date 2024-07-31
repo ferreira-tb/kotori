@@ -37,6 +37,12 @@ pub enum Message {
     book_id: i32,
     tx: TxResult<Title>,
   },
+  HasAnyBook {
+    tx: TxResult<bool>,
+  },
+  HasAnyFolder {
+    tx: TxResult<bool>,
+  },
   RandomBook {
     tx: TxResult<Option<Book>>,
   },

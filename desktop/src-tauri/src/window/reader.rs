@@ -132,11 +132,9 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
       .unwrap_or(0);
 
     windows.shift_remove(&window_id);
-
     drop(windows);
 
-    // This will read lock the windows.
-    ReaderMenu::update(&app).await.into_err_log(&app);
+    ReaderMenu::spawn_update(&app);
 
     reader_arc
       .read()
@@ -170,12 +168,10 @@ fn handle_drop_event(app: &AppHandle, window_id: u16, paths: &[PathBuf]) {
         if let Some(window) = windows.get_mut(&window_id) {
           let book = ActiveBook::new(&app, path)?;
           window.set_book(&app, book)?;
+
+          drop(windows);
+          ReaderMenu::update(&app).await?;
         }
-
-        drop(windows);
-
-        // This will read lock the windows.
-        ReaderMenu::update(&app).await?;
       };
 
       result.into_err_dialog(&app);

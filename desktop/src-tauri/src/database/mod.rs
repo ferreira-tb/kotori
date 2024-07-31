@@ -6,6 +6,7 @@ mod schema;
 use crate::book::{ActiveBook, Title};
 use crate::database::model::prelude::*;
 use crate::event::Event;
+use crate::menu::AppMenu;
 use crate::path::PathExt;
 use crate::result::Result;
 use crate::send_tx;
@@ -84,13 +85,23 @@ impl DatabaseHandle {
     send_tx!(self, GetBookTitle { book_id })
   }
 
+  pub async fn has_any_book(&self) -> Result<bool> {
+    send_tx!(self, HasAnyBook {})
+  }
+
+  pub async fn has_any_folder(&self) -> Result<bool> {
+    send_tx!(self, HasAnyFolder {})
+  }
+
   pub async fn random_book(&self) -> Result<Option<Book>> {
     send_tx!(self, RandomBook {})
   }
 
   #[cfg(feature = "devtools")]
   pub async fn remove_all_books(&self) -> Result<()> {
-    send_tx!(self, RemoveAllBooks {})
+    send_tx!(self, RemoveAllBooks {})?;
+    AppMenu::spawn_update(&self.app);
+    Ok(())
   }
 
   #[cfg(feature = "devtools")]
@@ -99,11 +110,15 @@ impl DatabaseHandle {
   }
 
   pub async fn remove_book(&self, book_id: i32) -> Result<()> {
-    send_tx!(self, RemoveBook { book_id })
+    send_tx!(self, RemoveBook { book_id })?;
+    AppMenu::spawn_update(&self.app);
+    Ok(())
   }
 
   pub async fn save_book(&self, book: NewBook) -> Result<Book> {
-    send_tx!(self, SaveBook { book })
+    let book = send_tx!(self, SaveBook { book })?;
+    AppMenu::spawn_update(&self.app);
+    Ok(book)
   }
 
   pub async fn save_folders<I>(&self, folders: I) -> Result<()>
@@ -111,7 +126,9 @@ impl DatabaseHandle {
     I: IntoIterator<Item = NewFolder>,
   {
     let folders = folders.into_iter().collect();
-    send_tx!(self, SaveFolders { folders })
+    send_tx!(self, SaveFolders { folders })?;
+    AppMenu::spawn_update(&self.app);
+    Ok(())
   }
 
   /// Set the specified page as the book cover, extracting it afterwards.

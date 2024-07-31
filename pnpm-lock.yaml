@@ -10,7 +10,7 @@ importers:
     devDependencies:
       '@tb-dev/auto-import-config':
         specifier: ^4.0.0
-        version: 4.0.0(@tauri-apps/api@2.0.0-beta.16)(@tb-dev/utils@2.0.3)(@types/node@22.0.0)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/math@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/router@10.11.0(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(manatsu@1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(pinia@2.2.0(typescript@5.5.4)(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
+        version: 4.0.0(@tauri-apps/api@2.0.0-beta.16)(@tb-dev/utils@2.0.3)(@types/node@22.0.2)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/math@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/router@10.11.0(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(manatsu@1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(pinia@2.2.0(typescript@5.5.4)(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
       '@tb-dev/eslint-config':
         specifier: ^4.4.2
         version: 4.4.2(eslint@8.57.0)(tailwindcss@3.4.7)(typescript@5.5.4)
@@ -18,11 +18,11 @@ importers:
         specifier: ^4.17.12
         version: 4.17.12
       '@types/node':
-        specifier: ^22.0.0
-        version: 22.0.0
+        specifier: ^22.0.2
+        version: 22.0.2
       '@vitejs/plugin-vue':
         specifier: ^5.1.1
-        version: 5.1.1(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4))
+        version: 5.1.1(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4))
       autoprefixer:
         specifier: ^10.4.19
         version: 10.4.19(postcss@8.4.39)
@@ -49,10 +49,10 @@ importers:
         version: 0.18.2(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)
       vite:
         specifier: ^5.3.5
-        version: 5.3.5(@types/node@22.0.0)
+        version: 5.3.5(@types/node@22.0.2)
       vite-plugin-vue-devtools:
         specifier: ^7.3.7
-        version: 7.3.7(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4))
+        version: 7.3.7(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4))
       vue-tsc:
         specifier: ^2.0.29
         version: 2.0.29(typescript@5.5.4)
@@ -108,8 +108,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       lucide-vue-next:
-        specifier: ^0.417.0
-        version: 0.417.0(vue@3.4.35(typescript@5.5.4))
+        specifier: ^0.418.0
+        version: 0.418.0(vue@3.4.35(typescript@5.5.4))
       manatsu:
         specifier: ^1.0.0-alpha.2
         version: 1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
@@ -763,8 +763,8 @@ packages:
   '@types/lodash@4.17.7':
     resolution: {integrity: sha512-8wTvZawATi/lsmNu10/j2hk1KEP0IvjubqPE3cu1Xz7xfXXt5oCq3SNUz4fMIP4XGF9Ky+Ue2tBA3hcS7LSBlA==}
 
-  '@types/node@22.0.0':
-    resolution: {integrity: sha512-VT7KSYudcPOzP5Q0wfbowyNLaVR8QWUdw+088uFWwfvpY6uCWaXpqV6ieLAu9WBcnTa7H4Z5RLK8I5t2FuOcqw==}
+  '@types/node@22.0.2':
+    resolution: {integrity: sha512-yPL6DyFwY5PiMVEwymNeqUTKsDczQBJ/5T7W/46RwLU/VH+AA8aT5TZkvBviLKLbbm0hlfftEkGrNzfRk/fofQ==}
 
   '@types/normalize-package-data@2.4.4':
     resolution: {integrity: sha512-37i+OaWTh9qeK4LSHPsyRC7NahnGotNuZvjLSgcPzblpHB3rrCJxAOgI5gCdKm7coonsaX1Of0ILiTcnZjbfxA==}
@@ -1941,8 +1941,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-vue-next@0.417.0:
-    resolution: {integrity: sha512-uIoSKLovPHcv2QCLJLZMh7XrBvbPvOwWCyldvOKvAF/3Mbez0isAY/j1WlBnO2Nu2FUNQex6eHXbPtou55H23Q==}
+  lucide-vue-next@0.418.0:
+    resolution: {integrity: sha512-G7PFtw1+GtkUpGCSe7LTbbduPw5AAp1Yd76LmSOxjAXrKEn7wGQ1Lw5NMgSrknElfJJ81DN21prUwifnQEdHjQ==}
     peerDependencies:
       vue: '>=3.0.1'
 
@@ -3384,7 +3384,7 @@ snapshots:
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.16
 
-  '@tb-dev/auto-import-config@4.0.0(@tauri-apps/api@2.0.0-beta.16)(@tb-dev/utils@2.0.3)(@types/node@22.0.0)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/math@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/router@10.11.0(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(manatsu@1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(pinia@2.2.0(typescript@5.5.4)(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))':
+  '@tb-dev/auto-import-config@4.0.0(@tauri-apps/api@2.0.0-beta.16)(@tb-dev/utils@2.0.3)(@types/node@22.0.2)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/math@10.11.0(vue@3.4.35(typescript@5.5.4)))(@vueuse/router@10.11.0(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(manatsu@1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4)))(pinia@2.2.0(typescript@5.5.4)(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)(vue-router@4.4.1(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))':
     dependencies:
       '@tauri-apps/api': 2.0.0-beta.16
       '@tb-dev/utils': 2.0.3
@@ -3394,7 +3394,7 @@ snapshots:
       manatsu: 1.0.0-alpha.2(@tauri-apps/api@2.0.0-beta.16)(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(vue@3.4.35(typescript@5.5.4))
       pinia: 2.2.0(typescript@5.5.4)(vue@3.4.35(typescript@5.5.4))
       unplugin-auto-import: 0.18.2(@vueuse/core@10.11.0(vue@3.4.35(typescript@5.5.4)))(rollup@4.19.0)
-      vite: 5.3.5(@types/node@22.0.0)
+      vite: 5.3.5(@types/node@22.0.2)
       vue: 3.4.35(typescript@5.5.4)
       vue-router: 4.4.1(vue@3.4.35(typescript@5.5.4))
     transitivePeerDependencies:
@@ -3448,7 +3448,7 @@ snapshots:
 
   '@types/lodash@4.17.7': {}
 
-  '@types/node@22.0.0':
+  '@types/node@22.0.2':
     dependencies:
       undici-types: 6.11.1
 
@@ -3539,9 +3539,9 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@vitejs/plugin-vue@5.1.1(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4))':
+  '@vitejs/plugin-vue@5.1.1(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4))':
     dependencies:
-      vite: 5.3.5(@types/node@22.0.0)
+      vite: 5.3.5(@types/node@22.0.2)
       vue: 3.4.35(typescript@5.5.4)
 
   '@volar/language-core@2.4.0-alpha.18':
@@ -3665,14 +3665,14 @@ snapshots:
 
   '@vue/devtools-api@6.6.3': {}
 
-  '@vue/devtools-core@7.3.7(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4))':
+  '@vue/devtools-core@7.3.7(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4))':
     dependencies:
       '@vue/devtools-kit': 7.3.7
       '@vue/devtools-shared': 7.3.7
       mitt: 3.0.1
       nanoid: 3.3.7
       pathe: 1.1.2
-      vite-hot-client: 0.2.3(vite@5.3.5(@types/node@22.0.0))
+      vite-hot-client: 0.2.3(vite@5.3.5(@types/node@22.0.2))
       vue: 3.4.35(typescript@5.5.4)
     transitivePeerDependencies:
       - vite
@@ -4843,7 +4843,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-vue-next@0.417.0(vue@3.4.35(typescript@5.5.4)):
+  lucide-vue-next@0.418.0(vue@3.4.35(typescript@5.5.4)):
     dependencies:
       vue: 3.4.35(typescript@5.5.4)
 
@@ -5590,11 +5590,11 @@ snapshots:
       spdx-correct: 3.2.0
       spdx-expression-parse: 3.0.1
 
-  vite-hot-client@0.2.3(vite@5.3.5(@types/node@22.0.0)):
+  vite-hot-client@0.2.3(vite@5.3.5(@types/node@22.0.2)):
     dependencies:
-      vite: 5.3.5(@types/node@22.0.0)
+      vite: 5.3.5(@types/node@22.0.2)
 
-  vite-plugin-inspect@0.8.5(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.0)):
+  vite-plugin-inspect@0.8.5(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.2)):
     dependencies:
       '@antfu/utils': 0.7.10
       '@rollup/pluginutils': 5.1.0(rollup@4.19.0)
@@ -5605,28 +5605,28 @@ snapshots:
       perfect-debounce: 1.0.0
       picocolors: 1.0.1
       sirv: 2.0.4
-      vite: 5.3.5(@types/node@22.0.0)
+      vite: 5.3.5(@types/node@22.0.2)
     transitivePeerDependencies:
       - rollup
       - supports-color
 
-  vite-plugin-vue-devtools@7.3.7(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4)):
+  vite-plugin-vue-devtools@7.3.7(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4)):
     dependencies:
-      '@vue/devtools-core': 7.3.7(vite@5.3.5(@types/node@22.0.0))(vue@3.4.35(typescript@5.5.4))
+      '@vue/devtools-core': 7.3.7(vite@5.3.5(@types/node@22.0.2))(vue@3.4.35(typescript@5.5.4))
       '@vue/devtools-kit': 7.3.7
       '@vue/devtools-shared': 7.3.7
       execa: 8.0.1
       sirv: 2.0.4
-      vite: 5.3.5(@types/node@22.0.0)
-      vite-plugin-inspect: 0.8.5(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.0))
-      vite-plugin-vue-inspector: 5.1.3(vite@5.3.5(@types/node@22.0.0))
+      vite: 5.3.5(@types/node@22.0.2)
+      vite-plugin-inspect: 0.8.5(rollup@4.19.0)(vite@5.3.5(@types/node@22.0.2))
+      vite-plugin-vue-inspector: 5.1.3(vite@5.3.5(@types/node@22.0.2))
     transitivePeerDependencies:
       - '@nuxt/kit'
       - rollup
       - supports-color
       - vue
 
-  vite-plugin-vue-inspector@5.1.3(vite@5.3.5(@types/node@22.0.0)):
+  vite-plugin-vue-inspector@5.1.3(vite@5.3.5(@types/node@22.0.2)):
     dependencies:
       '@babel/core': 7.24.9
       '@babel/plugin-proposal-decorators': 7.24.7(@babel/core@7.24.9)
@@ -5637,17 +5637,17 @@ snapshots:
       '@vue/compiler-dom': 3.4.33
       kolorist: 1.8.0
       magic-string: 0.30.10
-      vite: 5.3.5(@types/node@22.0.0)
+      vite: 5.3.5(@types/node@22.0.2)
     transitivePeerDependencies:
       - supports-color
 
-  vite@5.3.5(@types/node@22.0.0):
+  vite@5.3.5(@types/node@22.0.2):
     dependencies:
       esbuild: 0.21.5
       postcss: 8.4.39
       rollup: 4.19.0
     optionalDependencies:
-      '@types/node': 22.0.0
+      '@types/node': 22.0.2
       fsevents: 2.3.3
 
   vscode-uri@3.0.8: {}

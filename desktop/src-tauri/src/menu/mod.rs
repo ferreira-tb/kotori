@@ -70,7 +70,9 @@ fn find_and_set_checked(items: &[MenuItemKind<Wry>], id: &MenuId, checked: bool)
 
         return it.set_checked(checked).map_err(Into::into);
       }
-      MenuItemKind::Submenu(it) => it.set_item_checked(id, checked)?,
+      MenuItemKind::Submenu(it) => {
+        it.set_item_checked(id, checked)?;
+      }
       _ => {}
     }
   }

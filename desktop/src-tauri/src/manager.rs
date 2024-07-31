@@ -1,9 +1,29 @@
 use crate::book::BookHandle;
 use crate::database::DatabaseHandle;
-use crate::reader::WindowMap;
+use crate::reader::{Reader, WindowMap};
+use crate::result::Result;
 use crate::window::WindowKind;
-use crate::Kotori;
 use tauri::{AppHandle, Manager, State, WebviewWindow, Window, Wry};
+
+pub struct Kotori {
+  database_handle: DatabaseHandle,
+  book_handle: BookHandle,
+  reader: Reader,
+}
+
+impl Kotori {
+  pub fn init(app: &AppHandle) -> Result<()> {
+    let kotori = Self {
+      database_handle: DatabaseHandle::new(app)?,
+      book_handle: BookHandle::new(),
+      reader: Reader::new(),
+    };
+
+    app.manage(kotori);
+
+    Ok(())
+  }
+}
 
 pub trait ManagerExt: Manager<Wry> {
   fn kotori(&self) -> State<Kotori> {

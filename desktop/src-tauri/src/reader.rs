@@ -48,7 +48,6 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
 
   drop(windows);
 
-  // This will read lock the windows.
   ReaderMenu::update(app).await
 }
 

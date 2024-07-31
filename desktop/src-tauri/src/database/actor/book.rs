@@ -58,6 +58,17 @@ pub(super) fn get_title(db: Db, book_id: i32) -> Result<Title> {
     .map_err(Into::into)
 }
 
+pub(super) fn is_empty(db: Db) -> Result<bool> {
+  use diesel::dsl::count_star;
+
+  books
+    .select(count_star())
+    .limit(1)
+    .get_result::<i64>(db)
+    .map(|count| count == 0)
+    .map_err(Into::into)
+}
+
 pub(super) fn random(db: Db) -> Result<Option<Book>> {
   use rand::seq::SliceRandom;
   use rand::thread_rng;

@@ -26,7 +26,7 @@
     "date-fns": "^3.6.0",
     "es-iterator-helpers": "^1.0.19",
     "lodash-es": "^4.17.21",
-    "lucide-vue-next": "^0.417.0",
+    "lucide-vue-next": "^0.418.0",
     "manatsu": "^1.0.0-alpha.2",
     "pinia": "^2.2.0",
     "radix-vue": "^1.9.2",

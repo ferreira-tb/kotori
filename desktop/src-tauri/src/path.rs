@@ -4,44 +4,6 @@ use std::path::{Path, PathBuf};
 use tauri::path::PathResolver;
 use tauri::Wry;
 
-pub trait PathResolverExt {
-  fn cover(&self, book_id: i32) -> Result<PathBuf>;
-  fn cover_dir(&self) -> Result<PathBuf>;
-
-  #[cfg(feature = "devtools")]
-  fn dev_cache_dir(&self) -> Result<PathBuf>;
-  #[cfg(feature = "devtools")]
-  fn mocks_dir(&self) -> Result<PathBuf>;
-}
-
-impl PathResolverExt for PathResolver<Wry> {
-  fn cover(&self, book_id: i32) -> Result<PathBuf> {
-    self
-      .cover_dir()
-      .map(|it| it.join(book_id.to_string()))
-  }
-
-  fn cover_dir(&self) -> Result<PathBuf> {
-    self
-      .app_cache_dir()
-      .map(|it| it.join("covers"))
-      .map_err(Into::into)
-  }
-
-  #[cfg(feature = "devtools")]
-  fn dev_cache_dir(&self) -> Result<PathBuf> {
-    self
-      .app_cache_dir()
-      .map(|it| it.join("dev-cache"))
-      .map_err(Into::into)
-  }
-
-  #[cfg(feature = "devtools")]
-  fn mocks_dir(&self) -> Result<PathBuf> {
-    self.dev_cache_dir().map(|it| it.join("mocks"))
-  }
-}
-
 pub trait PathExt {
   /// Open path with the default application using a detached process.
   fn open_detached(&self) -> Result<()>;
@@ -79,5 +41,43 @@ impl<P: AsRef<Path>> PathExt for P {
 
   fn try_string(&self) -> Result<String> {
     self.try_str().map(ToOwned::to_owned)
+  }
+}
+
+pub trait PathResolverExt {
+  fn cover(&self, book_id: i32) -> Result<PathBuf>;
+  fn cover_dir(&self) -> Result<PathBuf>;
+
+  #[cfg(feature = "devtools")]
+  fn dev_cache_dir(&self) -> Result<PathBuf>;
+  #[cfg(feature = "devtools")]
+  fn mocks_dir(&self) -> Result<PathBuf>;
+}
+
+impl PathResolverExt for PathResolver<Wry> {
+  fn cover(&self, book_id: i32) -> Result<PathBuf> {
+    self
+      .cover_dir()
+      .map(|it| it.join(book_id.to_string()))
+  }
+
+  fn cover_dir(&self) -> Result<PathBuf> {
+    self
+      .app_cache_dir()
+      .map(|it| it.join("covers"))
+      .map_err(Into::into)
+  }
+
+  #[cfg(feature = "devtools")]
+  fn dev_cache_dir(&self) -> Result<PathBuf> {
+    self
+      .app_cache_dir()
+      .map(|it| it.join("dev-cache"))
+      .map_err(Into::into)
+  }
+
+  #[cfg(feature = "devtools")]
+  fn mocks_dir(&self) -> Result<PathBuf> {
+    self.dev_cache_dir().map(|it| it.join("mocks"))
   }
 }

@@ -22,19 +22,11 @@ mod server;
 mod utils;
 mod window;
 
-use book::BookHandle;
-use database::DatabaseHandle;
-use reader::Reader;
+use manager::Kotori;
 use result::{BoxResult, Result, ResultExt};
-use tauri::{App, Manager};
+use tauri::App;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
-
-pub struct Kotori {
-  pub database_handle: DatabaseHandle,
-  pub book_handle: BookHandle,
-  pub reader: Reader,
-}
 
 fn main() {
   tauri::Builder::default()
@@ -79,12 +71,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
     #[cfg(feature = "tracing")]
     utils::log::setup_tracing(app)?;
 
-    app.manage(Kotori {
-      database_handle: DatabaseHandle::new(app)?,
-      book_handle: BookHandle::new(),
-      reader: Reader::new(),
-    });
-
+    Kotori::init(app)?;
     server::serve(app)?;
     window::app::open(app)?;
   };

@@ -43,6 +43,12 @@ pub enum Item {
   RemoveAllBooks,
 }
 
+impl Item {
+  pub fn to_menu_id(&self) -> MenuId {
+    MenuId::new(self.to_string())
+  }
+}
+
 impl Listener for Item {
   fn execute(window: &Window, event: &MenuEvent) {
     let item = menu_item_or_bail!(event);
@@ -85,6 +91,27 @@ impl AppMenu {
     menu.append(&*DevMenu::new(app)?)?;
 
     Ok(menu)
+  }
+
+  /// Update the menu items.
+  pub async fn update(app: &AppHandle) -> Result<()> {
+    if let Some(menu) = app.main_window().menu() {
+      let has_books = app.database_handle().has_any_book().await?;
+      menu.set_item_enabled(&Item::RandomBook.to_menu_id(), !has_books)?;
+
+      let has_folders = app.database_handle().has_any_folder().await?;
+      menu.set_item_enabled(&Item::ScanBookFolders.to_menu_id(), !has_folders)?;
+    }
+
+    Ok(())
+  }
+
+  /// Spawn a task to update the menu items.
+  pub fn spawn_update(app: &AppHandle) {
+    let app = app.clone();
+    spawn(async move {
+      Self::update(&app).await.into_err_dialog(&app);
+    });
   }
 }
 
@@ -187,19 +214,22 @@ struct DevMenu(Submenu<Wry>);
 #[cfg(feature = "devtools")]
 impl DevMenu {
   fn new<M: Manager<Wry>>(app: &M) -> Result<Self> {
-    let mocks = SubmenuBuilder::new(app, "Mocks")
-      .items(&[
-        &mi!(app, AddMockBooksPortrait, "Portrait")?,
-        &mi!(app, AddMockBooksLandscape, "Landscape")?,
-      ])
-      .build()?;
-
     SubmenuBuilder::new(app, "Developer")
-      .items(&[&mocks])
+      .items(&[&Self::mocks(app)?])
       .separator()
       .items(&[&mi!(app, RemoveAllBooks, "Remove all books")?])
       .build()
       .map(Self)
+      .map_err(Into::into)
+  }
+
+  fn mocks<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
+    SubmenuBuilder::new(app, "Mocks")
+      .items(&[
+        &mi!(app, AddMockBooksPortrait, "Portrait")?,
+        &mi!(app, AddMockBooksLandscape, "Landscape")?,
+      ])
+      .build()
       .map_err(Into::into)
   }
 }
@@ -269,7 +299,7 @@ async fn remove_all_books(app: &AppHandle) {
     .message("All books will be removed. Are you sure?")
     .title("Remove all books")
     .kind(MessageDialogKind::Warning)
-    .ok_button_label("Clear")
+    .ok_button_label("Remove")
     .cancel_button_label("Cancel")
     .show(move |response| {
       let _ = tx.send(response);

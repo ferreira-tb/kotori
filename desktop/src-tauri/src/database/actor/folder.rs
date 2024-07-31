@@ -14,6 +14,17 @@ pub(super) fn get_all(db: Db) -> Result<Vec<PathBuf>> {
     .map_err(Into::into)
 }
 
+pub(super) fn is_empty(db: Db) -> Result<bool> {
+  use diesel::dsl::count_star;
+
+  folders
+    .select(count_star())
+    .limit(1)
+    .get_result::<i64>(db)
+    .map(|count| count == 0)
+    .map_err(Into::into)
+}
+
 #[cfg(feature = "devtools")]
 pub(super) fn remove_all(db: Db) -> Result<()> {
   diesel::delete(folders)
