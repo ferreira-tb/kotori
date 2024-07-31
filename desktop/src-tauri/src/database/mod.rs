@@ -29,14 +29,13 @@ impl DatabaseHandle {
     let path = app.path().app_local_data_dir()?;
     fs::create_dir_all(&path)?;
 
-    #[cfg(not(any(debug_assertions, feature = "devtools")))]
-    let path = path.join("kotori.db");
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     let path = path.join("kotori-dev.db");
+    #[cfg(not(feature = "devtools"))]
+    let path = path.join("kotori.db");
 
     let database_url = path.try_str()?;
     let connection = SqliteConnection::establish(database_url)?;
-
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
 
@@ -78,12 +77,12 @@ impl DatabaseHandle {
     send_tx!(self, RandomBook {})
   }
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   pub async fn remove_all_books(&self) -> Result<()> {
     send_tx!(self, RemoveAllBooks {})
   }
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   pub async fn remove_all_folders(&self) -> Result<()> {
     send_tx!(self, RemoveAllFolders {})
   }

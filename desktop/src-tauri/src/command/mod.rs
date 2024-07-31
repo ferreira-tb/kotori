@@ -9,15 +9,15 @@ use crate::window::{WindowExt, WindowManager};
 #[tauri::command]
 pub async fn close_window(window: WebviewWindow) -> Result<()> {
   #[cfg(feature = "tracing")]
-  tracing:: debug!(command = "close_window", label = window.label());
-  
+  debug!(command = "close_window", label = window.label());
+
   window.close().map_err(Into::into)
 }
 
 #[tauri::command]
 pub async fn focus_main_window(app: AppHandle) -> Result<()> {
   #[cfg(feature = "tracing")]
-  tracing:: debug!(command = "focus_main_window");
+  debug!(command = "focus_main_window");
 
   app.main_window().set_foreground_focus()
 }
@@ -30,7 +30,7 @@ pub async fn server_port() -> u16 {
 #[tauri::command]
 pub async fn show_window(window: WebviewWindow) -> Result<()> {
   #[cfg(feature = "tracing")]
-  tracing::debug!(command = "show_window", label = window.label());
+  debug!(command = "show_window", label = window.label());
 
   window.show()?;
   window.set_foreground_focus()
@@ -39,7 +39,7 @@ pub async fn show_window(window: WebviewWindow) -> Result<()> {
 #[tauri::command]
 pub async fn toggle_fullscreen(window: WebviewWindow) -> Result<()> {
   #[cfg(feature = "tracing")]
-  tracing:: debug!(command = "toggle_fullscreen", label = window.label());
+  debug!(command = "toggle_fullscreen", label = window.label());
 
   window
     .set_fullscreen(!window.is_fullscreen()?)

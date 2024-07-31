@@ -2,6 +2,7 @@ use crate::book::handle::file::BookFile;
 use crate::book::handle::message::Message;
 use crate::prelude::*;
 use ahash::{HashMap, HashMapExt};
+use std::fmt;
 use std::sync::{mpsc, Arc};
 
 pub(super) struct Actor {
@@ -20,9 +21,10 @@ impl Actor {
     }
   }
 
+  #[cfg_attr(feature = "tracing", instrument)]
   fn handle_message(&mut self, message: Message) {
     #[cfg(feature = "tracing")]
-    tracing:: trace!(%message, actor_cache_size = self.cache.len());
+    trace!(actor_cache_size = self.cache.len());
     
     match message {
       Message::Close { path, nt } => {
@@ -38,7 +40,7 @@ impl Actor {
       }
       Message::ReadPage { path, page, tx } => {
         #[cfg(feature = "tracing")]
-        tracing:: trace!(read_page = %page);
+        trace!(read_page = %page);
 
         let result = self
           .get_book_mut(&path)
@@ -48,7 +50,7 @@ impl Actor {
       }
       Message::DeletePage { path, page, tx } => {
         #[cfg(feature = "tracing")]
-        tracing::trace!(delete_page = %page);
+        trace!(delete_page = %page);
 
         let result = self
           .remove_book(&path)
@@ -65,7 +67,7 @@ impl Actor {
       }
       Message::SetMetadata { path, metadata, tx } => {
         #[cfg(feature = "tracing")]
-        tracing::trace!(set_metadata = ?metadata);
+        trace!(set_metadata = ?metadata);
 
         let result = self
           .remove_book(&path)
@@ -116,5 +118,13 @@ impl Actor {
     } else {
       BookFile::open(path)
     }
+  }
+}
+
+impl fmt::Debug for Actor {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_struct("Actor")
+      .field("cache", &self.cache.len())
+      .finish_non_exhaustive()
   }
 }

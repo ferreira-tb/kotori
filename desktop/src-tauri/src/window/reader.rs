@@ -13,6 +13,7 @@ pub struct ReaderWindow {
 }
 
 impl ReaderWindow {
+  #[cfg_attr(feature = "tracing", instrument(skip(app)))]
   pub fn open(app: &AppHandle, book: ActiveBook) -> Result<Self> {
     let window_id = get_available_id(app);
     let kind = WindowKind::Reader(window_id);
@@ -22,8 +23,8 @@ impl ReaderWindow {
 
     #[cfg(feature = "tracing")]
     {
-      tracing::trace!(?kind, ?url);
-      tracing::trace!(%script);
+      trace!(?kind, ?url);
+      trace!(%script);
     }
 
     let window = WebviewWindowBuilder::new(app, label, url)
@@ -124,12 +125,14 @@ fn on_window_event(app: &AppHandle, window_id: u16) -> impl Fn(&WindowEvent) {
   move |event| match event {
     WindowEvent::CloseRequested { .. } => {
       #[cfg(feature = "tracing")]
-      tracing::trace!(close_requested = WindowKind::Reader(window_id).label());
+      trace!(close_requested = WindowKind::Reader(window_id).label());
+
       handle_close_requested_event(&app, window_id);
     }
     WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
       #[cfg(feature = "tracing")]
-      tracing::trace!(dropped = ?paths);
+      trace!(dropped = ?paths);
+
       handle_drop_event(&app, window_id, paths);
     }
     _ => {}

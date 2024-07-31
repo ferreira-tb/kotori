@@ -102,6 +102,7 @@ version = "1.10.0"
 features = ["v4", "v7", "fast-rng"]
 
 [features]
+default = ["devtools", "tracing"]
 devtools = ["tauri/devtools"]
 open-main-devtools = ["devtools"]
 open-reader-devtools = ["devtools"]

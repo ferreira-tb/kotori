@@ -10,7 +10,7 @@ use strum::{AsRefStr, Display};
 use tauri::Emitter;
 
 #[allow(clippy::enum_variant_names)]
-#[derive(AsRefStr, Clone, Display)]
+#[derive(AsRefStr, Clone, Debug, Display)]
 #[strum(serialize_all = "snake_case")]
 pub enum Event<'a> {
   BookAdded(&'a LibraryBook),
@@ -31,11 +31,12 @@ pub enum Event<'a> {
     window_id: u16,
   },
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   LibraryCleared,
 }
 
 impl<'a> Event<'a> {
+  #[cfg_attr(feature = "tracing", instrument(skip(app)))]
   pub fn emit(self, app: &AppHandle) -> Result<()> {
     let event = self.as_ref();
 
@@ -59,7 +60,7 @@ impl<'a> Event<'a> {
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated { id, rating }),
       Event::ReaderBookChanged { window_id } => to_reader!(window_id, ()),
 
-      #[cfg(any(debug_assertions, feature = "devtools"))]
+      #[cfg(feature = "devtools")]
       Event::LibraryCleared => to_main!(()),
     }
   }
@@ -70,7 +71,8 @@ where
   P: Serialize + Clone + fmt::Debug,
 {
   #[cfg(feature = "tracing")]
-  tracing::debug!(event, target = "main", ?payload);
+  debug!(event, target = "main", ?payload);
+
   app
     .emit_to(WindowKind::Main, event, payload)
     .map_err(Into::into)
@@ -81,7 +83,8 @@ where
   P: Serialize + Clone + fmt::Debug,
 {
   #[cfg(feature = "tracing")]
-  tracing::debug!(event, target = "reader", id, ?payload);
+  debug!(event, target = "reader", id, ?payload);
+
   app
     .emit_to(WindowKind::Reader(id), event, payload)
     .map_err(Into::into)

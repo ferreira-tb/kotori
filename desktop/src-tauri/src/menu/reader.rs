@@ -52,7 +52,7 @@ impl Listener for Item {
 
       if let Some(item) = Self::from_menu_id(&menu_id, window_id) {
         #[cfg(feature = "tracing")]
-        tracing::debug!(menu_event = %item, reader_window = window_id);
+        debug!(menu_event = %item, reader_window = window_id);
         match item {
           Item::AddBookToLibrary => add_to_library(&app, window_id).await,
           Item::Close => close_reader_window(&app, &label),

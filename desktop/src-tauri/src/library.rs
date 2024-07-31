@@ -33,7 +33,7 @@ where
       .any(|it| folder.starts_with(it))
     {
       #[cfg(feature = "tracing")]
-      tracing::trace!(skip_folder = ?folder);
+      trace!(skip_folder = ?folder);
       continue;
     }
 
@@ -216,7 +216,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
   let handle = app.database_handle();
   handle.remove_all_books().await?;
@@ -260,9 +260,7 @@ fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
     });
 }
 
-/// Adds mock books to the library.
-/// This should only be used for testing.
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub async fn add_mock_books(
   app: &AppHandle,
   amount: u8,
@@ -275,7 +273,7 @@ pub async fn add_mock_books(
   let mut set = JoinSet::new();
   for _ in 0..amount {
     let app = app.clone();
-    set.spawn(async move { create_book(&app, size, orientation).await });
+    set.spawn_blocking(move || create_book(&app, size, orientation));
   }
 
   let mut books = Vec::with_capacity(amount.into());

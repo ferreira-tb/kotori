@@ -1,9 +1,9 @@
 use super::{ColorMode, WindowKind};
 use crate::book::ActiveBook;
 use crate::menu::AppMenu;
+use crate::reader;
 use crate::utils::glob;
 use crate::utils::result::{Result, ResultExt};
-use crate::{reader, VERSION};
 use itertools::Itertools;
 use std::path::PathBuf;
 use tauri::async_runtime::spawn;
@@ -26,8 +26,8 @@ pub fn open(app: &AppHandle) -> Result<()> {
   window.on_menu_event(on_menu_event());
   window.on_window_event(on_window_event(app));
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
-  window.set_title(&format!("Kotori DEV {VERSION}"))?;
+  #[cfg(feature = "devtools")]
+  window.set_title(&format!("Kotori DEV {}", crate::VERSION))?;
 
   #[cfg(feature = "open-main-devtools")]
   window.open_devtools();
@@ -51,11 +51,13 @@ fn on_window_event(app: &AppHandle) -> impl Fn(&WindowEvent) {
     WindowEvent::Destroyed => {
       #[cfg(feature = "tracing")]
       tracing::info!("main window destroyed, exiting");
+
       app.exit(0);
     }
     WindowEvent::DragDrop(DragDropEvent::Drop { paths, .. }) => {
       #[cfg(feature = "tracing")]
       tracing::trace!(?paths, "dropped files");
+
       handle_drop_event(&app, paths);
     }
     _ => {}

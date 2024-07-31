@@ -41,7 +41,7 @@ impl ReaderBook {
       .map(|it| &it.book)?;
 
     #[cfg(feature = "tracing")]
-    tracing::trace!(?book);
+    trace!(?book);
 
     Self::from_active(book).await
   }

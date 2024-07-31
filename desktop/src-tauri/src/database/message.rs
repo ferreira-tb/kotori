@@ -1,6 +1,7 @@
 use crate::book::Title;
 use crate::database::model::prelude::*;
 use crate::utils::result::TxResult;
+use std::fmt;
 use std::path::PathBuf;
 use strum::Display;
 
@@ -58,12 +59,20 @@ pub enum Message {
     tx: TxResult<Book>,
   },
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   RemoveAllBooks {
     tx: TxResult<()>,
   },
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   RemoveAllFolders {
     tx: TxResult<()>,
   },
+}
+
+impl fmt::Debug for Message {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    f.debug_tuple("Message")
+      .field(&self.to_string())
+      .finish()
+  }
 }

@@ -142,9 +142,10 @@ impl ActiveBook {
 
     let format = match image::guess_format(&bytes) {
       Ok(format) => format,
-      Err(_error) => {
+      #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
+      Err(error) => {
         #[cfg(feature = "tracing")]
-        tracing::warn!(error = %_error);
+        warn!("failed to guess image format: {error}");
 
         ImageFormat::from_path(name)?
       }
@@ -208,7 +209,7 @@ impl Drop for ActiveBook {
     spawn(async move { handle.close(&path).await });
 
     #[cfg(feature = "tracing")]
-    tracing::trace!(active_book_drop = %self.path.display());
+    trace!(active_book_drop = %self.path.display());
   }
 }
 

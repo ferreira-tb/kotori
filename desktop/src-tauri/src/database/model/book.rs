@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 
-#[derive(Queryable, Selectable, Serialize, Deserialize)]
+#[derive(Queryable, Selectable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = crate::database::schema::books)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[serde(rename_all(serialize = "camelCase"))]
@@ -34,7 +34,7 @@ impl Book {
   }
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Debug)]
 #[diesel(table_name = crate::database::schema::books)]
 pub struct NewBook {
   path: String,

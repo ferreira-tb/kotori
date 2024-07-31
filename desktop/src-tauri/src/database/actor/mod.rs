@@ -33,6 +33,7 @@ impl Actor {
   fn handle_message(&mut self, message: Message) {
     #[cfg(feature = "tracing")]
     tracing::trace!(%message);
+    
     match message {
       Message::GetAllBooks { tx } => {
         send!(tx, book::get_all(&mut self.db));
@@ -74,11 +75,11 @@ impl Actor {
         send!(tx, book::update_rating(&mut self.db, book_id, rating));
       }
 
-      #[cfg(any(debug_assertions, feature = "devtools"))]
+      #[cfg(feature = "devtools")]
       Message::RemoveAllBooks { tx } => {
         send!(tx, book::remove_all(&mut self.db));
       }
-      #[cfg(any(debug_assertions, feature = "devtools"))]
+      #[cfg(feature = "devtools")]
       Message::RemoveAllFolders { tx } => {
         send!(tx, folder::remove_all(&mut self.db));
       }

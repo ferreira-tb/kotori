@@ -74,7 +74,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
   let app = app.handle();
 
   #[cfg(feature = "tracing")]
-  utils::log::setup_tracing(app);
+  utils::log::setup_tracing(app)?;
 
   app.manage(Kotori {
     database_handle: DatabaseHandle::new(app)?,
@@ -94,7 +94,7 @@ mod plugin {
   use tauri::plugin::TauriPlugin;
   use tauri::Wry;
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   pub fn prevent_default() -> TauriPlugin<Wry> {
     use tauri_plugin_prevent_default::Flags;
 
@@ -103,7 +103,7 @@ mod plugin {
       .build()
   }
 
-  #[cfg(not(any(debug_assertions, feature = "devtools")))]
+  #[cfg(not(feature = "devtools"))]
   pub fn prevent_default() -> TauriPlugin<Wry> {
     tauri_plugin_prevent_default::Builder::new().build()
   }

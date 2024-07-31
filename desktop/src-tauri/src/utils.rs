@@ -53,8 +53,10 @@ pub mod glob {
 
 #[cfg(feature = "tracing")]
 pub mod log {
+  use crate::utils::result::BoxResult;
   use std::io;
   use tauri::{AppHandle, Manager};
+  use tracing::subscriber::set_global_default;
   use tracing_appender::non_blocking::WorkerGuard;
   use tracing_appender::rolling;
   use tracing_subscriber::fmt::time::ChronoLocal;
@@ -70,13 +72,12 @@ pub mod log {
     guard: WorkerGuard,
   }
 
-  pub fn setup_tracing(app: &AppHandle) {
+  pub fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
     let filter = EnvFilter::builder()
-      .from_env()
-      .unwrap()
-      .add_directive("kotori=trace".parse().unwrap())
-      .add_directive("tauri_plugin_manatsu=trace".parse().unwrap())
-      .add_directive("tauri_plugin_pinia=trace".parse().unwrap());
+      .from_env()?
+      .add_directive("kotori=trace".parse()?)
+      .add_directive("tauri_plugin_manatsu=trace".parse()?)
+      .add_directive("tauri_plugin_pinia=trace".parse()?);
 
     let appender = rolling::never("../../", "kotori.log");
     let (writer, guard) = tracing_appender::non_blocking(appender);
@@ -99,7 +100,7 @@ pub mod log {
       .with(stderr)
       .with(filter);
 
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    set_global_default(subscriber).map_err(Into::into)
   }
 }
 
@@ -139,9 +140,9 @@ pub mod path {
     fn cover_dir(&self) -> Result<PathBuf>;
     fn cover(&self, book_id: i32) -> Result<PathBuf>;
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     fn dev_cache_dir(&self) -> Result<PathBuf>;
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     fn mocks_dir(&self) -> Result<PathBuf>;
   }
 
@@ -159,7 +160,7 @@ pub mod path {
         .map(|it| it.join(book_id.to_string()))
     }
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     fn dev_cache_dir(&self) -> Result<PathBuf> {
       self
         .app_cache_dir()
@@ -167,7 +168,7 @@ pub mod path {
         .map_err(Into::into)
     }
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     fn mocks_dir(&self) -> Result<PathBuf> {
       self.dev_cache_dir().map(|it| it.join("mocks"))
     }

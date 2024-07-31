@@ -37,7 +37,7 @@ impl MenuExt for Submenu<Wry> {
   fn set_item_enabled(&self, id: &MenuId, enabled: bool) -> Result<()> {
     if self.id() == id {
       #[cfg(feature = "tracing")]
-      tracing::debug!(menu_id = id.as_ref(), enabled);
+      debug!(menu_id = id.as_ref(), enabled);
       self.set_enabled(enabled).map_err(Into::into)
     } else {
       find_and_set_enabled(&self.items()?, id, enabled)
@@ -50,7 +50,8 @@ fn find_and_set_enabled(items: &[MenuItemKind<Wry>], id: &MenuId, enabled: bool)
     ($item:expr) => {
       if $item.id() == id {
         #[cfg(feature = "tracing")]
-        tracing::debug!(menu_id = id.as_ref(), enabled);
+        debug!(menu_id = id.as_ref(), enabled);
+
         return $item.set_enabled(enabled).map_err(Into::into);
       }
     };

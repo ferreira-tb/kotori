@@ -57,7 +57,7 @@ impl BookHandle {
 
     #[cfg(feature = "tracing")]
     if let Some(metadata) = &metadata {
-      tracing::trace!(get_metadata = ?metadata);
+      trace!(get_metadata = ?metadata);
     }
 
     Ok(metadata)
@@ -65,7 +65,7 @@ impl BookHandle {
 
   pub async fn set_metadata(&self, path: &Path, metadata: Metadata) -> Result<()> {
     #[cfg(feature = "tracing")]
-    tracing::trace!(set_metadata = ?metadata);
+    trace!(set_metadata = ?metadata);
 
     let path = path.to_owned();
     send_tx!(self, SetMetadata { path, metadata })

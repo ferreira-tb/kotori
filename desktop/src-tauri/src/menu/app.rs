@@ -1,5 +1,5 @@
 use crate::book::ActiveBook;
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 use crate::image::mock::Orientation;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
@@ -34,13 +34,13 @@ pub enum Item {
   #[strum(serialize = "kt-app-open-file")]
   OpenFile,
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   #[strum(serialize = "kt-app-add-mock-books-landscape")]
   AddMockBooksLandscape,
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   #[strum(serialize = "kt-app-add-mock-books-portrait")]
   AddMockBooksPortrait,
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   #[strum(serialize = "kt-app-remove-all-books")]
   RemoveAllBooks,
 }
@@ -62,11 +62,11 @@ impl Listener for Item {
         Item::Repository => open_repository(&app),
         Item::ScanBookFolders => scan_book_folders(&app).await,
 
-        #[cfg(any(debug_assertions, feature = "devtools"))]
+        #[cfg(feature = "devtools")]
         Item::AddMockBooksLandscape => add_mock_books(&app, Orientation::Landscape).await,
-        #[cfg(any(debug_assertions, feature = "devtools"))]
+        #[cfg(feature = "devtools")]
         Item::AddMockBooksPortrait => add_mock_books(&app, Orientation::Portrait).await,
-        #[cfg(any(debug_assertions, feature = "devtools"))]
+        #[cfg(feature = "devtools")]
         Item::RemoveAllBooks => remove_all_books(&app).await,
       }
     });
@@ -83,7 +83,7 @@ impl AppMenu {
     menu.append(&Self::view_menu(app)?)?;
     menu.append(&Self::help_menu(app)?)?;
 
-    #[cfg(any(debug_assertions, feature = "devtools"))]
+    #[cfg(feature = "devtools")]
     menu.append(&Self::dev_menu(app)?)?;
 
     Ok(menu)
@@ -157,7 +157,7 @@ impl AppMenu {
       .map_err(Into::into)
   }
 
-  #[cfg(any(debug_assertions, feature = "devtools"))]
+  #[cfg(feature = "devtools")]
   fn dev_menu<M: Manager<Wry>>(app: &M) -> Result<Submenu<Wry>> {
     let mocks = SubmenuBuilder::new(app, "Mocks")
       .items(&[
@@ -175,7 +175,7 @@ impl AppMenu {
   }
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
   library::add_mock_books(app, 15, 20, orientation)
     .await
@@ -219,7 +219,7 @@ async fn open_random_book(app: &AppHandle) {
   result.into_err_dialog(app);
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 async fn remove_all_books(app: &AppHandle) {
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();

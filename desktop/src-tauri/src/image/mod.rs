@@ -1,33 +1,32 @@
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub mod mock;
 
 use crate::prelude::*;
 use image::codecs::webp::WebPEncoder;
 use image::{ImageFormat, ImageReader};
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Cursor;
 
 /// Scales an image down to thumbnail size, writing it to `path`.
 /// This is primarily used to create the cover thumbnails used by the library.
-pub async fn create_thumbnail<P>(buf: Vec<u8>, format: ImageFormat, path: P) -> Result<()>
-where
-  P: AsRef<Path>,
-{
-  let path = path.as_ref().to_owned();
+#[cfg_attr(feature = "tracing", instrument(skip(buf)))]
+pub fn create_thumbnail(buf: Vec<u8>, format: ImageFormat, path: &Path) -> Result<()> {
+  #[cfg(feature = "tracing")]
+  let start = std::time::Instant::now();
+
   let parent = path.try_parent()?;
-  tokio::fs::create_dir_all(parent).await?;
+  fs::create_dir_all(parent)?;
 
-  let join = spawn_blocking(move || {
-    let cursor = Cursor::new(buf);
-    let reader = ImageReader::with_format(cursor, format).decode()?;
-    let thumbnail = reader.thumbnail(400, 400);
+  let cursor = Cursor::new(buf);
+  let reader = ImageReader::with_format(cursor, format).decode()?;
+  let thumbnail = reader.thumbnail(400, 400);
 
-    let file = File::create(&path)?;
-    let encoder = WebPEncoder::new_lossless(file);
-    thumbnail.write_with_encoder(encoder)?;
+  let file = File::create(&path)?;
+  let encoder = WebPEncoder::new_lossless(file);
+  thumbnail.write_with_encoder(encoder)?;
 
-    Ok(())
-  });
+  #[cfg(feature = "tracing")]
+  info!("thumbnail created in {:?}", start.elapsed());
 
-  join.await?
+  Ok(())
 }
