@@ -51,6 +51,7 @@ impl Listener for Item {
       };
 
       if let Some(item) = Self::from_menu_id(&menu_id, window_id) {
+        #[cfg(feature = "tracing")]
         debug!(menu_event = %item, reader_window = window_id);
         match item {
           Item::AddBookToLibrary => add_to_library(&app, window_id).await,
@@ -109,7 +110,7 @@ impl ReaderMenu {
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
     let result: Result<()> = try {
-      let book = library::save(app, path).await?;
+      let book = library::save(app, &path).await?;
 
       // Disable the menu item after adding the book to the library.
       ReaderWindow::update_all_menus(app).await?;

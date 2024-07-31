@@ -9,14 +9,15 @@
     "*.{?(c|m)@(j|t)s,css,vue,md,json,yaml}": "eslint --fix"
   },
   "scripts": {
-    "build": "cargo tauri build --no-bundle",
-    "build:dev": "cargo tauri build --no-bundle --features devtools",
+    "build": "cargo tauri build --no-bundle -- --no-default-features",
+    "build:dev": "cargo tauri build --no-bundle -- --no-default-features --features devtools",
     "bundle": "cargo tauri build",
     "clippy": "cargo clippy",
     "dev": "cargo tauri dev",
     "dev:debug": "cargo tauri dev --features tracing-level-debug",
     "dev:info": "cargo tauri dev --features tracing-level-info",
     "dev:warn": "cargo tauri dev --features tracing-level-warn",
+    "dev:error": "cargo tauri dev --features tracing-level-error",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --cache --fix",
     "prepare": "husky",

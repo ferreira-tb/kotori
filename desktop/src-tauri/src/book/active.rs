@@ -1,7 +1,6 @@
 use crate::book::cover::Cover;
 use crate::book::handle::PageMap;
 use crate::book::title::Title;
-use crate::book::update_cover;
 use crate::database::model::Book;
 use crate::event::Event;
 use crate::library;
@@ -133,16 +132,24 @@ impl ActiveBook {
     self
       .app
       .book_handle()
-      .read_page(&self.path, name)
+      .read_page(&self.path, &name)
       .await
   }
 
   pub async fn extract_cover(&self) -> Result<()> {
     let name = self.get_cover_name().await?;
     let bytes = self.get_page_as_bytes(&name).await?;
-    let format = image::guess_format(&bytes)
-      .inspect_err(|error| warn!(%error))
-      .or_else(|_| ImageFormat::from_path(name))?;
+
+    let format = match image::guess_format(&bytes) {
+      Ok(format) => format,
+      #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
+      Err(error) => {
+        #[cfg(feature = "tracing")]
+        warn!("failed to guess image format: {error}");
+
+        ImageFormat::from_path(name)?
+      }
+    };
 
     let id = self.try_id().await?;
     let path = self.app.path().cover(id)?;
@@ -177,11 +184,16 @@ impl ActiveBook {
 
       // Update with a new cover if it was the deleted page.
       if is_cover {
-        self
+        let first_page = self
           .app
           .book_handle()
           .get_first_page_name(&self.path)
-          .and_then(|name| update_cover(&self.app, id, name))
+          .await?;
+
+        self
+          .app
+          .database_handle()
+          .update_book_cover(id, &first_page)
           .await?;
       }
     }
@@ -194,8 +206,9 @@ impl Drop for ActiveBook {
   fn drop(&mut self) {
     let path = self.path.clone();
     let handle = self.app.book_handle();
-    spawn(async move { handle.close(path).await });
+    spawn(async move { handle.close(&path).await });
 
+    #[cfg(feature = "tracing")]
     trace!(active_book_drop = %self.path.display());
   }
 }

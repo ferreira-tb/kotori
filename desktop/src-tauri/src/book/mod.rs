@@ -5,11 +5,10 @@ mod metadata;
 mod structs;
 mod title;
 
-use crate::event::Event;
 use crate::prelude::*;
 use crate::reader;
 pub use active::ActiveBook;
-pub use handle::{BookHandle, MAX_FILE_PERMITS};
+pub use handle::BookHandle;
 pub use metadata::Metadata;
 pub use structs::{LibraryBook, ReaderBook};
 use tauri_plugin_dialog::{DialogExt, FileDialogBuilder};
@@ -40,29 +39,4 @@ pub async fn open_with_dialog(app: &AppHandle) -> Result<()> {
   }
 
   Ok(())
-}
-
-/// Set the specified page as the book cover, extracting it afterwards.
-pub async fn update_cover<N>(app: &AppHandle, id: i32, name: N) -> Result<()>
-where
-  N: AsRef<str>,
-{
-  let book = app
-    .database_handle()
-    .update_book_cover(id, name.as_ref())
-    .await?;
-
-  let active = ActiveBook::from_model(app, &book)?;
-  active.extract_cover().await?;
-  book.save_as_metadata(app).await
-}
-
-pub async fn update_rating(app: &AppHandle, id: i32, rating: u8) -> Result<()> {
-  let book = app
-    .database_handle()
-    .update_book_rating(id, rating)
-    .await?;
-
-  Event::RatingUpdated { id, rating }.emit(app)?;
-  book.save_as_metadata(app).await
 }

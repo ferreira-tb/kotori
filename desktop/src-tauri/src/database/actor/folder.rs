@@ -14,7 +14,7 @@ pub(super) fn get_all(db: Db) -> Result<Vec<PathBuf>> {
     .map_err(Into::into)
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub(super) fn remove_all(db: Db) -> Result<()> {
   diesel::delete(folders)
     .execute(db)

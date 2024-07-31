@@ -1,4 +1,4 @@
-use crate::book::{ActiveBook, LibraryBook, MAX_FILE_PERMITS};
+use crate::book::{ActiveBook, LibraryBook};
 use crate::database::model::{Book, NewFolder};
 use crate::event::Event;
 use crate::prelude::*;
@@ -10,10 +10,13 @@ use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
 use walkdir::WalkDir;
 
-pub async fn add_folders<F>(app: &AppHandle, folders: &[F]) -> Result<()>
+const MAX_FILE_PERMITS: usize = 50;
+
+pub async fn add_folders<I>(app: &AppHandle, folders: I) -> Result<()>
 where
-  F: AsRef<Path>,
+  I: IntoIterator<Item = PathBuf>,
 {
+  let folders = folders.into_iter().collect_vec();
   if folders.is_empty() {
     return Ok(());
   }
@@ -23,20 +26,19 @@ where
   let mut current_folders = Vec::with_capacity(folders.len());
 
   for folder in folders {
-    let folder = folder.as_ref();
-
     // There's no need to add folders contained in others that have already been saved.
     if library_folders
       .iter()
       .chain(current_folders.iter())
       .any(|it| folder.starts_with(it))
     {
+      #[cfg(feature = "tracing")]
       trace!(skip_folder = ?folder);
       continue;
     }
 
-    current_folders.push(folder.to_owned());
-    walk_folder(&mut books, folder);
+    walk_folder(&mut books, &folder);
+    current_folders.push(folder);
   }
 
   if !current_folders.is_empty() {
@@ -68,19 +70,16 @@ pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   });
 
   let folders = rx.await?;
-  add_folders(app, &folders).await
+  add_folders(app, folders).await
 }
 
-pub async fn save<P>(app: &AppHandle, path: P) -> Result<Book>
-where
-  P: AsRef<Path>,
-{
-  let mut builder = Book::builder(&path);
+pub async fn save(app: &AppHandle, path: &Path) -> Result<Book> {
+  let mut builder = Book::builder(path);
   let book_handle = app.book_handle();
-  let cover = book_handle.get_first_page_name(&path).await?;
+  let cover = book_handle.get_first_page_name(path).await?;
   builder = builder.cover(cover);
 
-  if let Some(metadata) = book_handle.get_metadata(&path).await? {
+  if let Some(metadata) = book_handle.get_metadata(path).await? {
     builder = builder.metadata(metadata);
   }
 
@@ -107,7 +106,7 @@ where
     let semaphore = Arc::clone(&semaphore);
     async move {
       let _permit = semaphore.acquire_owned().await?;
-      save(&app, path).await
+      save(&app, &path).await
     }
   });
 
@@ -217,7 +216,7 @@ pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   Ok(())
 }
 
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub async fn remove_all(app: &AppHandle) -> Result<()> {
   let handle = app.database_handle();
   handle.remove_all_books().await?;
@@ -261,9 +260,7 @@ fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
     });
 }
 
-/// Adds mock books to the library.
-/// This should only be used for testing.
-#[cfg(any(debug_assertions, feature = "devtools"))]
+#[cfg(feature = "devtools")]
 pub async fn add_mock_books(
   app: &AppHandle,
   amount: u8,
@@ -276,7 +273,7 @@ pub async fn add_mock_books(
   let mut set = JoinSet::new();
   for _ in 0..amount {
     let app = app.clone();
-    set.spawn(async move { create_book(&app, size, orientation).await });
+    set.spawn_blocking(move || create_book(&app, size, orientation));
   }
 
   let mut books = Vec::with_capacity(amount.into());

@@ -47,6 +47,7 @@ function onCoverExtracted() {
 }
 
 function onLibraryCleared() {
+  if (!window.MANATSU.dev) return Promise.resolve();
   return listen(Event.LibraryCleared, () => {
     const store = useLibraryStore();
     store.library.load().catch(handleError);

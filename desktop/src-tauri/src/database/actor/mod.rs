@@ -3,7 +3,6 @@ mod collection;
 mod folder;
 
 use crate::database::message::Message;
-use crate::prelude::*;
 use diesel::sqlite::SqliteConnection;
 use std::sync::mpsc;
 
@@ -15,24 +14,26 @@ macro_rules! send {
   };
 }
 
-pub struct Actor {
+pub(super) struct Actor {
   db: SqliteConnection,
   receiver: mpsc::Receiver<Message>,
 }
 
 impl Actor {
-  pub fn new(db: SqliteConnection, receiver: mpsc::Receiver<Message>) -> Self {
+  pub(super) fn new(db: SqliteConnection, receiver: mpsc::Receiver<Message>) -> Self {
     Self { db, receiver }
   }
 
-  pub fn run(&mut self) {
+  pub(super) fn run(&mut self) {
     while let Ok(message) = self.receiver.recv() {
       self.handle_message(message);
     }
   }
 
   fn handle_message(&mut self, message: Message) {
-    trace!(%message);
+    #[cfg(feature = "tracing")]
+    tracing::trace!(%message);
+    
     match message {
       Message::GetAllBooks { tx } => {
         send!(tx, book::get_all(&mut self.db));
@@ -74,11 +75,11 @@ impl Actor {
         send!(tx, book::update_rating(&mut self.db, book_id, rating));
       }
 
-      #[cfg(any(debug_assertions, feature = "devtools"))]
+      #[cfg(feature = "devtools")]
       Message::RemoveAllBooks { tx } => {
         send!(tx, book::remove_all(&mut self.db));
       }
-      #[cfg(any(debug_assertions, feature = "devtools"))]
+      #[cfg(feature = "devtools")]
       Message::RemoveAllFolders { tx } => {
         send!(tx, folder::remove_all(&mut self.db));
       }
