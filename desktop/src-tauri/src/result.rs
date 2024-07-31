@@ -16,6 +16,10 @@ pub trait ResultExt<T> {
   /// Show an error dialog, consuming `self`, and discarding the success value, if any.
   fn into_err_dialog(self, app: &AppHandle);
 
+  /// Show a blocking error dialog, consuming `self`, and discarding the success value, if any.
+  ///
+  /// This method will block the current thread until the dialog is closed,
+  /// so it should only be used when an error would be catastrophic.
   fn into_blocking_err_dialog(self, app: &AppHandle);
 }
 

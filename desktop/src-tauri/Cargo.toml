@@ -15,32 +15,32 @@ version = "2.0.0-beta.19"
 features = []
 
 [dependencies]
-ahash = "0.8.11"
-anyhow = "1.0.86"
-axum = "0.7.5"
-chrono = "0.4.38"
-future-iter = "0.1.4"
-futures = "0.3.30"
-globset = "0.4.14"
-image = "0.25.2"
-indexmap = "2.2.6"
-itertools = "0.13.0"
-natord = "1.0.9"
-rand = "0.8.5"
-serde_json = "1.0.121"
-tauri-plugin-clipboard-manager = "2.1.0-beta.6"
-tauri-plugin-dialog = "2.0.0-beta.11"
-tauri-plugin-manatsu = "1.0.0-alpha.1"
-tauri-plugin-persisted-scope = "2.0.0-beta.11"
-tauri-plugin-single-instance = "2.0.0-beta.11"
-tauri-plugin-shell = "2.0.0-beta.9"
-tauri-plugin-window-state = "2.0.0-beta.11"
-thiserror = "1.0.63"
-walkdir = "2.5.0"
-zip = "2.1.6"
+ahash = "0.8"
+anyhow = "1.0"
+axum = "0.7"
+chrono = "0.4"
+future-iter = "0.1"
+futures = "0.3"
+globset = "0.4"
+image = "0.25"
+indexmap = "2.3"
+itertools = "0.13"
+natord = "1.0"
+rand = "0.8"
+serde_json = "1.0"
+tauri-plugin-clipboard-manager = "2.1.0-beta.7"
+tauri-plugin-dialog = "2.0.0-beta.12"
+tauri-plugin-manatsu = "1.0.0-alpha.2"
+tauri-plugin-persisted-scope = "2.0.0-beta.12"
+tauri-plugin-single-instance = "2.0.0-beta.12"
+tauri-plugin-shell = "2.0.0-beta.10"
+tauri-plugin-window-state = "2.0.0-beta.12"
+thiserror = "1.0"
+walkdir = "2.5"
+zip = "2.1"
 
 [dependencies.diesel]
-version = "2.2.2"
+version = "2.2"
 features = ["sqlite", "returning_clauses_for_sqlite_3_35"]
 
 [dependencies.diesel_migrations]
@@ -48,7 +48,7 @@ version = "2.2"
 features = ["sqlite"]
 
 [dependencies.open]
-version = "5.3.0"
+version = "5.3"
 features = ["shellexecute-on-windows"]
 
 [dependencies.libsqlite3-sys]
@@ -56,15 +56,15 @@ version = "0.29"
 features = ["bundled"]
 
 [dependencies.semver]
-version = "1.0.23"
+version = "1.0"
 features = ["serde"]
 
 [dependencies.serde]
-version = "1.0.204"
+version = "1.0"
 features = ["derive"]
 
 [dependencies.strum]
-version = "0.26.3"
+version = "0.26"
 features = ["derive"]
 
 [dependencies.tauri]
@@ -72,37 +72,37 @@ version = "2.0.0-beta.25"
 features = ["protocol-asset", "rustls-tls"]
 
 [dependencies.tauri-plugin-http]
-version = "2.0.0-beta.12"
+version = "2.0.0-beta.13"
 features = ["rustls-tls"]
 
 [dependencies.tauri-plugin-pinia]
-version = "0.3.3"
+version = "0.3"
 features = ["ahash"]
 
 [dependencies.tauri-plugin-prevent-default]
-version = "0.2.1"
+version = "0.2"
 features = ["ahash"]
 
 [dependencies.tokio]
-version = "1.39.2"
+version = "1.39"
 features = ["full"]
 
 [dependencies.tracing]
-version = "0.1.40"
+version = "0.1"
 optional = true
 
 [dependencies.tracing-appender]
-version = "0.2.3"
+version = "0.2"
 optional = true
 features = ["parking_lot"]
 
 [dependencies.tracing-subscriber]
-version = "0.3.18"
+version = "0.3"
 optional = true
 features = ["chrono", "env-filter", "fmt", "json", "parking_lot", "registry"]
 
 [dependencies.uuid]
-version = "1.10.0"
+version = "1.10"
 features = ["v4", "v7", "fast-rng"]
 
 [features]

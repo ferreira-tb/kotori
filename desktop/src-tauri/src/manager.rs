@@ -20,7 +20,9 @@ pub trait ManagerExt: Manager<Wry> {
 
   fn main_window(&self) -> WebviewWindow {
     let label = WindowKind::Main.label();
-    self.get_webview_window(&label).unwrap()
+    self
+      .get_webview_window(&label)
+      .expect("main window MUST exist")
   }
 
   fn reader_windows(&self) -> WindowMap {
