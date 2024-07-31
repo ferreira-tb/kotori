@@ -52,7 +52,7 @@ pub struct BookBuilder {
   title: Option<Title>,
   rating: Option<u8>,
   cover: Option<String>,
-  read: bool,
+  read: Option<bool>,
 }
 
 impl BookBuilder {
@@ -63,7 +63,7 @@ impl BookBuilder {
       title: None,
       rating: None,
       cover: None,
-      read: false,
+      read: None,
     }
   }
 
@@ -78,16 +78,20 @@ impl BookBuilder {
   }
 
   pub fn metadata(mut self, mut metadata: Metadata) -> Self {
-    if metadata.title.is_some() {
-      self.title = metadata.title.take();
+    if metadata.cover.is_some() {
+      self.cover = metadata.cover.take();
     }
 
     if metadata.rating.is_some_and(|it| it <= 5) {
       self.rating = metadata.rating.take();
     }
 
-    if metadata.cover.is_some() {
-      self.cover = metadata.cover.take();
+    if metadata.read.is_some() {
+      self.read = metadata.read.take();
+    }
+
+    if metadata.title.is_some() {
+      self.title = metadata.title.take();
     }
 
     self
@@ -115,7 +119,7 @@ impl BookBuilder {
       title,
       cover,
       rating: self.rating.map_or(0, Into::into),
-      read: self.read,
+      read: self.read.unwrap_or(false),
     })
   }
 }
