@@ -83,7 +83,7 @@ impl LibraryBookContextMenu {
         &mi!(app, Item::RemoveBook, "Remove")?,
       ])
       .separator()
-      .items(&[&*MarkAs::new(app, &ctx)?])
+      .items(&[&*MarkAsSubmenu::new(app, &ctx)?])
       .separator()
       .items(&[&mi!(app, Item::OpenBookFolder, "Open folder")?])
       .build()?;
@@ -110,9 +110,9 @@ impl ContextMenuUpdate for LibraryBookContextMenu {
   }
 }
 
-struct MarkAs(Submenu<Wry>);
+struct MarkAsSubmenu(Submenu<Wry>);
 
-impl MarkAs {
+impl MarkAsSubmenu {
   fn new<M: Manager<Wry>>(app: &M, ctx: &Context) -> Result<Self> {
     let submenu = SubmenuBuilder::new(app, "Mark as")
       .items(&[
@@ -129,7 +129,7 @@ impl MarkAs {
   }
 }
 
-impl Deref for MarkAs {
+impl Deref for MarkAsSubmenu {
   type Target = Submenu<Wry>;
 
   fn deref(&self) -> &Self::Target {
