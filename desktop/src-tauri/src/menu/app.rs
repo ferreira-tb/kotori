@@ -261,13 +261,13 @@ async fn open_random_book(app: &AppHandle) {
 
 #[cfg(feature = "devtools")]
 async fn remove_all_books(app: &AppHandle) {
-  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+  use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
   let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
-  let message = "All books will be removed. Are you sure?";
-  MessageDialogBuilder::new(dialog, "Remove all books", message)
+  app
+    .dialog()
+    .message("All books will be removed. Are you sure?")
+    .title("Remove all books")
     .kind(MessageDialogKind::Warning)
     .ok_button_label("Clear")
     .cancel_button_label("Cancel")
@@ -289,15 +289,15 @@ async fn scan_book_folders(app: &AppHandle) {
 }
 
 async fn set_color_mode(app: &AppHandle, mode: ColorMode) {
-  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+  use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
   use tauri_plugin_manatsu::AppHandleExt as _;
   use tauri_plugin_window_state::{AppHandleExt as _, StateFlags};
 
   let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
-  let message = "Kotori must restart to apply the change. Do you want to continue?";
-  MessageDialogBuilder::new(dialog, "Color mode", message)
+  app
+    .dialog()
+    .message("Kotori must restart to apply the change. Do you want to continue?")
+    .title("Color mode")
     .kind(MessageDialogKind::Info)
     .ok_button_label("Confirm")
     .cancel_button_label("Cancel")

@@ -5,7 +5,7 @@ use crate::prelude::*;
 use crate::utils::glob;
 use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
 use std::sync::Arc;
-use tauri_plugin_dialog::{DialogExt, FileDialogBuilder, MessageDialogBuilder, MessageDialogKind};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tokio::fs;
 use tokio::sync::{oneshot, Semaphore};
 use walkdir::WalkDir;
@@ -63,9 +63,7 @@ where
 
 pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
-  FileDialogBuilder::new(dialog).pick_folders(move |response| {
+  app.dialog().file().pick_folders(move |response| {
     let _ = tx.send(response.unwrap_or_default());
   });
 
@@ -196,12 +194,12 @@ pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
 
 pub async fn remove_with_dialog(app: &AppHandle, id: i32) -> Result<()> {
   let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
   let title = app.database_handle().get_book_title(id).await?;
-  let message = format!("{title} will be removed from the library.");
 
-  MessageDialogBuilder::new(dialog, "Remove book", message)
+  app
+    .dialog()
+    .message(format!("{title} will be removed from the library."))
+    .title("Remove book")
     .kind(MessageDialogKind::Warning)
     .ok_button_label("Remove")
     .cancel_button_label("Cancel")

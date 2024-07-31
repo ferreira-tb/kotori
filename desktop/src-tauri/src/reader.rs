@@ -5,7 +5,7 @@ use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::window::{ReaderWindow, WindowExt};
 use std::sync::Arc;
-use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tokio::sync::{oneshot, RwLock};
 
 pub type WindowMap = Arc<RwLock<OrderedMap<u16, ReaderWindow>>>;
@@ -190,10 +190,10 @@ pub async fn delete_page(app: &AppHandle, window_id: u16, name: &str) -> Result<
 
 pub async fn delete_page_with_dialog(app: &AppHandle, window_id: u16, name: &str) -> Result<()> {
   let (tx, rx) = oneshot::channel();
-  let dialog = app.dialog().clone();
-
-  let message = "Are you sure you want to delete this page?";
-  MessageDialogBuilder::new(dialog, "Delete page", message)
+  app
+    .dialog()
+    .message("Are you sure you want to delete this page?")
+    .title("Delete page")
     .kind(MessageDialogKind::Warning)
     .ok_button_label("Delete")
     .cancel_button_label("Cancel")

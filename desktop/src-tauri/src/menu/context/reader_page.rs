@@ -80,9 +80,6 @@ async fn delete_page(app: &AppHandle) {
 }
 
 async fn export_page(app: &AppHandle) {
-  use std::fs;
-  use tauri_plugin_dialog::FileDialogBuilder;
-
   let ctx = ReaderPageContextMenu::context(app);
   let windows = app.reader_windows();
   let windows = windows.read().await;
@@ -106,7 +103,9 @@ async fn export_page(app: &AppHandle) {
       .unwrap_or_else(|| String::from("page"));
 
     let app = app.clone();
-    FileDialogBuilder::new(app.dialog().clone())
+    app
+      .dialog()
+      .file()
       .set_title("Export page")
       .set_file_name(file_name)
       .save_file(move |path| {
@@ -114,7 +113,7 @@ async fn export_page(app: &AppHandle) {
           #[cfg(feature = "tracing")]
           info!("exporting page to {:?}", path);
 
-          fs::write(path, bytes)
+          std::fs::write(path, bytes)
             .map_err(Into::into)
             .into_err_dialog(&app);
         }
