@@ -12,11 +12,14 @@ use crate::utils::result::Result;
 use actor::Actor;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
+use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use message::Message;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::{fs, thread};
 use tauri::{AppHandle, Manager};
+
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 #[derive(Clone)]
 pub struct DatabaseHandle {
@@ -35,7 +38,11 @@ impl DatabaseHandle {
     let path = path.join("kotori.db");
 
     let database_url = path.try_str()?;
-    let connection = SqliteConnection::establish(database_url)?;
+    let mut connection = SqliteConnection::establish(database_url)?;
+    connection
+      .run_pending_migrations(MIGRATIONS)
+      .unwrap();
+
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
 
