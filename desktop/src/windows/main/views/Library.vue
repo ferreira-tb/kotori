@@ -10,10 +10,10 @@ const { library, filter, selected } = storeToRefs(store);
 const mode = useRouteQuery('mode');
 const books = computed<Iterable<LibraryBookImpl>>(() => {
   if (mode.value === LibraryMode.Favorites) {
-    return library.value.favorites();
+    return library.value.iterator.favorites();
   }
 
-  return library.value.all();
+  return library.value.iterator.all();
 });
 </script>
 

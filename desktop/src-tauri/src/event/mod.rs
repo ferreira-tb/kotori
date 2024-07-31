@@ -3,7 +3,6 @@ mod payload;
 use crate::book::LibraryBook;
 use crate::prelude::*;
 use crate::window::WindowKind;
-use payload::{BookRemoved, CoverExtracted, PageDeleted, RatingUpdated};
 use serde::Serialize;
 use std::fmt;
 use strum::{AsRefStr, Display};
@@ -27,6 +26,10 @@ pub enum Event<'a> {
     id: i32,
     rating: u8,
   },
+  ReadUpdated {
+    id: i32,
+    read: bool,
+  },
   ReaderBookChanged {
     window_id: u16,
   },
@@ -38,6 +41,8 @@ pub enum Event<'a> {
 impl<'a> Event<'a> {
   #[cfg_attr(feature = "tracing", instrument(skip(app)))]
   pub fn emit(self, app: &AppHandle) -> Result<()> {
+    use payload::{BookRemoved, CoverExtracted, PageDeleted, RatingUpdated, ReadUpdated};
+
     let event = self.as_ref();
 
     macro_rules! to_main {
@@ -58,6 +63,7 @@ impl<'a> Event<'a> {
       Event::CoverExtracted { id, path } => to_main!(CoverExtracted::new(id, path)?),
       Event::PageDeleted { window_id, name } => to_reader!(window_id, PageDeleted::new(name)),
       Event::RatingUpdated { id, rating } => to_main!(RatingUpdated { id, rating }),
+      Event::ReadUpdated { id, read } => to_main!(ReadUpdated { id, read }),
       Event::ReaderBookChanged { window_id } => to_reader!(window_id, ()),
 
       #[cfg(feature = "devtools")]

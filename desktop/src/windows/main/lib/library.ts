@@ -5,8 +5,9 @@ class LibraryBookImpl implements LibraryBook {
   public readonly title: string;
   public readonly path: string;
 
-  #cover?: string | undefined;
+  #cover: string;
   #rating: number;
+  #read: boolean;
 
   /** Used to force reload the image. */
   #version = 0;
@@ -16,18 +17,16 @@ class LibraryBookImpl implements LibraryBook {
     this.title = book.title;
     this.path = book.path;
     this.#rating = book.rating;
+    this.#read = book.read;
 
-    if (book.cover) {
-      this.#cover = convertFileSrc(book.cover);
-    }
+    this.#cover = convertFileSrc(book.cover);
   }
 
   get cover() {
     return this.#cover;
   }
 
-  set cover(path: Nullish<string>) {
-    if (!path) return;
+  set cover(path: string) {
     try {
       // Adds a version search parameter to force reload the image.
       const url = new URL(convertFileSrc(path));
@@ -47,6 +46,14 @@ class LibraryBookImpl implements LibraryBook {
     if (Number.isInteger(rating) && rating >= 0 && rating <= 5) {
       this.#rating = rating;
     }
+  }
+
+  get read() {
+    return this.#read;
+  }
+
+  set read(read: boolean) {
+    this.#read = read;
   }
 
   public open() {
@@ -104,17 +111,35 @@ export class Library {
     }
   }
 
-  public *all() {
+  public setBookRead(id: number, read: boolean) {
+    const book = this.#books.get(id);
+    if (book) {
+      book.read = read;
+      this.#trigger();
+    }
+  }
+
+  public readonly iterator = {
+    all: this.all.bind(this),
+    favorites: this.favorites.bind(this),
+    read: this.read.bind(this),
+  };
+
+  private *all() {
     for (const book of this.#books.values()) {
       yield book;
     }
   }
 
-  public *favorites() {
+  private *favorites() {
     for (const book of this.#books.values()) {
-      if (book.rating >= 4) {
-        yield book;
-      }
+      if (book.rating >= 4) yield book;
+    }
+  }
+
+  private *read() {
+    for (const book of this.#books.values()) {
+      if (book.read) yield book;
     }
   }
 

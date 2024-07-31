@@ -77,6 +77,9 @@ impl Actor {
       Message::UpdateBookRating { book_id, rating, tx } => {
         send!(tx, book::update_rating(&mut self.db, book_id, rating));
       }
+      Message::UpdateBookRead { book_id, read, tx } => {
+        send!(tx, book::update_read(&mut self.db, book_id, read));
+      }
 
       #[cfg(feature = "devtools")]
       Message::RemoveAllBooks { tx } => {

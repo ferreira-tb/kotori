@@ -1,5 +1,6 @@
 use crate::book::ActiveBook;
 use crate::event::Event;
+use crate::menu::ReaderMenu;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
 use crate::window::{ReaderWindow, WindowExt, WindowManager};
@@ -48,7 +49,7 @@ pub async fn open_book(app: &AppHandle, book: ActiveBook) -> Result<()> {
   }
 
   // This will read lock the windows.
-  ReaderWindow::update_all_menus(app).await
+  ReaderMenu::update(app).await
 }
 
 pub async fn open_many<I>(app: &AppHandle, books: I) -> Result<()>
@@ -144,7 +145,7 @@ pub async fn switch_focus(app: &AppHandle) -> Result<()> {
 
     // Having the id of the focused window should be enough indication that it exists on the map.
     // That said, it isn't possible to know at what point in time we will acquire the read lock.
-    // Therefore, it's safer to check the existence of the id before continuing.
+    // So it's safer to check the existence of the id before continuing.
     if windows.len() >= 2 && windows.contains_key(&focused_id) {
       let webview = windows
         .values()

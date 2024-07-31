@@ -111,3 +111,11 @@ pub(super) fn update_rating(db: Db, book_id: i32, book_rating: u8) -> Result<Boo
     .get_result(db)
     .map_err(Into::into)
 }
+
+pub(super) fn update_read(db: Db, book_id: i32, yes: bool) -> Result<Book> {
+  diesel::update(books.find(book_id))
+    .set(read.eq(yes))
+    .returning(Book::as_returning())
+    .get_result(db)
+    .map_err(Into::into)
+}

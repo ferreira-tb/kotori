@@ -134,4 +134,13 @@ impl DatabaseHandle {
 
     Ok(book)
   }
+
+  pub async fn update_book_read(&self, book_id: i32, read: bool) -> Result<Book> {
+    let book = send_tx!(self, UpdateBookRead { book_id, read })?;
+
+    Event::ReadUpdated { id: book_id, read }.emit(&self.app)?;
+    book.save_as_metadata(&self.app).await?;
+
+    Ok(book)
+  }
 }

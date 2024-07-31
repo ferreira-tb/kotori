@@ -9,8 +9,9 @@ use std::path::Path;
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Metadata {
   pub title: Option<Title>,
-  pub rating: Option<u8>,
   pub cover: Option<String>,
+  pub rating: Option<u8>,
+  pub read: Option<bool>,
 
   /// Kotori version.
   pub version: Option<Version>,
@@ -28,26 +29,37 @@ impl TryFrom<&Book> for Metadata {
   fn try_from(book: &Book) -> Result<Self> {
     let title = Title::new(&book.title);
     let rating = u8::try_from(book.rating)?;
-    Builder::new(&book.path)
+    
+    let metadata = Builder::new(&book.path)
       .title(title)
       .cover(&book.cover)
       .rating(rating)
-      .map(Builder::build)
+      .read(book.read)
+      .build();
+
+    Ok(metadata)
   }
 }
 
 #[derive(Debug)]
 pub struct Builder {
   title: Option<Title>,
-  rating: Option<u8>,
   cover: Option<String>,
+  rating: u8,
+  read: bool,
 }
 
 impl Builder {
   pub fn new(path: impl AsRef<Path>) -> Self {
     let path = path.as_ref();
     let title = Title::try_from(path).ok();
-    Self { title, rating: Some(0), cover: None }
+
+    Self {
+      title,
+      rating: 0,
+      cover: None,
+      read: false,
+    }
   }
 
   pub fn cover(mut self, cover: impl AsRef<str>) -> Self {
@@ -56,13 +68,14 @@ impl Builder {
     self
   }
 
-  pub fn rating(mut self, rating: u8) -> Result<Self> {
-    if rating > 5 {
-      bail!(InvalidRating);
-    }
+  pub fn rating(mut self, rating: u8) -> Self {
+    self.rating = rating;
+    self
+  }
 
-    self.rating = Some(rating);
-    Ok(self)
+  pub fn read(mut self, read: bool) -> Self {
+    self.read = read;
+    self
   }
 
   pub fn title(mut self, title: Title) -> Self {
@@ -74,8 +87,9 @@ impl Builder {
     let version = Version::parse(VERSION).unwrap();
     Metadata {
       title: self.title,
-      rating: self.rating,
       cover: self.cover,
+      rating: Some(self.rating),
+      read: Some(self.read),
       version: Some(version),
     }
   }

@@ -1,7 +1,7 @@
+pub use crate::err;
+pub use crate::manager::ManagerExt as _;
 pub use crate::path::{PathExt as _, PathResolverExt as _};
 pub use crate::result::{Result, ResultExt as _};
-pub use crate::utils::manager::ManagerExt as _;
-pub use crate::{bail, err};
 pub use futures::{FutureExt, TryFutureExt};
 pub use itertools::Itertools;
 pub use std::path::{Path, PathBuf};

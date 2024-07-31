@@ -1,3 +1,4 @@
+use crate::menu::context::ContextMenuUpdate;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
@@ -54,6 +55,10 @@ impl ReaderPageContextMenu {
   pub fn popup(window: &Window, ctx: Context) -> Result<()> {
     popup_context_menu!(window, ReaderPageContextMenu, ctx)
   }
+}
+
+impl ContextMenuUpdate for ReaderPageContextMenu {
+  type Context = Context;
 }
 
 async fn delete_page(app: &AppHandle) {

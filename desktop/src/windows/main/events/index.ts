@@ -8,6 +8,7 @@ export const enum Event {
   CoverExtracted = 'cover_extracted',
   LibraryCleared = 'library_cleared',
   RatingUpdated = 'rating_updated',
+  ReadUpdated = 'read_updated',
 }
 
 export function setupEventListeners() {
@@ -17,6 +18,7 @@ export function setupEventListeners() {
     onCoverExtracted(),
     onLibraryCleared(),
     onRatingUpdated(),
+    onReadUpdated(),
   ]);
 
   promises.catch(handleError);
@@ -59,5 +61,12 @@ function onRatingUpdated() {
   return listen<RatingUpdatedPayload>(Event.RatingUpdated, ({ payload }) => {
     const store = useLibraryStore();
     store.library.setBookRating(payload.id, payload.rating);
+  });
+}
+
+function onReadUpdated() {
+  return listen<ReadUpdatedPayload>(Event.ReadUpdated, ({ payload }) => {
+    const store = useLibraryStore();
+    store.library.setBookRead(payload.id, payload.read);
   });
 }

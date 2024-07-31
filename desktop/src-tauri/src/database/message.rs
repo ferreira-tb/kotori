@@ -62,6 +62,11 @@ pub enum Message {
     rating: u8,
     tx: TxResult<Book>,
   },
+  UpdateBookRead {
+    book_id: i32,
+    read: bool,
+    tx: TxResult<Book>,
+  },
 
   #[cfg(feature = "devtools")]
   RemoveAllBooks {

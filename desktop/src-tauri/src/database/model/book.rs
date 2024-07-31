@@ -1,13 +1,13 @@
 use crate::book::{Metadata, Title};
+use crate::manager::ManagerExt;
 use crate::path::PathExt;
 use crate::result::Result;
-use crate::utils::manager::ManagerExt;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tauri::AppHandle;
 
-#[derive(Queryable, Selectable, Debug, Serialize, Deserialize)]
+#[derive(Queryable, Selectable, Clone, Debug, Serialize, Deserialize)]
 #[diesel(table_name = crate::database::schema::books)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[serde(rename_all(serialize = "camelCase"))]

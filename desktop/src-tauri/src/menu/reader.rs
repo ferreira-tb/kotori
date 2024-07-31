@@ -2,7 +2,7 @@ use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
-use crate::window::ReaderWindow;
+use crate::window::WindowManager;
 use crate::{library, reader};
 use tauri::menu::MenuId;
 
@@ -105,6 +105,24 @@ impl ReaderMenu {
       .build()
       .map_err(Into::into)
   }
+
+  pub async fn update(app: &AppHandle) -> Result<()> {
+    let windows = app.reader_windows();
+    let windows = windows.read().await;
+
+    for window in windows.values() {
+      let menu = window.menu(app)?;
+
+      let item = Item::AddBookToLibrary.to_menu_id(window.id);
+      let book_id = window.book.try_id().await.ok();
+      menu.set_item_enabled(&item, book_id.is_none())?;
+
+      let item = Item::CloseOthers.to_menu_id(window.id);
+      menu.set_item_enabled(&item, windows.len() > 1)?;
+    }
+
+    Ok(())
+  }
 }
 
 async fn add_to_library(app: &AppHandle, window_id: u16) {
@@ -112,8 +130,8 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
     let result: Result<()> = try {
       let book = library::save(app, &path).await?;
 
-      // Disable the menu item after adding the book to the library.
-      ReaderWindow::update_all_menus(app).await?;
+      // We must disable this menu item after the book is added to the library.
+      ReaderMenu::update(app).await?;
 
       ActiveBook::from_model(app, &book)?
         .extract_cover()

@@ -34,3 +34,9 @@ pub struct RatingUpdated {
   pub id: i32,
   pub rating: u8,
 }
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ReadUpdated {
+  pub id: i32,
+  pub read: bool,
+}

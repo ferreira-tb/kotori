@@ -17,3 +17,8 @@ interface RatingUpdatedPayload {
   readonly id: number;
   readonly rating: number;
 }
+
+interface ReadUpdatedPayload {
+  readonly id: number;
+  readonly read: boolean;
+}

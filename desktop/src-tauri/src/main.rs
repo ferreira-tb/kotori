@@ -12,6 +12,7 @@ mod fs;
 mod image;
 mod library;
 mod macros;
+mod manager;
 mod menu;
 mod path;
 mod prelude;

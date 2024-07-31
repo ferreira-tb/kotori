@@ -7,8 +7,6 @@ use crate::prelude::*;
 use crate::window::ColorMode;
 use crate::{library, menu_item_or_bail, reader, VERSION};
 use tauri::menu::AboutMetadataBuilder;
-use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
-use tauri_plugin_shell::ShellExt;
 use tokio::sync::oneshot;
 
 #[derive(Debug, Display, EnumString)]
@@ -195,6 +193,8 @@ async fn open_file(app: &AppHandle) {
 }
 
 fn open_discord(app: &AppHandle) {
+  use tauri_plugin_shell::ShellExt;
+
   app
     .shell()
     .open("https://discord.gg/aAje8qb49f", None)
@@ -203,6 +203,8 @@ fn open_discord(app: &AppHandle) {
 }
 
 fn open_repository(app: &AppHandle) {
+  use tauri_plugin_shell::ShellExt;
+
   const REPOSITORY: &str = env!("CARGO_PKG_REPOSITORY");
   app
     .shell()
@@ -223,6 +225,8 @@ async fn open_random_book(app: &AppHandle) {
 
 #[cfg(feature = "devtools")]
 async fn remove_all_books(app: &AppHandle) {
+  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+
   let (tx, rx) = oneshot::channel();
   let dialog = app.dialog().clone();
 
@@ -249,6 +253,7 @@ async fn scan_book_folders(app: &AppHandle) {
 }
 
 async fn set_color_mode(app: &AppHandle, mode: ColorMode) {
+  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
   use tauri_plugin_manatsu::AppHandleExt as _;
   use tauri_plugin_window_state::{AppHandleExt as _, StateFlags};
 

@@ -1,7 +1,7 @@
 use super::{ColorMode, WindowExt, WindowKind, WindowManager};
 use crate::book::ActiveBook;
 use crate::event::Event;
-use crate::menu::{MenuExt, ReaderMenu, ReaderMenuItem};
+use crate::menu::ReaderMenu;
 use crate::prelude::*;
 use crate::utils::glob;
 use tauri::menu::{Menu, MenuEvent};
@@ -54,29 +54,11 @@ impl ReaderWindow {
     Ok(ReaderWindow { id: window_id, book })
   }
 
-  pub async fn update_all_menus(app: &AppHandle) -> Result<()> {
-    let windows = app.reader_windows();
-    let windows = windows.read().await;
-
-    for window in windows.values() {
-      let menu = window.menu(app)?;
-
-      let item = ReaderMenuItem::AddBookToLibrary.to_menu_id(window.id);
-      let book_id = window.book.try_id().await.ok();
-      menu.set_item_enabled(&item, book_id.is_none())?;
-
-      let item = ReaderMenuItem::CloseOthers.to_menu_id(window.id);
-      menu.set_item_enabled(&item, windows.len() > 1)?;
-    }
-
-    Ok(())
-  }
-
   pub fn webview_window(&self, app: &AppHandle) -> Option<WebviewWindow> {
     get_reader_window(app, self.id)
   }
 
-  fn menu(&self, app: &AppHandle) -> Result<Menu<Wry>> {
+  pub fn menu(&self, app: &AppHandle) -> Result<Menu<Wry>> {
     self
       .webview_window(app)
       .and_then(|it| it.menu())
@@ -158,9 +140,7 @@ fn handle_close_requested_event(app: &AppHandle, window_id: u16) {
     drop(windows);
 
     // This will read lock the windows.
-    ReaderWindow::update_all_menus(&app)
-      .await
-      .into_err_log(&app);
+    ReaderMenu::update(&app).await.into_err_log(&app);
 
     reader_arc
       .read()
@@ -199,7 +179,7 @@ fn handle_drop_event(app: &AppHandle, window_id: u16, paths: &[PathBuf]) {
         drop(windows);
 
         // This will read lock the windows.
-        ReaderWindow::update_all_menus(&app).await?;
+        ReaderMenu::update(&app).await?;
       };
 
       result.into_err_dialog(&app);

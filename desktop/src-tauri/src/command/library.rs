@@ -45,7 +45,7 @@ pub async fn show_library_book_context_menu(window: Window, book_id: i32) -> Res
     book_id
   );
 
-  let ctx = Context { book_id };
+  let ctx = Context::new(&window, book_id).await?;
   LibraryBookContextMenu::popup(&window, ctx)
 }
 
