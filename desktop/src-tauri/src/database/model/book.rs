@@ -17,6 +17,8 @@ pub struct Book {
   pub title: String,
   pub cover: String,
   pub rating: i32,
+  /// Whether the book has been read or not.
+  pub read: bool,
 }
 
 impl Book {
@@ -41,6 +43,7 @@ pub struct NewBook {
   title: String,
   cover: String,
   rating: i32,
+  read: bool,
 }
 
 #[derive(Debug)]
@@ -49,6 +52,7 @@ pub struct BookBuilder {
   title: Option<Title>,
   rating: Option<u8>,
   cover: Option<String>,
+  read: bool,
 }
 
 impl BookBuilder {
@@ -59,6 +63,7 @@ impl BookBuilder {
       title: None,
       rating: None,
       cover: None,
+      read: false,
     }
   }
 
@@ -110,6 +115,7 @@ impl BookBuilder {
       title,
       cover,
       rating: self.rating.map_or(0, Into::into),
+      read: self.read,
     })
   }
 }

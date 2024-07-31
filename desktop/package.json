@@ -33,7 +33,7 @@
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
     "tauri-plugin-pinia": "^0.3.3",
-    "vue": "^3.4.34",
+    "vue": "^3.4.35",
     "vue-router": "^4.4.0"
   }
 }

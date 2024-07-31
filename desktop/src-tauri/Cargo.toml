@@ -37,7 +37,7 @@ tauri-plugin-shell = "2.0.0-beta.9"
 tauri-plugin-window-state = "2.0.0-beta.11"
 thiserror = "1.0.63"
 walkdir = "2.5.0"
-zip = "2.1.5"
+zip = "2.1.6"
 
 [dependencies.diesel]
 version = "2.2.2"
