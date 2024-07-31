@@ -40,7 +40,7 @@ pub mod glob {
 
 #[cfg(feature = "tracing")]
 pub mod log {
-  use crate::result::BoxResult;
+  use anyhow::Result;
   use std::io;
   use tauri::{AppHandle, Manager};
   use tracing::subscriber::set_global_default;
@@ -59,7 +59,7 @@ pub mod log {
     guard: WorkerGuard,
   }
 
-  pub fn setup_tracing(app: &AppHandle) -> BoxResult<()> {
+  pub fn setup_tracing(app: &AppHandle) -> Result<()> {
     let filter = EnvFilter::builder()
       .from_env()?
       .add_directive("kotori=trace".parse()?)

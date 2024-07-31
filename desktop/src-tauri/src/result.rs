@@ -15,6 +15,8 @@ pub trait ResultExt<T> {
 
   /// Show an error dialog, consuming `self`, and discarding the success value, if any.
   fn into_err_dialog(self, app: &AppHandle);
+
+  fn into_blocking_err_dialog(self, app: &AppHandle);
 }
 
 impl<T> ResultExt<T> for Result<T> {
@@ -27,17 +29,30 @@ impl<T> ResultExt<T> for Result<T> {
 
   fn into_err_dialog(self, app: &AppHandle) {
     if let Err(err) = &self {
-      show_error_dialog(app, err);
+      show_error_dialog(app, err, false);
+      self.into_err_log(app);
+    }
+  }
+
+  fn into_blocking_err_dialog(self, app: &AppHandle) {
+    if let Err(err) = &self {
+      show_error_dialog(app, err, true);
       self.into_err_log(app);
     }
   }
 }
 
-fn show_error_dialog(app: &AppHandle, error: impl fmt::Display) {
-  use tauri_plugin_dialog::{DialogExt, MessageDialogBuilder, MessageDialogKind};
+fn show_error_dialog(app: &AppHandle, error: impl fmt::Display, block: bool) {
+  use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 
-  let dialog = app.dialog().clone();
-  MessageDialogBuilder::new(dialog, "Error", error.to_string())
-    .kind(MessageDialogKind::Error)
-    .show(|_| {});
+  let dialog = app
+    .dialog()
+    .message(error.to_string())
+    .kind(MessageDialogKind::Error);
+
+  if block {
+    dialog.blocking_show();
+  } else {
+    dialog.show(|_| {});
+  }
 }

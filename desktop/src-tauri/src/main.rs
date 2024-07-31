@@ -25,7 +25,7 @@ mod window;
 use book::BookHandle;
 use database::DatabaseHandle;
 use reader::Reader;
-use result::BoxResult;
+use result::{BoxResult, Result, ResultExt};
 use tauri::{App, Manager};
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -75,18 +75,24 @@ fn main() {
 
 fn setup(app: &mut App) -> BoxResult<()> {
   let app = app.handle();
+  let result: Result<()> = try {
+    #[cfg(feature = "tracing")]
+    utils::log::setup_tracing(app)?;
 
-  #[cfg(feature = "tracing")]
-  utils::log::setup_tracing(app)?;
+    app.manage(Kotori {
+      database_handle: DatabaseHandle::new(app)?,
+      book_handle: BookHandle::new(),
+      reader: Reader::new(),
+    });
 
-  app.manage(Kotori {
-    database_handle: DatabaseHandle::new(app)?,
-    book_handle: BookHandle::new(),
-    reader: Reader::new(),
-  });
+    server::serve(app)?;
+    window::app::open(app)?;
+  };
 
-  server::serve(app)?;
-  window::app::open(app)?;
+  if result.is_err() {
+    result.into_blocking_err_dialog(app);
+    app.exit(1);
+  }
 
   Ok(())
 }
