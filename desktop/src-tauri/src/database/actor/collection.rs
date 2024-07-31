@@ -1,7 +1,7 @@
 use crate::database::actor::Db;
 use crate::database::model::Collection;
 use crate::database::schema::collections::dsl::*;
-use crate::utils::result::Result;
+use crate::result::Result;
 use diesel::prelude::*;
 
 pub(super) fn get_all(db: Db) -> Result<Vec<Collection>> {

@@ -25,7 +25,7 @@ impl Actor {
   fn handle_message(&mut self, message: Message) {
     #[cfg(feature = "tracing")]
     trace!(actor_cache_size = self.cache.len());
-    
+
     match message {
       Message::Close { path, nt } => {
         self.cache.remove(&path);

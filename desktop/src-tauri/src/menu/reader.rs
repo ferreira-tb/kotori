@@ -5,7 +5,6 @@ use crate::prelude::*;
 use crate::window::ReaderWindow;
 use crate::{library, reader};
 use tauri::menu::MenuId;
-use tauri_plugin_clipboard_manager::ClipboardExt;
 
 #[derive(Debug, Display, EnumString)]
 #[strum(serialize_all = "kebab-case")]
@@ -53,6 +52,7 @@ impl Listener for Item {
       if let Some(item) = Self::from_menu_id(&menu_id, window_id) {
         #[cfg(feature = "tracing")]
         debug!(menu_event = %item, reader_window = window_id);
+
         match item {
           Item::AddBookToLibrary => add_to_library(&app, window_id).await,
           Item::Close => close_reader_window(&app, &label),
@@ -126,7 +126,10 @@ async fn add_to_library(app: &AppHandle, window_id: u16) {
 
 fn close_reader_window(app: &AppHandle, label: &str) {
   if let Some(window) = app.get_webview_window(label) {
-    window.close().into_err_dialog(app);
+    window
+      .close()
+      .map_err(Into::into)
+      .into_err_dialog(app);
   }
 }
 
@@ -141,6 +144,8 @@ async fn close_other_reader_windows(app: &AppHandle, window_id: u16) {
 }
 
 async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
+  use tauri_plugin_clipboard_manager::ClipboardExt;
+
   let path = reader::get_book_path(app, window_id)
     .await
     .and_then(|it| it.try_string().ok());
@@ -149,16 +154,13 @@ async fn copy_path_to_clipboard(app: &AppHandle, window_id: u16) {
     app
       .clipboard()
       .write_text(path)
+      .map_err(Into::into)
       .into_err_dialog(app);
   }
 }
 
 async fn open_book_folder(app: &AppHandle, window_id: u16) {
-  let dir = reader::get_book_path(app, window_id)
-    .await
-    .and_then(|it| it.parent().map(ToOwned::to_owned));
-
-  if matches!(dir, Some(ref it) if it.is_dir()) {
-    open::that_detached(dir.unwrap()).into_err_dialog(app);
+  if let Some(path) = reader::get_book_path(app, window_id).await {
+    path.open_parent_detached().into_err_dialog(app);
   }
 }

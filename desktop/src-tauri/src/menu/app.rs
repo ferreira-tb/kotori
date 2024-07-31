@@ -198,6 +198,7 @@ fn open_discord(app: &AppHandle) {
   app
     .shell()
     .open("https://discord.gg/aAje8qb49f", None)
+    .map_err(Into::into)
     .into_err_dialog(app);
 }
 
@@ -206,6 +207,7 @@ fn open_repository(app: &AppHandle) {
   app
     .shell()
     .open(REPOSITORY, None)
+    .map_err(Into::into)
     .into_err_dialog(app);
 }
 

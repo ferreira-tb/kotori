@@ -1,6 +1,6 @@
 use crate::book::Title;
 use crate::database::model::prelude::*;
-use crate::utils::result::TxResult;
+use crate::result::TxResult;
 use std::fmt;
 use std::path::PathBuf;
 use strum::Display;
@@ -28,6 +28,10 @@ pub enum Message {
   GetBookCover {
     book_id: i32,
     tx: TxResult<String>,
+  },
+  GetBookPath {
+    book_id: i32,
+    tx: TxResult<PathBuf>,
   },
   GetBookTitle {
     book_id: i32,

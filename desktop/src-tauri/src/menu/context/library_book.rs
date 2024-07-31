@@ -9,6 +9,8 @@ use std::sync::Mutex;
 pub enum Item {
   #[strum(serialize = "kt-ctx-library-book-open-book")]
   OpenBook,
+  #[strum(serialize = "kt-ctx-library-book-open-book-folder")]
+  OpenBookFolder,
   #[strum(serialize = "kt-ctx-library-book-remove-book")]
   RemoveBook,
 }
@@ -20,6 +22,7 @@ impl Listener for Item {
     spawn(async move {
       match item {
         Item::OpenBook => open_book(&app).await,
+        Item::OpenBookFolder => open_book_folder(&app).await,
         Item::RemoveBook => remove_book(&app).await,
       }
     });
@@ -54,6 +57,8 @@ impl LibraryBookContextMenu {
         &mi!(app, Item::OpenBook, "Open")?,
         &mi!(app, Item::RemoveBook, "Remove")?,
       ])
+      .separator()
+      .items(&[&mi!(app, Item::OpenBookFolder, "Open folder")?])
       .build()?;
 
     let ctx = Mutex::new(ctx);
@@ -72,6 +77,19 @@ async fn open_book(app: &AppHandle) {
       .await
       .into_err_dialog(app);
   }
+}
+
+async fn open_book_folder(app: &AppHandle) {
+  let id = Context::book_id(app);
+  let result: Result<()> = try {
+    app
+      .database_handle()
+      .get_book_path(id)
+      .await?
+      .open_parent_detached()?
+  };
+
+  result.into_err_dialog(app);
 }
 
 async fn remove_book(app: &AppHandle) {

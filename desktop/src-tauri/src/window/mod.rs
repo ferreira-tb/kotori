@@ -114,7 +114,7 @@ impl ColorMode {
 
   pub fn set(&self, app: &AppHandle) -> Result<()> {
     use tauri_plugin_pinia::ManagerExt;
-    
+
     app
       .with_store("config", |store| {
         let mode = self.to_string();

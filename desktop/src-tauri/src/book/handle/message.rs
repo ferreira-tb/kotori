@@ -1,7 +1,7 @@
 use super::PageMap;
 use crate::book::metadata::Metadata;
 use crate::prelude::*;
-use crate::utils::result::TxResult;
+use crate::result::TxResult;
 use std::fmt;
 use std::sync::Arc;
 use strum::Display;

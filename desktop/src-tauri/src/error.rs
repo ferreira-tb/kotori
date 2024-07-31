@@ -25,9 +25,9 @@ pub enum Error {
   #[error(transparent)]
   ChronoParse(#[from] chrono::ParseError),
   #[error(transparent)]
-  DatabaseConnection(#[from] diesel::ConnectionError),
-  #[error(transparent)]
   Diesel(#[from] diesel::result::Error),
+  #[error(transparent)]
+  DieselConnection(#[from] diesel::ConnectionError),
   #[error(transparent)]
   Glob(#[from] globset::Error),
   #[error(transparent)]
@@ -44,6 +44,10 @@ pub enum Error {
   Strum(#[from] strum::ParseError),
   #[error(transparent)]
   Tauri(#[from] tauri::Error),
+  #[error(transparent)]
+  TauriClipboard(#[from] tauri_plugin_clipboard_manager::Error),
+  #[error(transparent)]
+  TauriShell(#[from] tauri_plugin_shell::Error),
   #[error(transparent)]
   TauriWindowState(#[from] tauri_plugin_window_state::Error),
   #[error(transparent)]

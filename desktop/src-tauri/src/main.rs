@@ -8,12 +8,15 @@ mod command;
 mod database;
 mod error;
 mod event;
+mod fs;
 mod image;
 mod library;
 mod macros;
 mod menu;
+mod path;
 mod prelude;
 mod reader;
+mod result;
 mod server;
 mod utils;
 mod window;
@@ -21,8 +24,8 @@ mod window;
 use book::BookHandle;
 use database::DatabaseHandle;
 use reader::Reader;
+use result::BoxResult;
 use tauri::{App, Manager};
-use utils::result::BoxResult;
 
 const VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -89,7 +92,7 @@ fn setup(app: &mut App) -> BoxResult<()> {
 }
 
 mod plugin {
-  use crate::utils::result::ResultExt;
+  use crate::result::ResultExt;
   use crate::window::{WindowExt, WindowManager};
   use tauri::plugin::TauriPlugin;
   use tauri::Wry;

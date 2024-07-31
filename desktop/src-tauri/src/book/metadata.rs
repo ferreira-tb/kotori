@@ -1,10 +1,10 @@
 use super::title::Title;
+use crate::database::model::Book;
 use crate::prelude::*;
 use crate::VERSION;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::path::Path;
-use crate::database::model::Book;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Metadata {

@@ -33,7 +33,7 @@ impl Actor {
   fn handle_message(&mut self, message: Message) {
     #[cfg(feature = "tracing")]
     tracing::trace!(%message);
-    
+
     match message {
       Message::GetAllBooks { tx } => {
         send!(tx, book::get_all(&mut self.db));
@@ -52,6 +52,9 @@ impl Actor {
       }
       Message::GetBookCover { book_id, tx } => {
         send!(tx, book::get_cover(&mut self.db, book_id));
+      }
+      Message::GetBookPath { book_id, tx } => {
+        send!(tx, book::get_path(&mut self.db, book_id));
       }
       Message::GetBookTitle { book_id, tx } => {
         send!(tx, book::get_title(&mut self.db, book_id));

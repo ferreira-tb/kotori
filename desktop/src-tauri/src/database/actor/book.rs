@@ -3,10 +3,10 @@ use crate::book::Title;
 use crate::database::actor::Db;
 use crate::database::model::{Book, NewBook};
 use crate::database::schema::books::dsl::*;
-use crate::utils::path::PathExt;
-use crate::utils::result::Result;
+use crate::path::PathExt;
+use crate::result::Result;
 use diesel::prelude::*;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub(super) fn get_all(db: Db) -> Result<Vec<Book>> {
   books
@@ -37,6 +37,15 @@ pub(super) fn get_cover(db: Db, book_id: i32) -> Result<String> {
     .find(book_id)
     .select(cover)
     .first::<String>(db)
+    .map_err(Into::into)
+}
+
+pub(super) fn get_path(db: Db, book_id: i32) -> Result<PathBuf> {
+  books
+    .find(book_id)
+    .select(path)
+    .first::<String>(db)
+    .map(PathBuf::from)
     .map_err(Into::into)
 }
 

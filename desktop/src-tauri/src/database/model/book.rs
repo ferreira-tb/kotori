@@ -1,7 +1,7 @@
 use crate::book::{Metadata, Title};
+use crate::path::PathExt;
+use crate::result::Result;
 use crate::utils::manager::ManagerExt;
-use crate::utils::path::PathExt;
-use crate::utils::result::Result;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};

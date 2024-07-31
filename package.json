@@ -18,6 +18,7 @@
     "dev:info": "cargo tauri dev --features tracing-level-info",
     "dev:warn": "cargo tauri dev --features tracing-level-warn",
     "dev:error": "cargo tauri dev --features tracing-level-error",
+    "format": "cargo fmt --all",
     "lint": "eslint . --cache",
     "lint:fix": "eslint . --cache --fix",
     "prepare": "husky",

@@ -21,7 +21,7 @@ pub fn create_thumbnail(buf: Vec<u8>, format: ImageFormat, path: &Path) -> Resul
   let reader = ImageReader::with_format(cursor, format).decode()?;
   let thumbnail = reader.thumbnail(400, 400);
 
-  let file = File::create(&path)?;
+  let file = File::create(path)?;
   let encoder = WebPEncoder::new_lossless(file);
   thumbnail.write_with_encoder(encoder)?;
 

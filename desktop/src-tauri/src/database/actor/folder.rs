@@ -1,7 +1,7 @@
 use crate::database::actor::Db;
 use crate::database::model::NewFolder;
 use crate::database::schema::folders::dsl::*;
-use crate::utils::result::Result;
+use crate::result::Result;
 use diesel::prelude::*;
 use itertools::Itertools;
 use std::path::PathBuf;

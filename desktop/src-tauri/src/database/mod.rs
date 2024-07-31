@@ -6,9 +6,9 @@ mod schema;
 use crate::book::{ActiveBook, Title};
 use crate::database::model::prelude::*;
 use crate::event::Event;
+use crate::path::PathExt;
+use crate::result::Result;
 use crate::send_tx;
-use crate::utils::path::PathExt;
-use crate::utils::result::Result;
 use actor::Actor;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
@@ -74,6 +74,10 @@ impl DatabaseHandle {
 
   pub async fn get_book_cover(&self, book_id: i32) -> Result<String> {
     send_tx!(self, GetBookCover { book_id })
+  }
+
+  pub async fn get_book_path(&self, book_id: i32) -> Result<PathBuf> {
+    send_tx!(self, GetBookPath { book_id })
   }
 
   pub async fn get_book_title(&self, book_id: i32) -> Result<Title> {

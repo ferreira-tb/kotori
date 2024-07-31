@@ -1,8 +1,8 @@
 use super::PageMap;
 use crate::book::metadata::Metadata;
+use crate::fs::Tempfile;
 use crate::prelude::*;
 use crate::utils::glob;
-use crate::utils::temp::Tempfile;
 use natord::compare_ignore_case;
 use std::fmt;
 use std::fs::{self, File};
