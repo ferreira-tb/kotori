@@ -6,7 +6,6 @@ use crate::event::Event;
 use crate::library;
 use crate::prelude::*;
 use image::ImageFormat;
-use natord::compare_ignore_case;
 use std::cmp::Ordering;
 use std::fmt;
 use std::sync::Arc;
@@ -139,16 +138,10 @@ impl ActiveBook {
   pub async fn extract_cover(&self) -> Result<()> {
     let name = self.get_cover_name().await?;
     let bytes = self.get_page_as_bytes(&name).await?;
-
+    
     let format = match image::guess_format(&bytes) {
       Ok(format) => format,
-      #[cfg_attr(not(feature = "tracing"), allow(unused_variables))]
-      Err(error) => {
-        #[cfg(feature = "tracing")]
-        warn!("failed to guess image format: {error}");
-
-        ImageFormat::from_path(name)?
-      }
+      Err(_) => ImageFormat::from_path(name)?,
     };
 
     let id = self.try_id().await?;
@@ -238,6 +231,6 @@ impl PartialOrd for ActiveBook {
 
 impl Ord for ActiveBook {
   fn cmp(&self, other: &Self) -> Ordering {
-    compare_ignore_case(&self.title.0, &other.title.0)
+    natord::compare_ignore_case(&self.title.0, &other.title.0)
   }
 }

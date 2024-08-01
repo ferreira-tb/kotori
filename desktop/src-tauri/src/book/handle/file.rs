@@ -1,9 +1,8 @@
-use super::PageMap;
+use crate::book::handle::PageMap;
 use crate::book::metadata::Metadata;
 use crate::fs::Tempfile;
 use crate::prelude::*;
 use crate::utils::glob;
-use natord::compare_ignore_case;
 use std::fmt;
 use std::fs::{self, File};
 use std::io::{Read, Seek, Write};
@@ -85,7 +84,7 @@ impl BookFile {
 
     self
       .file
-      .raw_copy_if(&mut writer, |it| *it != page)?;
+      .raw_copy_if(&mut writer, |it| it != page)?;
 
     writer.finish()?;
     fs::remove_file(&self.path)?;
@@ -117,7 +116,7 @@ impl BookFile {
 
     self
       .file
-      .raw_copy_if(&mut writer, |it| *it != METADATA_FILENAME)?;
+      .raw_copy_if(&mut writer, |it| it != METADATA_FILENAME)?;
 
     writer.start_file(METADATA_FILENAME, ZipSimpleFileOptions::default())?;
     serde_json::to_writer_pretty(&mut writer, &metadata)?;
@@ -147,12 +146,12 @@ trait ZipArchiveExt {
 
   fn file_names_by<F>(&mut self, f: F) -> Vec<String>
   where
-    F: FnMut(&&str) -> bool;
+    F: FnMut(&str) -> bool;
 
   fn raw_copy_if<W, F>(&mut self, writer: &mut ZipWriter<&mut W>, f: F) -> ZipResult<()>
   where
     W: Write + Seek,
-    F: FnMut(&&str) -> bool;
+    F: FnMut(&str) -> bool;
 
   fn read_book_metadata(&mut self) -> ZipResult<Option<Vec<u8>>>;
   fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>>;
@@ -163,21 +162,27 @@ where
   T: Read + Seek,
 {
   fn book_pages(&self) -> PageMap {
+    use natord::compare_ignore_case as compare;
+
     let globset = glob::book_page();
     self
       .file_names()
       .filter(|name| globset.is_match(name))
-      .sorted_unstable_by(|a, b| compare_ignore_case(a, b))
+      .sorted_unstable_by(|a, b| compare(a, b))
       .enumerate()
       .map(|(idx, name)| (idx, name.to_owned()))
       .collect()
   }
 
-  fn file_names_by<F>(&mut self, f: F) -> Vec<String>
+  fn file_names_by<F>(&mut self, mut f: F) -> Vec<String>
   where
-    F: FnMut(&&str) -> bool,
+    F: FnMut(&str) -> bool,
   {
-    self.file_names().filter(f).map_into().collect()
+    self
+      .file_names()
+      .filter(|name| f(*name))
+      .map_into()
+      .collect()
   }
 
   fn read_file(&mut self, name: &str) -> ZipResult<Vec<u8>> {
@@ -199,7 +204,7 @@ where
   fn raw_copy_if<W, F>(&mut self, writer: &mut ZipWriter<&mut W>, f: F) -> ZipResult<()>
   where
     W: Write + Seek,
-    F: FnMut(&&str) -> bool,
+    F: FnMut(&str) -> bool,
   {
     for name in self.file_names_by(f) {
       let file = self.by_name(&name)?;

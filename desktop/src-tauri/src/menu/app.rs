@@ -6,7 +6,6 @@ use crate::menu::Listener;
 use crate::prelude::*;
 use crate::window::ColorMode;
 use crate::{library, reader, VERSION};
-use tauri::menu::AboutMetadataBuilder;
 use tokio::sync::oneshot;
 
 #[derive(Debug, Display, EnumString)]
@@ -193,6 +192,8 @@ impl HelpMenu {
   }
 
   fn about<M: Manager<Wry>>(app: &M) -> Result<PredefinedMenuItem<Wry>> {
+    use tauri::menu::AboutMetadataBuilder;
+
     let mut metadata = AboutMetadataBuilder::new()
       .name("Kotori".into())
       .version(VERSION.into())

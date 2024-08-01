@@ -1,4 +1,4 @@
-use super::PageMap;
+use crate::book::handle::PageMap;
 use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::result::TxResult;
