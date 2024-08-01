@@ -43,6 +43,10 @@ pub enum Message {
   HasAnyFolder {
     tx: TxResult<bool>,
   },
+  HasBookPath {
+    book_path: PathBuf,
+    tx: TxResult<bool>,
+  },
   RandomBook {
     tx: TxResult<Option<Book>>,
   },

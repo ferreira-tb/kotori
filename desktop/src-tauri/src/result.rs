@@ -27,7 +27,14 @@ impl<T> ResultExt<T> for Result<T> {
   fn into_err_log(self, app: &AppHandle) {
     if let Err(err) = self {
       let message = err.to_string();
+
+      #[cfg(not(feature = "tracing"))]
       let _ = Log::new("Error", message).save(app);
+
+      #[cfg(feature = "tracing")]
+      let _ = Log::new("Error", message)
+        .save(app)
+        .inspect_err(|error| tracing::error!(%error));
     }
   }
 

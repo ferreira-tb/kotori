@@ -17,7 +17,7 @@ pub enum Orientation {
 #[cfg_attr(feature = "tracing", instrument(skip(app), level = "trace"))]
 pub fn create_book(app: &AppHandle, size: usize, orientation: Orientation) -> Result<PathBuf> {
   #[cfg(feature = "tracing")]
-  let start = std::time::Instant::now();
+  let start = Instant::now();
 
   let path = app.path().mocks_dir()?;
   fs::create_dir_all(&path)?;

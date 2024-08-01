@@ -12,7 +12,7 @@ use std::io::Cursor;
 #[cfg_attr(feature = "tracing", instrument(skip(buf)))]
 pub fn create_thumbnail(buf: Vec<u8>, format: ImageFormat, path: &Path) -> Result<()> {
   #[cfg(feature = "tracing")]
-  let start = std::time::Instant::now();
+  let start = Instant::now();
 
   let parent = path.try_parent()?;
   fs::create_dir_all(parent)?;

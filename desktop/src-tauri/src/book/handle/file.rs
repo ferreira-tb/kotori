@@ -27,7 +27,7 @@ impl BookFile {
   #[cfg_attr(feature = "tracing", instrument)]
   pub(super) fn open(path: &Path) -> Result<Self> {
     #[cfg(feature = "tracing")]
-    let start = std::time::Instant::now();
+    let start = Instant::now();
 
     let path = path.to_owned();
     let reader = File::open(&path)?;
@@ -54,7 +54,7 @@ impl BookFile {
   #[cfg_attr(feature = "tracing", instrument)]
   pub(super) fn read_metadata(&mut self) -> Result<Option<Metadata>> {
     #[cfg(feature = "tracing")]
-    let start = std::time::Instant::now();
+    let start = Instant::now();
 
     let metadata = self
       .file
@@ -77,7 +77,7 @@ impl BookFile {
   #[cfg_attr(feature = "tracing", instrument)]
   pub(super) fn delete_page(mut self, page: &str) -> Result<()> {
     #[cfg(feature = "tracing")]
-    let start = std::time::Instant::now();
+    let start = Instant::now();
 
     let parent = self.path.try_parent()?;
     let mut temp = Tempfile::new_in(parent)?;
@@ -109,7 +109,7 @@ impl BookFile {
   #[cfg_attr(feature = "tracing", instrument)]
   pub(super) fn write_metadata(mut self, metadata: &Metadata) -> Result<()> {
     #[cfg(feature = "tracing")]
-    let start = std::time::Instant::now();
+    let start = Instant::now();
 
     let parent = self.path.try_parent()?;
     let mut temp = Tempfile::new_in(parent)?;

@@ -93,6 +93,11 @@ impl DatabaseHandle {
     send_tx!(self, HasAnyFolder {})
   }
 
+  pub async fn has_book_path(&self, book_path: &Path) -> Result<bool> {
+    let book_path = book_path.to_owned();
+    send_tx!(self, HasBookPath { book_path })
+  }
+
   pub async fn random_book(&self) -> Result<Option<Book>> {
     send_tx!(self, RandomBook {})
   }

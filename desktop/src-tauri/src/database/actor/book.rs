@@ -7,6 +7,11 @@ use crate::path::PathExt;
 use crate::result::Result;
 use diesel::prelude::*;
 use std::path::{Path, PathBuf};
+#[cfg(feature = "tracing")]
+use {
+  std::time::Instant,
+  tracing::{instrument, trace},
+};
 
 pub(super) fn get_all(db: Db) -> Result<Vec<Book>> {
   books
@@ -58,6 +63,27 @@ pub(super) fn get_title(db: Db, book_id: i32) -> Result<Title> {
     .map_err(Into::into)
 }
 
+#[cfg_attr(feature = "tracing", instrument(skip(db), level = "trace"))]
+pub(super) fn has_path(db: Db, book_path: &Path) -> Result<bool> {
+  use diesel::dsl::count_star;
+
+  #[cfg(feature = "tracing")]
+  let start = Instant::now();
+
+  let book_path = book_path.try_str()?;
+  let has = books
+    .select(count_star())
+    .filter(path.eq(book_path))
+    .limit(1)
+    .get_result::<i64>(db)
+    .map(|count| count > 0)?;
+
+  #[cfg(feature = "tracing")]
+  trace!(has_path = has, "path checked in {:?}", start.elapsed());
+
+  Ok(has)
+}
+
 pub(super) fn is_empty(db: Db) -> Result<bool> {
   use diesel::dsl::count_star;
 
@@ -95,12 +121,20 @@ pub(super) fn remove_all(db: Db) -> Result<()> {
     .map_err(Into::into)
 }
 
+#[cfg_attr(feature = "tracing", instrument(skip(db), level = "trace"))]
 pub(super) fn save(db: Db, new_book: &NewBook) -> Result<Book> {
-  diesel::insert_into(books)
+  #[cfg(feature = "tracing")]
+  let start = Instant::now();
+
+  let book = diesel::insert_into(books)
     .values(new_book)
     .returning(Book::as_returning())
-    .get_result(db)
-    .map_err(Into::into)
+    .get_result(db)?;
+
+  #[cfg(feature = "tracing")]
+  trace!(book_id = book.id, "book saved in {:?}", start.elapsed());
+
+  Ok(book)
 }
 
 pub(super) fn update_cover(db: Db, book_id: i32, book_cover: &str) -> Result<Book> {

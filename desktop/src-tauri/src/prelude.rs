@@ -9,4 +9,7 @@ pub use std::path::{Path, PathBuf};
 pub use tauri::async_runtime::{block_on, spawn, spawn_blocking};
 pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
 #[cfg(feature = "tracing")]
-pub use tracing::{debug, info, instrument, trace, warn};
+pub use {
+  std::time::Instant,
+  tracing::{debug, info, instrument, trace, warn},
+};

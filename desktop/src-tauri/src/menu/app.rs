@@ -56,7 +56,7 @@ impl Listener for Item {
     spawn(async move {
       match item {
         Item::About => {}
-        Item::AddToLibrary => add_to_library_with_dialog(&app).await,
+        Item::AddToLibrary => add_to_library(&app).await,
         Item::ColorModeAuto => set_color_mode(&app, ColorMode::Auto).await,
         Item::ColorModeDark => set_color_mode(&app, ColorMode::Dark).await,
         Item::ColorModeLight => set_color_mode(&app, ColorMode::Light).await,
@@ -246,7 +246,7 @@ async fn add_mock_books(app: &AppHandle, orientation: Orientation) {
     .into_err_dialog(app);
 }
 
-async fn add_to_library_with_dialog(app: &AppHandle) {
+async fn add_to_library(app: &AppHandle) {
   library::add_with_dialog(app)
     .await
     .into_err_dialog(app);

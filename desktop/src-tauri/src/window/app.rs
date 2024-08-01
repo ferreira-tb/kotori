@@ -32,7 +32,7 @@ pub fn open(app: &AppHandle) -> Result<()> {
   #[cfg(feature = "open-main-devtools")]
   window.open_devtools();
 
-  AppMenu::spawn_update(&app);
+  AppMenu::spawn_update(app);
 
   Ok(())
 }

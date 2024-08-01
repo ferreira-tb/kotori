@@ -12,6 +12,16 @@ use walkdir::WalkDir;
 
 const MAX_FILE_PERMITS: usize = 50;
 
+pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
+  let (tx, rx) = oneshot::channel();
+  app.dialog().file().pick_folders(move |response| {
+    let _ = tx.send(response.unwrap_or_default());
+  });
+
+  let folders = rx.await?;
+  add_folders(app, folders).await
+}
+
 pub async fn add_folders<I>(app: &AppHandle, folders: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
@@ -61,43 +71,25 @@ where
   Ok(())
 }
 
-pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
-  let (tx, rx) = oneshot::channel();
-  app.dialog().file().pick_folders(move |response| {
-    let _ = tx.send(response.unwrap_or_default());
-  });
-
-  let folders = rx.await?;
-  add_folders(app, folders).await
-}
-
-pub async fn save(app: &AppHandle, path: &Path) -> Result<Book> {
-  let mut builder = Book::builder(path);
-  let book_handle = app.book_handle();
-  let cover = book_handle.get_first_page_name(path).await?;
-  builder = builder.cover(cover);
-
-  if let Some(metadata) = book_handle.get_metadata(path).await? {
-    builder = builder.metadata(metadata);
-  }
-
-  let new_book = builder.build(app).await?;
-  let model = app.database_handle().save_book(new_book).await?;
-
-  // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
-  // but that doesn't seem like a good idea. After all, the data would only be default values.
-  let book = LibraryBook::from_model(app, &model)?;
-  Event::BookAdded(&book).emit(app)?;
-
-  book_handle.close(path).await;
-
-  Ok(model)
-}
-
-async fn save_many<I>(app: &AppHandle, books: I) -> Result<()>
+async fn save_many<I>(app: &AppHandle, iter: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
 {
+  #[cfg(feature = "tracing")]
+  let start = Instant::now();
+
+  let mut books = Vec::new();
+  let handle = app.database_handle();
+  for book in iter {
+    if !handle.has_book_path(&book).await? {
+      books.push(book);
+    }
+  }
+
+  if books.is_empty() {
+    return Ok(());
+  }
+
   let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
   let mut set = books.into_iter().join_set_by(|path| {
     let app = app.clone();
@@ -116,10 +108,37 @@ where
   }
 
   if !models.is_empty() {
+    #[cfg(feature = "tracing")]
+    info!(
+      "{} books added to library in {:?}",
+      models.len(),
+      start.elapsed()
+    );
+
     schedule_cover_extraction(app, models);
   }
 
   Ok(())
+}
+
+pub async fn save(app: &AppHandle, path: &Path) -> Result<Book> {
+  let handle = app.book_handle();
+  let mut builder = Book::builder(path);
+  if let Some(metadata) = handle.get_metadata(path).await? {
+    builder = builder.metadata(metadata);
+  }
+
+  let new_book = builder.build(app).await?;
+  let model = app.database_handle().save_book(new_book).await?;
+
+  // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
+  // but that doesn't seem like a good idea. After all, the data would only be default values.
+  let book = LibraryBook::from_model(app, &model)?;
+  Event::BookAdded(&book).emit(app)?;
+
+  handle.close(path).await;
+
+  Ok(model)
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
@@ -132,7 +151,7 @@ pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
       async move {
         // Remove the book if the file is missing.
         if let Ok(false) = fs::try_exists(&model.path).await {
-          let _ = remove(&app, model.id).await;
+          remove(&app, model.id).await.into_err_log(&app);
           return None;
         }
 
@@ -171,10 +190,14 @@ where
     let app = app.clone();
     let semaphore = Arc::clone(&semaphore);
     spawn(async move {
-      let _permit = semaphore.acquire_owned().await?;
-      ActiveBook::from_model(&app, &model)?
-        .extract_cover()
-        .await
+      let result: Result<()> = try {
+        let _permit = semaphore.acquire_owned().await?;
+        ActiveBook::from_model(&app, &model)?
+          .extract_cover()
+          .await?;
+      };
+
+      result.into_err_log(&app);
     });
   }
 }
@@ -231,6 +254,9 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 }
 
 pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
+  #[cfg(feature = "tracing")]
+  let start = Instant::now();
+
   let mut books = Vec::new();
   let folders = app.database_handle().get_all_folders().await?;
   for folder in folders {
@@ -241,21 +267,21 @@ pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
     save_many(app, books).await?;
   }
 
+  #[cfg(feature = "tracing")]
+  info!("book folders scanned in {:?}", start.elapsed());
+
   Ok(())
 }
 
 /// Search recursively for books within the folder.
 fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
   let globset = glob::book();
-  WalkDir::new(folder)
-    .into_iter()
-    .flatten()
-    .for_each(|entry| {
-      let path = entry.into_path();
-      if path.is_file() && globset.is_match(&path) {
-        books.push(path);
-      }
-    });
+  for entry in WalkDir::new(folder).into_iter().flatten() {
+    let path = entry.into_path();
+    if path.is_file() && globset.is_match(&path) {
+      books.push(path);
+    }
+  }
 }
 
 #[cfg(feature = "devtools")]

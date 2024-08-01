@@ -65,6 +65,9 @@ impl Actor {
       Message::HasAnyFolder { tx } => {
         send!(tx, folder::is_empty(&mut self.db));
       }
+      Message::HasBookPath { book_path, tx } => {
+        send!(tx, book::has_path(&mut self.db, &book_path));
+      }
       Message::RandomBook { tx } => {
         send!(tx, book::random(&mut self.db));
       }
