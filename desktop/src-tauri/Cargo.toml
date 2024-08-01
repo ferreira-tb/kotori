@@ -80,7 +80,7 @@ version = "0.3"
 features = ["ahash"]
 
 [dependencies.tauri-plugin-prevent-default]
-version = "0.2"
+version = "0.3"
 features = ["ahash"]
 
 [dependencies.tokio]

@@ -47,6 +47,7 @@ impl DatabaseHandle {
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
 
+    let app = app.clone();
     app.run_on_main_thread(move || {
       thread::Builder::new()
         .name("database-worker".into())
@@ -54,7 +55,7 @@ impl DatabaseHandle {
         .expect("failed to spawn database worker");
     })?;
 
-    Ok(Self { app: app.clone(), sender })
+    Ok(Self { app, sender })
   }
 
   pub async fn get_all_books(&self) -> Result<Vec<Book>> {
