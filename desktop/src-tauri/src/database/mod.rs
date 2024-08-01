@@ -47,7 +47,12 @@ impl DatabaseHandle {
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
 
-    thread::spawn(move || actor.run());
+    app.run_on_main_thread(move || {
+      thread::Builder::new()
+        .name("database-worker".into())
+        .spawn(move || actor.run())
+        .expect("failed to spawn database worker");
+    })?;
 
     Ok(Self { app: app.clone(), sender })
   }
