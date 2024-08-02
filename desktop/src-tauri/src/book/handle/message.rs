@@ -1,5 +1,6 @@
 use super::actor::Status;
 use super::PageMap;
+use crate::book::cover::Cover;
 use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::result::TxResult;
@@ -19,6 +20,12 @@ pub(super) enum Message {
     path: PathBuf,
     page: String,
     tx: TxResult<()>,
+  },
+  ExtractCover {
+    path: PathBuf,
+    page: String,
+    save_as: PathBuf,
+    tx: TxResult<Cover>,
   },
   GetFirstPageName {
     path: PathBuf,
@@ -57,6 +64,7 @@ impl Message {
       Self::Status { .. } => None,
       Self::Close { path, .. }
       | Self::DeletePage { path, .. }
+      | Self::ExtractCover { path, .. }
       | Self::GetFirstPageName { path, .. }
       | Self::GetMetadata { path, .. }
       | Self::GetPages { path, .. }

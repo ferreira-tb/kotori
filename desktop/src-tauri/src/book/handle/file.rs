@@ -1,4 +1,5 @@
 use super::PageMap;
+use crate::book::cover::Cover;
 use crate::book::metadata::Metadata;
 use crate::fs::Tempfile;
 use crate::prelude::*;
@@ -54,22 +55,21 @@ impl BookFile {
     self.file.read_file(page).map_err(Into::into)
   }
 
-  #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
-  pub(super) fn read_metadata(&mut self) -> Result<Option<Metadata>> {
+  #[cfg_attr(feature = "tracing", instrument)]
+  pub(super) fn extract_cover(&mut self, page: &str, save_as: &Path) -> Result<Cover> {
+    use crate::image::{create_thumbnail, guess_image_format};
+
     #[cfg(feature = "tracing")]
     let start = Instant::now();
 
-    let metadata = self
-      .file
-      .read_book_metadata()?
-      .as_deref()
-      .map(serde_json::from_slice)
-      .transpose()?;
+    let buffer = self.read_page(page)?;
+    let format = guess_image_format(page, &buffer)?;
+    create_thumbnail(buffer, format, save_as)?;
 
     #[cfg(feature = "tracing")]
-    trace!("metadata read in {:?}", start.elapsed());
+    info!("cover extracted in {:?}", start.elapsed());
 
-    Ok(metadata)
+    Ok(save_as.into())
   }
 
   #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
@@ -102,6 +102,24 @@ impl BookFile {
       .next()
       .map(ToOwned::to_owned)
       .ok_or_else(|| err!(EmptyBook))
+  }
+
+  #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
+  pub(super) fn read_metadata(&mut self) -> Result<Option<Metadata>> {
+    #[cfg(feature = "tracing")]
+    let start = Instant::now();
+
+    let metadata = self
+      .file
+      .read_book_metadata()?
+      .as_deref()
+      .map(serde_json::from_slice)
+      .transpose()?;
+
+    #[cfg(feature = "tracing")]
+    trace!("metadata read in {:?}", start.elapsed());
+
+    Ok(metadata)
   }
 
   #[cfg_attr(feature = "tracing", instrument(level = "trace"))]

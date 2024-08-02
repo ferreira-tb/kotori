@@ -4,6 +4,7 @@ mod message;
 mod scheduler;
 mod worker;
 
+use super::cover::Cover;
 use super::metadata::Metadata;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
@@ -51,6 +52,29 @@ impl BookHandle {
     schedule_notify!(self, Close { path })
   }
 
+  pub async fn delete_page(&self, path: &Path, page: &str) -> Result<()> {
+    let path = path.to_owned();
+    let page = page.to_owned();
+    schedule_tx!(self, DeletePage { path, page })
+  }
+
+  pub async fn extract_cover(&self, path: &Path, page: &str, save_as: &Path) -> Result<Cover> {
+    let path = path.to_owned();
+    let page = page.to_owned();
+    let save_as = save_as.to_owned();
+    schedule_tx!(self, ExtractCover { path, page, save_as })
+  }
+
+  pub async fn get_first_page_name(&self, path: &Path) -> Result<String> {
+    let path = path.to_owned();
+    schedule_tx!(self, GetFirstPageName { path })
+  }
+
+  pub async fn get_metadata(&self, path: &Path) -> Result<Option<Metadata>> {
+    let path = path.to_owned();
+    schedule_tx!(self, GetMetadata { path })
+  }
+
   pub async fn get_pages(&self, path: &Path) -> Result<Arc<PageMap>> {
     let path = path.to_owned();
     schedule_tx!(self, GetPages { path })
@@ -62,25 +86,9 @@ impl BookHandle {
     schedule_tx!(self, ReadPage { path, page })
   }
 
-  pub async fn delete_page(&self, path: &Path, page: &str) -> Result<()> {
-    let path = path.to_owned();
-    let page = page.to_owned();
-    schedule_tx!(self, DeletePage { path, page })
-  }
-
-  pub async fn get_metadata(&self, path: &Path) -> Result<Option<Metadata>> {
-    let path = path.to_owned();
-    schedule_tx!(self, GetMetadata { path })
-  }
-
   pub async fn set_metadata(&self, path: &Path, metadata: Metadata) -> Result<()> {
     let path = path.to_owned();
     schedule_tx!(self, SetMetadata { path, metadata })
-  }
-
-  pub async fn get_first_page_name(&self, path: &Path) -> Result<String> {
-    let path = path.to_owned();
-    schedule_tx!(self, GetFirstPageName { path })
   }
 }
 

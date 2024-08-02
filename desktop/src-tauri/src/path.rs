@@ -55,6 +55,7 @@ pub trait PathResolverExt {
 }
 
 impl PathResolverExt for PathResolver<Wry> {
+  /// Path to the cover image of a book.
   fn cover(&self, book_id: i32) -> Result<PathBuf> {
     self
       .cover_dir()

@@ -1,6 +1,4 @@
-use crate::image::create_thumbnail;
 use crate::prelude::*;
-use image::ImageFormat;
 
 #[derive(Clone, Debug)]
 pub enum Cover {
@@ -16,16 +14,6 @@ impl Cover {
     }
 
     Ok(Cover::NotExtracted)
-  }
-
-  pub async fn extract(path: &Path, buf: Vec<u8>, format: ImageFormat) -> Result<Self> {
-    let path = path.to_path_buf();
-    let task = spawn_blocking(move || {
-      create_thumbnail(buf, format, &path)?;
-      Ok(path.into())
-    });
-
-    task.await?
   }
 
   pub fn path(&self) -> Option<&Path> {

@@ -6,7 +6,7 @@ pub use crate::result::{Result, ResultExt as _};
 pub use futures::{FutureExt as _, TryFutureExt as _};
 pub use itertools::Itertools as _;
 pub use std::path::{Path, PathBuf};
-pub use tauri::async_runtime::{block_on, spawn, spawn_blocking};
+pub use tauri::async_runtime::{block_on, spawn};
 pub use tauri::{AppHandle, Manager, WebviewWindow, Window, Wry};
 #[cfg(feature = "tracing")]
 pub use {

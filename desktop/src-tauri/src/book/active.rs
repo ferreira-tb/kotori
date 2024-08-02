@@ -5,7 +5,6 @@ use crate::database::model::Book;
 use crate::event::Event;
 use crate::library;
 use crate::prelude::*;
-use image::ImageFormat;
 use std::cmp::Ordering;
 use std::fmt;
 use std::sync::Arc;
@@ -136,20 +135,21 @@ impl ActiveBook {
   }
 
   pub async fn extract_cover(&self) -> Result<()> {
-    let name = self.get_cover_name().await?;
-    let bytes = self.get_page_as_bytes(&name).await?;
-    
-    let format = match image::guess_format(&bytes) {
-      Ok(format) => format,
-      Err(_) => ImageFormat::from_path(name)?,
-    };
-
     let id = self.try_id().await?;
-    let path = self.app.path().cover(id)?;
-    Cover::extract(&path, bytes, format).await?;
+    let name = self.get_cover_name().await?;
+    let save_as = self.app.path().cover(id)?;
 
-    let path = path.as_ref();
-    Event::CoverExtracted { id, path }.emit(&self.app)
+    let cover = self
+      .app
+      .book_handle()
+      .extract_cover(&self.path, &name, &save_as)
+      .await?;
+
+    if let Cover::Extracted(path) = &cover {
+      Event::CoverExtracted { id, path }.emit(&self.app)?;
+    }
+
+    Ok(())
   }
 
   pub async fn delete_page(&mut self, name: &str) -> Result<()> {

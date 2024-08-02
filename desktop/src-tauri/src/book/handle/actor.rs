@@ -32,17 +32,6 @@ impl Actor {
         self.cache.remove(&path);
         nt.notify_one();
       }
-      Message::GetPages { path, tx } => {
-        let result = self.get_book(&path).map(BookFile::pages);
-        let _ = tx.send(result);
-      }
-      Message::ReadPage { path, page, tx } => {
-        let result = self
-          .get_book_mut(&path)
-          .and_then(|it| it.read_page(&page));
-
-        let _ = tx.send(result);
-      }
       Message::DeletePage { path, page, tx } => {
         let result = self
           .get_book_owned(&path)
@@ -50,23 +39,10 @@ impl Actor {
 
         let _ = tx.send(result);
       }
-      Message::Status { tx } => {
-        let _ = tx.send(self.status());
-      }
-      Message::GetMetadata { path, tx } => {
+      Message::ExtractCover { path, page, save_as, tx } => {
         let result = self
           .get_book_mut(&path)
-          .and_then(BookFile::read_metadata);
-
-        let _ = tx.send(result);
-      }
-      Message::HasBookFileInCache { path, tx } => {
-        let _ = tx.send(self.cache.contains_key(&path));
-      }
-      Message::SetMetadata { path, metadata, tx } => {
-        let result = self
-          .get_book_owned(&path)
-          .and_then(|it| it.write_metadata(&metadata));
+          .and_then(|it| it.extract_cover(&page, &save_as));
 
         let _ = tx.send(result);
       }
@@ -76,6 +52,37 @@ impl Actor {
           .and_then(BookFile::first_page_name);
 
         let _ = tx.send(result);
+      }
+      Message::GetMetadata { path, tx } => {
+        let result = self
+          .get_book_mut(&path)
+          .and_then(BookFile::read_metadata);
+
+        let _ = tx.send(result);
+      }
+      Message::GetPages { path, tx } => {
+        let result = self.get_book(&path).map(BookFile::pages);
+        let _ = tx.send(result);
+      }
+      Message::HasBookFileInCache { path, tx } => {
+        let _ = tx.send(self.cache.contains_key(&path));
+      }
+      Message::ReadPage { path, page, tx } => {
+        let result = self
+          .get_book_mut(&path)
+          .and_then(|it| it.read_page(&page));
+
+        let _ = tx.send(result);
+      }
+      Message::SetMetadata { path, metadata, tx } => {
+        let result = self
+          .get_book_owned(&path)
+          .and_then(|it| it.write_metadata(&metadata));
+
+        let _ = tx.send(result);
+      }
+      Message::Status { tx } => {
+        let _ = tx.send(self.status());
       }
     };
   }
