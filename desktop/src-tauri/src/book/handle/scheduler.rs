@@ -36,7 +36,7 @@ impl Scheduler {
 
     let mut files = self.files.lock().await;
     if let Some(file) = files.get(&path) {
-      if file.worker.has_file(&path).await {
+      if file.worker.has_book_file_in_cache(&path).await {
         file.worker.send(message);
         return Ok(());
       }

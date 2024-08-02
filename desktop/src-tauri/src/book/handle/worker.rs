@@ -37,10 +37,10 @@ impl Worker {
     Self { id, sender }
   }
 
-  /// Check if the actor managed by this worker has a file open.
-  pub(super) async fn has_file(&self, path: &Path) -> bool {
+  /// Check if the actor managed by this worker has a file in its cache.
+  pub(super) async fn has_book_file_in_cache(&self, path: &Path) -> bool {
     let (tx, rx) = oneshot::channel();
-    self.send(Message::HasFile { tx, path: path.to_owned() });
+    self.send(Message::HasBookFileInCache { tx, path: path.to_owned() });
     rx.await.unwrap_or(false)
   }
 

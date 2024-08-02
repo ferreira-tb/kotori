@@ -32,7 +32,7 @@ pub(super) enum Message {
     path: PathBuf,
     tx: TxResult<Arc<PageMap>>,
   },
-  HasFile {
+  HasBookFileInCache {
     path: PathBuf,
     tx: oneshot::Sender<bool>,
   },
@@ -60,7 +60,7 @@ impl Message {
       | Self::GetFirstPageName { path, .. }
       | Self::GetMetadata { path, .. }
       | Self::GetPages { path, .. }
-      | Self::HasFile { path, .. }
+      | Self::HasBookFileInCache { path, .. }
       | Self::ReadPage { path, .. }
       | Self::SetMetadata { path, .. } => Some(path.clone()),
     }

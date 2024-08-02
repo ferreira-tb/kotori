@@ -60,7 +60,7 @@ impl Actor {
 
         let _ = tx.send(result);
       }
-      Message::HasFile { path, tx } => {
+      Message::HasBookFileInCache { path, tx } => {
         let _ = tx.send(self.cache.contains_key(&path));
       }
       Message::SetMetadata { path, metadata, tx } => {
