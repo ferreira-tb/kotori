@@ -15,7 +15,7 @@ pub async fn get_current_reader_book(app: AppHandle, window_id: u16) -> Result<R
   #[cfg(feature = "tracing")]
   debug!(command = "get_current_reader_book", window_id);
 
-  ReaderBook::from_reader(&app, window_id).await
+  ReaderBook::from_reader_window(&app, window_id).await
 }
 
 #[tauri::command]

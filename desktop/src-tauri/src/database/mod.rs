@@ -10,8 +10,6 @@ use crate::menu::AppMenu;
 use crate::path::PathExt;
 use crate::result::Result;
 use actor::Actor;
-use diesel::prelude::*;
-use diesel::sqlite::SqliteConnection;
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use message::Message;
 use std::path::{Path, PathBuf};
@@ -43,6 +41,8 @@ pub struct DatabaseHandle {
 
 impl DatabaseHandle {
   pub fn new(app: &AppHandle) -> Result<Self> {
+    use diesel::prelude::*;
+
     let path = app.path().app_local_data_dir()?;
     fs::create_dir_all(&path)?;
 
@@ -158,10 +158,9 @@ impl DatabaseHandle {
   pub async fn update_book_cover(&self, book_id: i32, cover: &str) -> Result<Book> {
     let cover = cover.to_owned();
     let book = send_tx!(self, UpdateBookCover { book_id, cover })?;
-
-    let active = ActiveBook::from_model(&self.app, &book)?;
-    active.extract_cover().await?;
     book.save_as_metadata(&self.app).await?;
+
+    ActiveBook::from_book(&self.app, &book).spawn_extract_cover();
 
     Ok(book)
   }

@@ -45,40 +45,38 @@ impl<P: AsRef<Path>> PathExt for P {
 }
 
 pub trait PathResolverExt {
-  fn cover(&self, book_id: i32) -> Result<PathBuf>;
-  fn cover_dir(&self) -> Result<PathBuf>;
+  fn cover(&self, book_id: i32) -> PathBuf;
+  fn cover_dir(&self) -> PathBuf;
 
   #[cfg(feature = "devtools")]
-  fn dev_cache_dir(&self) -> Result<PathBuf>;
+  fn dev_cache_dir(&self) -> PathBuf;
   #[cfg(feature = "devtools")]
-  fn mocks_dir(&self) -> Result<PathBuf>;
+  fn mocks_dir(&self) -> PathBuf;
 }
 
 impl PathResolverExt for PathResolver<Wry> {
   /// Path to the cover image of a book.
-  fn cover(&self, book_id: i32) -> Result<PathBuf> {
-    self
-      .cover_dir()
-      .map(|it| it.join(book_id.to_string()))
+  fn cover(&self, book_id: i32) -> PathBuf {
+    self.cover_dir().join(book_id.to_string())
   }
 
-  fn cover_dir(&self) -> Result<PathBuf> {
+  fn cover_dir(&self) -> PathBuf {
     self
       .app_cache_dir()
-      .map(|it| it.join("covers"))
-      .map_err(Into::into)
+      .expect("failed to resolve app cache dir")
+      .join("covers")
   }
 
   #[cfg(feature = "devtools")]
-  fn dev_cache_dir(&self) -> Result<PathBuf> {
+  fn dev_cache_dir(&self) -> PathBuf {
     self
       .app_cache_dir()
-      .map(|it| it.join("dev-cache"))
-      .map_err(Into::into)
+      .expect("failed to resolve app cache dir")
+      .join("dev-cache")
   }
 
   #[cfg(feature = "devtools")]
-  fn mocks_dir(&self) -> Result<PathBuf> {
-    self.dev_cache_dir().map(|it| it.join("mocks"))
+  fn mocks_dir(&self) -> PathBuf {
+    self.dev_cache_dir().join("mocks")
   }
 }

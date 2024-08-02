@@ -19,7 +19,7 @@ pub fn create_book(app: &AppHandle, size: usize, orientation: Orientation) -> Re
   #[cfg(feature = "tracing")]
   let start = Instant::now();
 
-  let path = app.path().mocks_dir()?;
+  let path = app.path().mocks_dir();
   fs::create_dir_all(&path)?;
 
   let name = format!("{}.zip", Uuid::new_v4());

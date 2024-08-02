@@ -1,4 +1,3 @@
-use crate::book::ActiveBook;
 use crate::menu::prelude::*;
 use crate::menu::Listener;
 use crate::prelude::*;
@@ -145,18 +144,11 @@ impl_deref_menu!(FileMenu);
 
 async fn add_to_library(app: &AppHandle, window_id: u16) {
   if let Some(path) = reader::get_book_path(app, window_id).await {
-    let result: Result<()> = try {
-      let book = library::save(app, &path).await?;
-
-      // We must disable this menu item after the book is added to the library.
-      ReaderMenu::spawn_update(app);
-
-      ActiveBook::from_model(app, &book)?
-        .extract_cover()
-        .await?;
-    };
-
-    result.into_err_dialog(app);
+    // We must disable this menu item after the book is saved.
+    library::save(app, &path)
+      .await
+      .inspect(|_| ReaderMenu::spawn_update(app))
+      .into_err_dialog(app);
   };
 }
 

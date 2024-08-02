@@ -137,11 +137,10 @@ async fn mark_as_read(app: &AppHandle, read: bool) {
 
 async fn open_book(app: &AppHandle) {
   let ctx = LibraryBookContextMenu::context(app);
-  if let Ok(book) = ActiveBook::from_model(app, &ctx.book) {
-    reader::open_book(app, book)
-      .await
-      .into_err_dialog(app);
-  }
+  let active = ActiveBook::from_book(app, &ctx.book);
+  reader::open_book(app, active)
+    .await
+    .into_err_dialog(app);
 }
 
 fn open_book_folder(app: &AppHandle) {

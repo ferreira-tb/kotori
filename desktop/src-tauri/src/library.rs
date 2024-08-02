@@ -4,14 +4,11 @@ use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
 use ahash::{HashSet, HashSetExt};
-use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
-use std::sync::Arc;
+use future_iter::join_set::IntoJoinSetBy;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
 use tokio::fs;
-use tokio::sync::{oneshot, Semaphore};
+use tokio::sync::{mpsc, oneshot};
 use walkdir::WalkDir;
-
-const MAX_FILE_PERMITS: usize = 50;
 
 pub async fn add_with_dialog(app: &AppHandle) -> Result<()> {
   let (tx, rx) = oneshot::channel();
@@ -27,7 +24,7 @@ pub async fn add_folders<I>(app: &AppHandle, folders: I) -> Result<()>
 where
   I: IntoIterator<Item = PathBuf>,
 {
-  let folders = folders.into_iter().collect_vec();
+  let folders = folders.into_iter().unique().collect_vec();
   if folders.is_empty() {
     return Ok(());
   }
@@ -44,7 +41,7 @@ where
       .any(|it| folder.starts_with(it))
     {
       #[cfg(feature = "tracing")]
-      trace!(skip_folder = ?folder);
+      trace!("skipping folder: {folder:?}");
       continue;
     }
 
@@ -55,8 +52,7 @@ where
   if !current_folders.is_empty() {
     let folders = current_folders
       .into_iter()
-      .filter_map(|path| path.try_string().ok())
-      .map(|path| NewFolder { path })
+      .filter_map(|path| NewFolder::try_from(path).ok())
       .collect_vec();
 
     app
@@ -91,32 +87,33 @@ where
     return Ok(());
   }
 
-  let semaphore = Arc::new(Semaphore::new(MAX_FILE_PERMITS));
-  let mut set = books.into_iter().join_set_by(|path| {
+  let (tx, mut rx) = mpsc::channel(100);
+  for path in books {
     let app = app.clone();
-    let semaphore = Arc::clone(&semaphore);
-    async move {
-      let _permit = semaphore.acquire_owned().await?;
-      save(&app, &path).await
-    }
-  });
-
-  let mut models = Vec::with_capacity(set.len());
-  while let Some(result) = set.join_next().await {
-    if let Ok(model) = result? {
-      models.push(model);
-    }
+    let tx = tx.clone();
+    spawn(async move {
+      let book = save(&app, &path).await;
+      let _ = tx.send(book).await;
+    });
   }
 
-  if !models.is_empty() {
-    #[cfg(feature = "tracing")]
-    info!(
-      "{} books added to library in {:?}",
-      models.len(),
-      start.elapsed()
-    );
+  drop(tx);
 
-    schedule_cover_extraction(app, models);
+  #[cfg(feature = "tracing")]
+  let mut amount = 0;
+  while let Some(result) = rx.recv().await {
+    #[cfg(feature = "tracing")]
+    if result.is_ok() {
+      amount += 1;
+    }
+
+    result.into_err_log(app);
+  }
+
+  #[cfg(feature = "tracing")]
+  if amount > 0 {
+    let elapsed = start.elapsed();
+    info!("{amount} books added to library in {elapsed:?}");
   }
 
   Ok(())
@@ -129,88 +126,59 @@ pub async fn save(app: &AppHandle, path: &Path) -> Result<Book> {
     builder = builder.metadata(metadata);
   }
 
-  let new_book = builder.build(app).await?;
-  let model = app.database_handle().save_book(new_book).await?;
+  let book = builder.save(app).await?;
 
   // We could already call `BookHandle::set_metadata` to write the metadata of the saved book,
-  // but that doesn't seem like a good idea. After all, the data would only be default values.
-  let book = LibraryBook::from_model(app, &model)?;
-  Event::BookAdded(&book).emit(app)?;
+  // but that doesn't seem like a good idea, as the data would only be default values.
+  let library_book = LibraryBook::from_book(app, &book);
+  Event::BookAdded(&library_book).emit(app)?;
+
+  ActiveBook::from_book(app, &book)
+    .extract_cover()
+    .await?;
 
   handle.close(path).await?;
 
-  Ok(model)
+  Ok(book)
 }
 
 pub async fn get_all(app: &AppHandle) -> Result<Vec<LibraryBook>> {
-  let mut set = app
-    .database_handle()
-    .get_all_books()
-    .await?
-    .into_join_set_by(|model| {
-      let app = app.clone();
-      async move {
-        // Remove the book if the file is missing.
-        if let Ok(false) = fs::try_exists(&model.path).await {
-          remove(&app, model.id).await.into_err_log(&app);
-          return None;
-        }
-
-        let book = LibraryBook::from_model(&app, &model).ok()?;
-        Some((book, model))
+  let books = app.database_handle().get_all_books().await?;
+  let mut set = books.into_join_set_by(|book| {
+    let app = app.clone();
+    async move {
+      // Remove the book if the file is missing.
+      if let Ok(false) = fs::try_exists(&book.path).await {
+        remove(&app, book.id).await.into_err_log(&app);
+        return None;
       }
-    });
 
-  let mut books = Vec::with_capacity(set.len());
-  let mut pending = Vec::new();
+      Some(book)
+    }
+  });
 
+  let mut library_books = Vec::with_capacity(set.len());
   while let Some(result) = set.join_next().await {
-    if let Some((book, model)) = result? {
-      if book.cover.is_none() {
-        pending.push(model);
+    if let Some(book) = result? {
+      let library_book = LibraryBook::from_book(app, &book);
+      if library_book.cover.is_none() {
+        ActiveBook::from_book(app, &book).spawn_extract_cover();
       }
 
-      books.push(book);
+      library_books.push(library_book);
     }
   }
 
-  if !pending.is_empty() {
-    schedule_cover_extraction(app, pending);
-  }
-
-  Ok(books)
-}
-
-fn schedule_cover_extraction<I>(app: &AppHandle, models: I)
-where
-  I: IntoIterator<Item = Book>,
-{
-  let permits = MAX_FILE_PERMITS / 5;
-  let semaphore = Arc::new(Semaphore::new(permits));
-  for model in models {
-    let app = app.clone();
-    let semaphore = Arc::clone(&semaphore);
-    spawn(async move {
-      let result: Result<()> = try {
-        let _permit = semaphore.acquire_owned().await?;
-        ActiveBook::from_model(&app, &model)?
-          .extract_cover()
-          .await?;
-      };
-
-      result.into_err_log(&app);
-    });
-  }
+  Ok(library_books)
 }
 
 pub async fn remove(app: &AppHandle, id: i32) -> Result<()> {
   app.database_handle().remove_book(id).await?;
   Event::BookRemoved(id).emit(app)?;
 
-  if let Ok(cover) = app.path().cover(id) {
-    if fs::try_exists(&cover).await? {
-      fs::remove_file(cover).await?;
-    }
+  let path = app.path().cover(id);
+  if let Ok(true) = fs::try_exists(&path).await {
+    fs::remove_file(path).await?;
   }
 
   Ok(())
@@ -246,7 +214,7 @@ pub async fn remove_all(app: &AppHandle) -> Result<()> {
 
   Event::LibraryCleared.emit(app)?;
 
-  let path = app.path().cover_dir()?;
+  let path = app.path().cover_dir();
   if let Ok(true) = fs::try_exists(&path).await {
     fs::remove_dir_all(path).await?;
   }
@@ -307,10 +275,10 @@ pub async fn add_mock_books(
   }
 
   if !books.is_empty() {
-    let path = app.path().mocks_dir()?.try_string()?;
+    let path = app.path().mocks_dir();
     app
       .database_handle()
-      .save_folders([NewFolder { path }])
+      .save_folders([NewFolder::try_from(path)?])
       .await?;
 
     save_many(app, books).await?;

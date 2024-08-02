@@ -122,4 +122,10 @@ impl BookBuilder {
       read: self.read.unwrap_or(false),
     })
   }
+
+  /// Build a `NewBook` and then save it to the database.
+  pub async fn save(self, app: &AppHandle) -> Result<Book> {
+    let book = self.build(app).await?;
+    app.database_handle().save_book(book).await
+  }
 }

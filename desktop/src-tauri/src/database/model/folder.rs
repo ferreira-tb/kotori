@@ -1,5 +1,8 @@
+use crate::path::PathExt;
+use crate::result::Result;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 #[derive(Queryable, Selectable, Debug, Serialize, Deserialize)]
 #[diesel(table_name = crate::database::schema::folders)]
@@ -14,4 +17,12 @@ pub struct Folder {
 #[diesel(table_name = crate::database::schema::folders)]
 pub struct NewFolder {
   pub path: String,
+}
+
+impl TryFrom<PathBuf> for NewFolder {
+  type Error = crate::error::Error;
+
+  fn try_from(path: PathBuf) -> Result<Self> {
+    path.try_string().map(|path| Self { path })
+  }
 }

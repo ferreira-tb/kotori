@@ -7,24 +7,20 @@ pub enum Cover {
 }
 
 impl Cover {
-  pub fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
-    let path = app.path().cover(id)?;
-    if path.try_exists()? {
-      return Ok(path.into());
+  pub fn from_book_id(app: &AppHandle, id: i32) -> Self {
+    let path = app.path().cover(id);
+    if let Ok(true) = path.try_exists() {
+      return Self::Extracted(path);
     }
 
-    Ok(Cover::NotExtracted)
+    Self::NotExtracted
   }
 
-  pub fn path(&self) -> Option<&Path> {
+  pub fn into_path(self) -> Option<PathBuf> {
     match self {
       Self::Extracted(path) => Some(path),
       Self::NotExtracted => None,
     }
-  }
-
-  pub fn path_buf(&self) -> Option<PathBuf> {
-    self.path().map(ToOwned::to_owned)
   }
 }
 

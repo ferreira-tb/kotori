@@ -35,27 +35,33 @@ impl ActiveBook {
     Ok(book)
   }
 
+  pub fn from_book(app: &AppHandle, book: &Book) -> Self {
+    Self {
+      path: PathBuf::from(&book.path),
+      title: Title::new(&book.title),
+
+      app: app.clone(),
+      id: OnceCell::new_with(Some(book.id)),
+      pages: OnceCell::new(),
+    }
+  }
+
   pub async fn from_id(app: &AppHandle, id: i32) -> Result<Self> {
     app
       .database_handle()
       .get_book_by_id(id)
       .await
-      .and_then(|book| Self::from_model(app, &book))
-  }
-
-  pub fn from_model(app: &AppHandle, book: &Book) -> Result<Self> {
-    let active = Self::new(app, &book.path)?;
-    let _ = active.id.set(book.id);
-    Ok(active)
+      .map(|book| Self::from_book(app, &book))
   }
 
   pub async fn random(app: &AppHandle) -> Result<Option<Self>> {
-    let random = app.database_handle().random_book().await?;
-    if let Some(book) = random {
-      Self::from_model(app, &book).map(Some)
-    } else {
-      Ok(None)
-    }
+    let active_book = app
+      .database_handle()
+      .random_book()
+      .await?
+      .map(|book| Self::from_book(app, &book));
+
+    Ok(active_book)
   }
 
   pub fn id(&self) -> Option<i32> {
@@ -137,7 +143,7 @@ impl ActiveBook {
   pub async fn extract_cover(&self) -> Result<()> {
     let id = self.try_id().await?;
     let name = self.get_cover_name().await?;
-    let save_as = self.app.path().cover(id)?;
+    let save_as = self.app.path().cover(id);
 
     let cover = self
       .app
@@ -150,6 +156,12 @@ impl ActiveBook {
     }
 
     Ok(())
+  }
+
+  pub fn spawn_extract_cover(self) {
+    spawn(async move {
+      self.extract_cover().await.into_err_log(&self.app);
+    });
   }
 
   pub async fn delete_page(&mut self, name: &str) -> Result<()> {

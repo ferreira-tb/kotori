@@ -31,7 +31,7 @@ impl ReaderBook {
     Ok(Self { id, path, title, pages })
   }
 
-  pub async fn from_reader(app: &AppHandle, window_id: u16) -> Result<Self> {
+  pub async fn from_reader_window(app: &AppHandle, window_id: u16) -> Result<Self> {
     let windows = app.reader_windows();
     let windows = windows.read().await;
     let book = windows
@@ -71,15 +71,13 @@ pub struct LibraryBook {
 }
 
 impl LibraryBook {
-  pub fn from_model(app: &AppHandle, model: &Book) -> Result<Self> {
-    let book = Self {
-      id: model.id,
-      path: PathBuf::from(&model.path),
-      title: Title::new(&model.title),
-      rating: u8::try_from(model.rating)?,
-      cover: Cover::from_id(app, model.id)?.path_buf(),
-    };
-
-    Ok(book)
+  pub fn from_book(app: &AppHandle, book: &Book) -> Self {
+    Self {
+      id: book.id,
+      path: PathBuf::from(&book.path),
+      title: Title::new(&book.title),
+      rating: u8::try_from(book.rating).unwrap_or(0),
+      cover: Cover::from_book_id(app, book.id).into_path(),
+    }
   }
 }
