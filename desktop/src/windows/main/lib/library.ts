@@ -5,7 +5,7 @@ class LibraryBookImpl implements LibraryBook {
   public readonly title: string;
   public readonly path: string;
 
-  #cover: string;
+  #cover?: Nullish<string>;
   #rating: number;
   #read: boolean;
 
@@ -19,14 +19,17 @@ class LibraryBookImpl implements LibraryBook {
     this.#rating = book.rating;
     this.#read = book.read;
 
-    this.#cover = convertFileSrc(book.cover);
+    if (book.cover) {
+      this.#cover = convertFileSrc(book.cover);
+    }
   }
 
   get cover() {
     return this.#cover;
   }
 
-  set cover(path: string) {
+  set cover(path: Nullish<string>) {
+    if (!path) return;
     try {
       // Adds a version search parameter to force reload the image.
       const url = new URL(convertFileSrc(path));

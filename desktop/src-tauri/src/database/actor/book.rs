@@ -76,7 +76,7 @@ pub(super) fn has_path(db: Db, book_path: &Path) -> Result<bool> {
     .filter(path.eq(book_path))
     .limit(1)
     .get_result::<i64>(db)
-    .map(|count| count > 0)?;
+    .map(|it| it > 0)?;
 
   #[cfg(feature = "tracing")]
   trace!(has_path = has, "path checked in {:?}", start.elapsed());
@@ -91,7 +91,7 @@ pub(super) fn is_empty(db: Db) -> Result<bool> {
     .select(count_star())
     .limit(1)
     .get_result::<i64>(db)
-    .map(|count| count == 0)
+    .map(|it| it == 0)
     .map_err(Into::into)
 }
 

@@ -8,7 +8,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub type BoxResult<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 pub type TxResult<T> = oneshot::Sender<Result<T>>;
 
-// TODO: We should use the context provided by the `Error` type to show better error messages.
+// TODO: We should use the context provided by this type to show better error messages.
 pub trait ResultExt<T> {
   /// Create an error log, consuming `self`, and discarding the success value, if any.
   fn into_err_log(self, app: &AppHandle);

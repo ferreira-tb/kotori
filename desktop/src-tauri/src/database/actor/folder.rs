@@ -21,7 +21,7 @@ pub(super) fn is_empty(db: Db) -> Result<bool> {
     .select(count_star())
     .limit(1)
     .get_result::<i64>(db)
-    .map(|count| count == 0)
+    .map(|it| it == 0)
     .map_err(Into::into)
 }
 
