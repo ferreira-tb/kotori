@@ -3,6 +3,7 @@ use crate::database::model::{Book, NewFolder};
 use crate::event::Event;
 use crate::prelude::*;
 use crate::utils::glob;
+use ahash::{HashSet, HashSetExt};
 use future_iter::join_set::{IntoJoinSetBy, JoinSetFromIter};
 use std::sync::Arc;
 use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
@@ -31,7 +32,7 @@ where
     return Ok(());
   }
 
-  let mut books = Vec::new();
+  let mut books = HashSet::new();
   let library_folders = app.database_handle().get_all_folders().await?;
   let mut current_folders = Vec::with_capacity(folders.len());
 
@@ -136,7 +137,7 @@ pub async fn save(app: &AppHandle, path: &Path) -> Result<Book> {
   let book = LibraryBook::from_model(app, &model)?;
   Event::BookAdded(&book).emit(app)?;
 
-  handle.close(path).await;
+  handle.close(path).await?;
 
   Ok(model)
 }
@@ -257,7 +258,7 @@ pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
   #[cfg(feature = "tracing")]
   let start = Instant::now();
 
-  let mut books = Vec::new();
+  let mut books = HashSet::new();
   let folders = app.database_handle().get_all_folders().await?;
   for folder in folders {
     walk_folder(&mut books, &folder);
@@ -274,12 +275,12 @@ pub async fn scan_book_folders(app: &AppHandle) -> Result<()> {
 }
 
 /// Search recursively for books within the folder.
-fn walk_folder(books: &mut Vec<PathBuf>, folder: &Path) {
+fn walk_folder(books: &mut HashSet<PathBuf>, folder: &Path) {
   let globset = glob::book();
   for entry in WalkDir::new(folder).into_iter().flatten() {
     let path = entry.into_path();
     if path.is_file() && globset.is_match(&path) {
-      books.push(path);
+      books.insert(path);
     }
   }
 }

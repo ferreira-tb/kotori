@@ -9,7 +9,6 @@ use crate::event::Event;
 use crate::menu::AppMenu;
 use crate::path::PathExt;
 use crate::result::Result;
-use crate::send_tx;
 use actor::Actor;
 use diesel::prelude::*;
 use diesel::sqlite::SqliteConnection;
@@ -21,6 +20,20 @@ use std::{fs, thread};
 use tauri::{AppHandle, Manager};
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
+
+/// Send a message to the actor, awaiting its response with a oneshot channel.
+macro_rules! send_tx {
+  ($handle:expr, $message:ident) => {{
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    let _ = $handle.sender.send(Message::$message { tx });
+    rx.await?
+  }};
+  ($handle:expr, $message:ident { $($item:tt),* }) => {{
+    let (tx, rx) = tokio::sync::oneshot::channel();
+    let _ = $handle.sender.send(Message::$message { tx $(,$item)* });
+    rx.await?
+  }};
+}
 
 #[derive(Clone)]
 pub struct DatabaseHandle {
@@ -47,7 +60,6 @@ impl DatabaseHandle {
     let (sender, receiver) = mpsc::channel();
     let mut actor = Actor::new(connection, receiver);
 
-    let app = app.clone();
     app.run_on_main_thread(move || {
       thread::Builder::new()
         .name("database-worker".into())
@@ -55,19 +67,19 @@ impl DatabaseHandle {
         .expect("failed to spawn database worker");
     })?;
 
-    Ok(Self { app, sender })
+    Ok(Self { app: app.clone(), sender })
   }
 
   pub async fn get_all_books(&self) -> Result<Vec<Book>> {
-    send_tx!(self, GetAllBooks {})
+    send_tx!(self, GetAllBooks)
   }
 
   pub async fn get_all_collections(&self) -> Result<Vec<Collection>> {
-    send_tx!(self, GetAllCollections {})
+    send_tx!(self, GetAllCollections)
   }
 
   pub async fn get_all_folders(&self) -> Result<Vec<PathBuf>> {
-    send_tx!(self, GetAllFolders {})
+    send_tx!(self, GetAllFolders)
   }
 
   pub async fn get_book_by_id(&self, book_id: i32) -> Result<Book> {
@@ -92,11 +104,11 @@ impl DatabaseHandle {
   }
 
   pub async fn has_any_book(&self) -> Result<bool> {
-    send_tx!(self, HasAnyBook {})
+    send_tx!(self, HasAnyBook)
   }
 
   pub async fn has_any_folder(&self) -> Result<bool> {
-    send_tx!(self, HasAnyFolder {})
+    send_tx!(self, HasAnyFolder)
   }
 
   pub async fn has_book_path(&self, book_path: &Path) -> Result<bool> {
@@ -105,19 +117,19 @@ impl DatabaseHandle {
   }
 
   pub async fn random_book(&self) -> Result<Option<Book>> {
-    send_tx!(self, RandomBook {})
+    send_tx!(self, RandomBook)
   }
 
   #[cfg(feature = "devtools")]
   pub async fn remove_all_books(&self) -> Result<()> {
-    send_tx!(self, RemoveAllBooks {})?;
+    send_tx!(self, RemoveAllBooks)?;
     AppMenu::spawn_update(&self.app);
     Ok(())
   }
 
   #[cfg(feature = "devtools")]
   pub async fn remove_all_folders(&self) -> Result<()> {
-    send_tx!(self, RemoveAllFolders {})
+    send_tx!(self, RemoveAllFolders)
   }
 
   pub async fn remove_book(&self, book_id: i32) -> Result<()> {

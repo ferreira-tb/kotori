@@ -1,9 +1,10 @@
-use crate::book::handle::file::BookFile;
-use crate::book::handle::message::Message;
+use super::file::BookFile;
+use super::message::Message;
 use crate::prelude::*;
 use ahash::{HashMap, HashMapExt};
 use std::fmt;
-use std::sync::{mpsc, Arc};
+use std::sync::mpsc;
+use strum::EnumIs;
 
 pub(super) struct Actor {
   cache: HashMap<PathBuf, BookFile>,
@@ -24,7 +25,7 @@ impl Actor {
   #[cfg_attr(feature = "tracing", instrument)]
   fn handle_message(&mut self, message: Message) {
     #[cfg(feature = "tracing")]
-    trace!(actor_cache_size = self.cache.len());
+    trace!(actor_cache_size = self.cache.len(), ?message);
 
     match message {
       Message::Close { path, nt } => {
@@ -32,16 +33,10 @@ impl Actor {
         nt.notify_one();
       }
       Message::GetPages { path, tx } => {
-        let result = self
-          .get_book(&path)
-          .map(|it| Arc::clone(&it.pages));
-
+        let result = self.get_book(&path).map(BookFile::pages);
         let _ = tx.send(result);
       }
       Message::ReadPage { path, page, tx } => {
-        #[cfg(feature = "tracing")]
-        trace!(read_page = %page);
-
         let result = self
           .get_book_mut(&path)
           .and_then(|it| it.read_page(&page));
@@ -49,14 +44,14 @@ impl Actor {
         let _ = tx.send(result);
       }
       Message::DeletePage { path, page, tx } => {
-        #[cfg(feature = "tracing")]
-        trace!(delete_page = %page);
-
         let result = self
-          .remove_book(&path)
+          .get_book_owned(&path)
           .and_then(|it| it.delete_page(&page));
 
         let _ = tx.send(result);
+      }
+      Message::Status { tx } => {
+        let _ = tx.send(self.status());
       }
       Message::GetMetadata { path, tx } => {
         let result = self
@@ -65,12 +60,12 @@ impl Actor {
 
         let _ = tx.send(result);
       }
+      Message::HasFile { path, tx } => {
+        let _ = tx.send(self.cache.contains_key(&path));
+      }
       Message::SetMetadata { path, metadata, tx } => {
-        #[cfg(feature = "tracing")]
-        trace!(set_metadata = ?metadata);
-
         let result = self
-          .remove_book(&path)
+          .get_book_owned(&path)
           .and_then(|it| it.write_metadata(&metadata));
 
         let _ = tx.send(result);
@@ -112,11 +107,19 @@ impl Actor {
       .expect("book should be in the cache")
   }
 
-  fn remove_book(&mut self, path: &Path) -> Result<BookFile> {
+  fn get_book_owned(&mut self, path: &Path) -> Result<BookFile> {
     if let Some(book) = self.cache.remove(path) {
       Ok(book)
     } else {
       BookFile::open(path)
+    }
+  }
+
+  fn status(&self) -> Status {
+    if self.cache.is_empty() {
+      Status::Idle
+    } else {
+      Status::Busy(self.cache.len())
     }
   }
 }
@@ -127,4 +130,11 @@ impl fmt::Debug for Actor {
       .field("cache", &self.cache.len())
       .finish_non_exhaustive()
   }
+}
+
+#[derive(Debug, Default, EnumIs)]
+pub(super) enum Status {
+  #[default]
+  Idle,
+  Busy(usize),
 }

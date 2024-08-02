@@ -1,11 +1,12 @@
-use crate::book::handle::PageMap;
+use super::actor::Status;
+use super::PageMap;
 use crate::book::metadata::Metadata;
 use crate::prelude::*;
 use crate::result::TxResult;
 use std::fmt;
 use std::sync::Arc;
 use strum::Display;
-use tokio::sync::Notify;
+use tokio::sync::{oneshot, Notify};
 
 #[derive(Display)]
 #[strum(serialize_all = "snake_case")]
@@ -31,6 +32,10 @@ pub(super) enum Message {
     path: PathBuf,
     tx: TxResult<Arc<PageMap>>,
   },
+  HasFile {
+    path: PathBuf,
+    tx: oneshot::Sender<bool>,
+  },
   ReadPage {
     path: PathBuf,
     page: String,
@@ -41,6 +46,25 @@ pub(super) enum Message {
     metadata: Metadata,
     tx: TxResult<()>,
   },
+  Status {
+    tx: oneshot::Sender<Status>,
+  },
+}
+
+impl Message {
+  pub(super) fn path(&self) -> Option<PathBuf> {
+    match self {
+      Self::Status { .. } => None,
+      Self::Close { path, .. }
+      | Self::DeletePage { path, .. }
+      | Self::GetFirstPageName { path, .. }
+      | Self::GetMetadata { path, .. }
+      | Self::GetPages { path, .. }
+      | Self::HasFile { path, .. }
+      | Self::ReadPage { path, .. }
+      | Self::SetMetadata { path, .. } => Some(path.clone()),
+    }
+  }
 }
 
 impl fmt::Debug for Message {

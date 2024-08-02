@@ -110,6 +110,7 @@ default = ["devtools", "tracing"]
 devtools = ["tauri/devtools"]
 open-main-devtools = ["devtools"]
 open-reader-devtools = ["devtools"]
+
 tracing = [
   "dep:tracing",
   "dep:tracing-appender",

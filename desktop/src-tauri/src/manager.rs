@@ -15,7 +15,7 @@ impl Kotori {
   pub fn init(app: &AppHandle) -> Result<()> {
     let kotori = Self {
       database_handle: DatabaseHandle::new(app)?,
-      book_handle: BookHandle::new(),
+      book_handle: BookHandle::new(app),
       reader: Reader::new(),
     };
 

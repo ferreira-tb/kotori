@@ -1,4 +1,4 @@
-use crate::book::handle::PageMap;
+use super::PageMap;
 use crate::book::metadata::Metadata;
 use crate::fs::Tempfile;
 use crate::prelude::*;
@@ -18,8 +18,8 @@ const METADATA_FILENAME: &str = "kotori.json";
 
 pub(super) struct BookFile {
   file: ZipArchive<File>,
+  pages: Arc<PageMap>,
   path: PathBuf,
-  pub(super) pages: Arc<PageMap>,
 }
 
 impl BookFile {
@@ -46,11 +46,15 @@ impl BookFile {
     Ok(file)
   }
 
+  pub(super) fn pages(&self) -> Arc<PageMap> {
+    Arc::clone(&self.pages)
+  }
+
   pub(super) fn read_page(&mut self, page: &str) -> Result<Vec<u8>> {
     self.file.read_file(page).map_err(Into::into)
   }
 
-  #[cfg_attr(feature = "tracing", instrument)]
+  #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
   pub(super) fn read_metadata(&mut self) -> Result<Option<Metadata>> {
     #[cfg(feature = "tracing")]
     let start = Instant::now();
@@ -63,17 +67,12 @@ impl BookFile {
       .transpose()?;
 
     #[cfg(feature = "tracing")]
-    {
-      info!("metadata read in {:?}", start.elapsed());
-      if let Some(metadata) = &metadata {
-        trace!(?metadata);
-      }
-    }
+    trace!("metadata read in {:?}", start.elapsed());
 
     Ok(metadata)
   }
 
-  #[cfg_attr(feature = "tracing", instrument)]
+  #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
   pub(super) fn delete_page(mut self, page: &str) -> Result<()> {
     #[cfg(feature = "tracing")]
     let start = Instant::now();
@@ -91,7 +90,7 @@ impl BookFile {
     fs::rename(&temp.path, self.path)?;
 
     #[cfg(feature = "tracing")]
-    info!("page deleted in {:?}", start.elapsed());
+    trace!("page deleted in {:?}", start.elapsed());
 
     Ok(())
   }
@@ -105,7 +104,7 @@ impl BookFile {
       .ok_or_else(|| err!(EmptyBook))
   }
 
-  #[cfg_attr(feature = "tracing", instrument)]
+  #[cfg_attr(feature = "tracing", instrument(level = "trace"))]
   pub(super) fn write_metadata(mut self, metadata: &Metadata) -> Result<()> {
     #[cfg(feature = "tracing")]
     let start = Instant::now();
@@ -126,7 +125,7 @@ impl BookFile {
     fs::rename(&temp.path, self.path)?;
 
     #[cfg(feature = "tracing")]
-    info!("metadata written in {:?}", start.elapsed());
+    trace!("metadata written in {:?}", start.elapsed());
 
     Ok(())
   }
@@ -180,7 +179,7 @@ where
   {
     self
       .file_names()
-      .filter(|name| f(*name))
+      .filter(|name| f(name))
       .map_into()
       .collect()
   }

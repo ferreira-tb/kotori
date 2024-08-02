@@ -1,79 +1,86 @@
 mod actor;
 mod file;
 mod message;
+mod scheduler;
+mod worker;
 
-use crate::book::metadata::Metadata;
+use super::metadata::Metadata;
 use crate::prelude::*;
 use crate::utils::collections::OrderedMap;
-use crate::{send_notify, send_tx};
-use actor::Actor;
 use message::Message;
-use std::sync::{mpsc, Arc};
-use std::{fmt, thread};
+use scheduler::Scheduler;
+use std::fmt;
+use std::sync::Arc;
+use tokio::sync::{oneshot, Notify};
 
 pub(super) type PageMap = OrderedMap<usize, String>;
 
+macro_rules! schedule_tx {
+  ($handle:expr, $message:ident { $($item:tt),* }) => {{
+    let (tx, rx) = oneshot::channel();
+    $handle.scheduler.schedule(Message::$message { tx $(,$item)* }).await?;
+    rx.await?
+  }};
+}
+
+macro_rules! schedule_notify {
+  ($handle:expr, $message:ident { $($item:tt),* }) => {{
+    let notify = Arc::new(Notify::new());
+    let message = Message::$message { nt: Arc::clone(&notify) $(,$item)* };
+    $handle.scheduler.schedule(message).await?;
+    notify.notified().await;
+    Ok(())
+  }};
+}
+
 #[derive(Clone)]
 pub struct BookHandle {
-  sender: mpsc::Sender<Message>,
+  scheduler: Arc<Scheduler>,
 }
 
 impl BookHandle {
-  pub fn new() -> Self {
-    let (sender, receiver) = mpsc::channel();
-    let mut actor = Actor::new(receiver);
-
-    thread::spawn(move || actor.run());
-
-    Self { sender }
+  pub fn new(app: &AppHandle) -> Self {
+    Self {
+      scheduler: Arc::new(Scheduler::new(app)),
+    }
   }
 
   /// Close the book file, removing it from the cache.
-  pub async fn close(&self, path: &Path) {
+  pub async fn close(&self, path: &Path) -> Result<()> {
     let path = path.to_owned();
-    send_notify!(self, Close { path });
+    schedule_notify!(self, Close { path })
   }
 
   pub async fn get_pages(&self, path: &Path) -> Result<Arc<PageMap>> {
     let path = path.to_owned();
-    send_tx!(self, GetPages { path })
+    schedule_tx!(self, GetPages { path })
   }
 
   pub async fn read_page(&self, path: &Path, page: &str) -> Result<Vec<u8>> {
     let path = path.to_owned();
     let page = page.to_owned();
-    send_tx!(self, ReadPage { path, page })
+    schedule_tx!(self, ReadPage { path, page })
   }
 
   pub async fn delete_page(&self, path: &Path, page: &str) -> Result<()> {
     let path = path.to_owned();
     let page = page.to_owned();
-    send_tx!(self, DeletePage { path, page })
+    schedule_tx!(self, DeletePage { path, page })
   }
 
   pub async fn get_metadata(&self, path: &Path) -> Result<Option<Metadata>> {
     let path = path.to_owned();
-    let metadata = send_tx!(self, GetMetadata { path })?;
-
-    #[cfg(feature = "tracing")]
-    if let Some(metadata) = &metadata {
-      trace!(get_metadata = ?metadata);
-    }
-
-    Ok(metadata)
+    schedule_tx!(self, GetMetadata { path })
   }
 
   pub async fn set_metadata(&self, path: &Path, metadata: Metadata) -> Result<()> {
-    #[cfg(feature = "tracing")]
-    trace!(set_metadata = ?metadata);
-
     let path = path.to_owned();
-    send_tx!(self, SetMetadata { path, metadata })
+    schedule_tx!(self, SetMetadata { path, metadata })
   }
 
   pub async fn get_first_page_name(&self, path: &Path) -> Result<String> {
     let path = path.to_owned();
-    send_tx!(self, GetFirstPageName { path })
+    schedule_tx!(self, GetFirstPageName { path })
   }
 }
 
